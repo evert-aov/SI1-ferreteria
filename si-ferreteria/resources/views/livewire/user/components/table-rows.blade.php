@@ -1,12 +1,6 @@
 <div>
     {{-- Nombre Completo --}}
-    <td class="px-6 py-2 whitespace-nowrap">
-        <div class="flex items-center ml-4">
-            <div class="text-sm font-medium text-white">
-                {{ $item->name }} {{ $item->last_name }}
-            </div>
-        </div>
-    </td>
+    <x-table.td data=" {{ $item->name }} {{ $item->last_name }}"/>
 
     <x-table.td data="{{ $item->phone }}"/>
 

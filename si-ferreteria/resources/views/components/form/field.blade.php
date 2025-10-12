@@ -29,6 +29,5 @@
         max="{{ $max }}"
         class="{{ $editing ? 'cursor-not-allowed opacity-75' : '' }}"
     />
-
     <x-input-error class="mt-2" :messages="$errors->get('{{ $name }}')"/>
 </div>

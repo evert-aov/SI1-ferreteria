@@ -16,7 +16,7 @@
                 {{ $title }}
             </x-input-label>
         </div
->    </x-container-second-div>
+        >    </x-container-second-div>
 
     <!-- Búsqueda -->
     <x-container-second-div>
@@ -48,7 +48,7 @@
             <div class="flex justify-end">
                 <x-primary-button
                     wire:click="{{ $clickOpenCreateModal }}"
-                    class="flex items-center bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800">
+                    class="flex items-center">
                     <x-icons.user class="mr-2"></x-icons.user>
                     {{ $btnName }}
                 </x-primary-button>
