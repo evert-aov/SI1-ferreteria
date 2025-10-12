@@ -71,7 +71,7 @@
                                                 this.closest('form').submit();"
                                      class="flex items-center p-3 text-gray-300 rounded-lg hover:bg-gradient-to-r hover:from-red-600/20 hover:to-red-700/20 group transition-all duration-300 transform hover:scale-105 hover:shadow-lg border-l-4 border-transparent hover:border-red-500">
                         <x-icons.logout/>
-                        {{ __('Cerrar sesión') }}
+                        {{ __('auth.Log out') }}
                     </x-dropdown-link>
                 </form>
             </li>

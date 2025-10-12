@@ -38,7 +38,6 @@
             </x-container-div>
         </x-gradient-div>
     </div>
-
 </div>
 @livewireScripts
 </body>
