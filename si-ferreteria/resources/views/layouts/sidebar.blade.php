@@ -1,5 +1,5 @@
 <aside id="logo-sidebar"
-       class="fixed top-0 left-0 z-40 w-1/5 h-screen pt-10 transition-transform -translate-x-full sm:translate-x-0 bg-gradient-to-b from-gray-800 via-gray-900 to-black shadow-2xl border-r-4 border-orange-600"
+       class="fixed top-0 left-0 z-40 w-[275px] h-screen pt-10 transition-transform -translate-x-full sm:translate-x-0 bg-gradient-to-b from-gray-800 via-gray-900 to-black shadow-2xl border-r-4 border-orange-600"
        aria-label="Sidebar">
 
     <div class="h-full px-3 pb-4 overflow-y-auto bg-gradient-to-b from-gray-800 via-gray-900 to-black">
@@ -71,7 +71,7 @@
                                                 this.closest('form').submit();"
                                      class="flex items-center p-3 text-gray-300 rounded-lg hover:bg-gradient-to-r hover:from-red-600/20 hover:to-red-700/20 group transition-all duration-300 transform hover:scale-105 hover:shadow-lg border-l-4 border-transparent hover:border-red-500">
                         <x-icons.logout/>
-                        {{ __('auth.Log out') }}
+                        {{ __('Cerrar sesión') }}
                     </x-dropdown-link>
                 </form>
             </li>
