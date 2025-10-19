@@ -2,10 +2,12 @@
 
 namespace App\Providers;
 
+use App\Models\Category;
 use App\Models\Permission;
 use App\Models\Product;
 use App\Models\Role;
 use App\Models\User;
+use App\Observers\CategoryObserver;
 use App\Observers\GenericObserver;
 use App\Observers\ProductObserve;
 use App\Observers\UserObserver;
@@ -31,6 +33,7 @@ class AppServiceProvider extends ServiceProvider
         Role::observe(GenericObserver::class);
         Permission::observe(GenericObserver::class);
         Product::observe(ProductObserve::class);
+        Category::observe(CategoryObserver::class);
         if (config('app.env') === 'production') {
             URL::forceScheme('https');
         }
