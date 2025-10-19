@@ -59,6 +59,14 @@
                 </a>
             </li>
 
+            <li>
+                <a href="{{ route('categories.index') }}"
+                   class="flex items-center p-3 text-gray-300 rounded-lg hover:bg-gradient-to-r hover:from-amber-600/20 hover:to-yellow-600/20 group transition-all duration-300 transform hover:scale-105 hover:shadow-lg border-l-4 border-transparent hover:border-amber-500">
+                    <x-icons.categories/>
+                    <x-input-label value="Categories" class="ms-3"/>
+                </a>
+            </li>
+
             <li class="pt-4 mt-4">
                 <x-dividers title="Sistema"/>
             </li>

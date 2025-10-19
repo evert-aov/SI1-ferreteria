@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ProfileController;
 use App\Livewire\AuditLog;
+use App\Livewire\CategoryManager;
 use App\Livewire\ProductManager;
 use App\Livewire\RoleManager;
 use App\Livewire\UserManager;
@@ -25,6 +26,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/audit-logs', AuditLog::class)->name('audit-logs.index');
         Route::get('/permissions', PermissionManager::class)->name('permissions.index');
         Route::get('/product-inventory', ProductManager::class)->name('product-inventory.index');
+        Route::get('/categories', CategoryManager::class)->name('categories.index');
     });
 });
 

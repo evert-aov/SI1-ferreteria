@@ -1,0 +1,12 @@
+<div>
+    <x-table.data-table
+        :items="$categories"
+        modal="livewire.category.modal-edit-store"
+        header="livewire.category.components.header-product"
+        table-header="livewire.category.components.table-header"
+        table-rows="livewire.category.components.table-rows"
+        :editing="$editing"
+        :search="$search"
+        :show="$show"
+    />
+</div>

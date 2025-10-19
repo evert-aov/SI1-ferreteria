@@ -12,8 +12,6 @@ use App\Models\TechnicalSpecification;
 use App\Models\Volume;
 use Exception;
 use Illuminate\Contracts\View\View;
-use Illuminate\Database\Eloquent\Builder;
-use LaravelIdea\Helper\App\Models\_IH_Product_QB;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use Livewire\WithPagination;

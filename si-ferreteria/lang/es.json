@@ -60,5 +60,14 @@
     "Volume": "Volumen",
     "No technical specifications available. Create them first.": "No hay especificaciones técnicas disponibles. Créalas primero.",
     "Technical Specifications": "Especificaciones técnicas",
-    "Enter value": "Ingrese valor"
+    "Enter value": "Ingrese valor",
+    "The level is calculated automatically based on the parent category": "El nivel se calcula automáticamente en función de la categoría principal.",
+    "Active": "Activo",
+    "Inactive": "Inactivo",
+    "-- Root Category (Level 1) --": "-- Categoría principal (Nivel 1) --",
+    "Parent Category": "Categoría principal",
+    "Status": "Estado",
+    "Parent": "Padre",
+    "Level": "Nivel",
+    "Create Category": "Crear categoria"
 }
