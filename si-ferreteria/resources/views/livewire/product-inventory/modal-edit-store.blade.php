@@ -76,7 +76,6 @@
                     min="0.01"
                     wire:model="form.purchase_price"
                     id="volume"
-                    class="flex-1"
                     placeholder="0.00"
                 />
                 <x-select-input
@@ -108,7 +107,6 @@
                     min="0.01"
                     wire:model="form.sale_price"
                     id="volume"
-                    class="flex-1"
                     placeholder="0.00"
                 />
                 <x-select-input
@@ -321,7 +319,6 @@
                         min="0.01"
                         wire:model="form.length"
                         id="length"
-                        class="flex-1"
                         placeholder="0.00"
                     />
                     <x-select-input
@@ -348,7 +345,6 @@
                         min="0.01"
                         wire:model="form.width"
                         id="width"
-                        class="flex-1"
                         placeholder="0.00"
                     />
                     <x-select-input
@@ -376,7 +372,6 @@
                         min="0.01"
                         wire:model="form.eight"
                         id="eight"
-                        class="flex-1"
                         placeholder="0.00"
                     />
                     <x-select-input
@@ -402,7 +397,6 @@
                         step="0.01"
                         wire:model="form.thickness"
                         id="thickness"
-                        class="flex-1"
                         placeholder="0.00"
                     />
                     <x-select-input
@@ -438,7 +432,6 @@
                         min="0.01"
                         wire:model="form.peso"
                         id="peso"
-                        class="flex-1"
                         placeholder="0.00"
                     />
                     <x-select-input
@@ -465,7 +458,6 @@
                         min="0.01"
                         wire:model="form.volume"
                         id="volume"
-                        class="flex-1"
                         placeholder="0.00"
                     />
                     <x-select-input
