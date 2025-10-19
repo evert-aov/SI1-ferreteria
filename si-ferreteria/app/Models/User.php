@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
@@ -32,6 +31,7 @@ class User extends Authenticatable
         'status',
         'password',
         'updated_at',
+        'created_at',
     ];
 
     /**

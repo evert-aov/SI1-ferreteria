@@ -52,7 +52,7 @@
                 <x-dividers title="Gestión de Inventario"/>
             </li>
             <li>
-                <a href="#"
+                <a href="{{ route('product-inventory.index') }}"
                    class="flex items-center p-3 text-gray-300 rounded-lg hover:bg-gradient-to-r hover:from-amber-600/20 hover:to-yellow-600/20 group transition-all duration-300 transform hover:scale-105 hover:shadow-lg border-l-4 border-transparent hover:border-amber-500">
                     <x-icons.products/>
                     <x-input-label value="Productos" class="ms-3"/>

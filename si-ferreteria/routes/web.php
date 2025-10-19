@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ProfileController;
 use App\Livewire\AuditLog;
+use App\Livewire\ProductManager;
 use App\Livewire\RoleManager;
 use App\Livewire\UserManager;
 use Illuminate\Support\Facades\Route;
@@ -23,8 +24,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/roles', RoleManager::class)->name('roles.index');
         Route::get('/audit-logs', AuditLog::class)->name('audit-logs.index');
         Route::get('/permissions', PermissionManager::class)->name('permissions.index');
+        Route::get('/product-inventory', ProductManager::class)->name('product-inventory.index');
     });
 });
 
-
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';

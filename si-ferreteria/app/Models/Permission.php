@@ -13,10 +13,12 @@ class Permission extends Model
         'module',
         'action',
         'is_active',
+        'updated_at',
     ];
 
     protected $casts = [
         'is_active' => 'boolean',
+        'updated_at' => 'date',
     ];
 
     public function roles(): BelongsToMany

@@ -9,7 +9,7 @@
 
 @if($show)
     <x-container-div class="fixed inset-0 z-50 flex items-center justify-center p-4">
-        <x-container-second-div class="max-w-lg w-full max-h-[90vh] overflow-y-auto">
+        <x-container-second-div class="max-w-xl w-full max-h-[95vh] overflow-y-auto">
             <x-container-div>
                 <div>
                     <x-input-label class="flex justify-between">
