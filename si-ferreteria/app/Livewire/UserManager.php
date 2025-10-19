@@ -3,11 +3,16 @@
 namespace App\Livewire;
 
 use AllowDynamicProperties;
+use App\Models\Product;
 use App\Models\Role;
 use App\Models\User;
+use Exception;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\View\View;
 use Livewire\Component;
 use Livewire\WithPagination;
+use Log;
 
 #[AllowDynamicProperties]
 class UserManager extends Component
@@ -51,7 +56,7 @@ class UserManager extends Component
         $this->resetPage();
     }
 
-    public function render()
+    public function render(): View
     {
         $query = User::query();
 
@@ -66,7 +71,6 @@ class UserManager extends Component
                     ->orWhereRaw("CONCAT(name, ' ', last_name) ILIKE ?", [$searchTerm]);
             });
         }
-
         $users = $query->orderBy('name')->paginate(10);
         $allRoles = Role::all();
         return view('livewire.user.user-manager', compact('users', 'allRoles'))
@@ -146,9 +150,7 @@ class UserManager extends Component
 
                 $user->update($updateData);
 
-                $sync_data = Collect($this->roles)->mapWithKeys(function ($role_id) {
-                    return [$role_id => ['assigned_date' => now()]];
-                });
+                $sync_data = $this->getCollectionRoles();
                 $user->roles()->sync($sync_data);
                 session()->flash('message', 'Usuario actualizado correctamente');
             } else {
@@ -166,19 +168,23 @@ class UserManager extends Component
                     'created_at' => now(),
                     'updated_at' => now(),
                 ]);
-                $sync_data = Collect($this->roles)->mapWithKeys(function ($role_id) {
-                    return [$role_id => ['assigned_date' => now()]];
-                });
-                $user->roles()->sync($sync_data);
+                $user->roles()->sync($this->getCollectionRoles());
                 session()->flash('message', 'Usuario creado correctamente');
             }
 
             $this->closeModal();
 
-        } catch (\Exception $e) {
-            \Log::error('Error al guardar usuario: ' . $e->getMessage());
+        } catch (Exception $e) {
+            Log::error('Error al guardar usuario: ' . $e->getMessage());
             session()->flash('error', 'Error al guardar el usuario: ' . $e->getMessage());
         }
+    }
+
+    public function getCollectionRoles(): Collection
+    {
+        return Collect($this->roles)->mapWithKeys(function ($role_id) {
+            return [$role_id => ['assigned_date' => now()]];
+        });
     }
 
     public function delete($id): void
@@ -192,7 +198,7 @@ class UserManager extends Component
             } else {
                 session()->flash('error', 'Usuario no encontrado');
             }
-        } catch (\Exception $e) {
+        } catch (Exception) {
             session()->flash('error', 'Error al eliminar el usuario');
         }
     }

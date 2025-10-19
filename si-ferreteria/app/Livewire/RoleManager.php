@@ -1,11 +1,13 @@
 <?php
 
 namespace App\Livewire;
+use Illuminate\View\View;
 
 use App\Models\Permission;
 use App\Models\Role;
 use Livewire\Component;
 use Livewire\WithPagination;
+
 
 class RoleManager extends Component
 {
@@ -36,7 +38,7 @@ class RoleManager extends Component
 
     protected $listeners = ['refreshComponent' => 'render'];
 
-    public function render()
+    public function render(): View
     {
         $query = Role::query();
 

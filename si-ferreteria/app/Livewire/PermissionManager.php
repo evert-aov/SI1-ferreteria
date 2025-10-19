@@ -3,7 +3,7 @@
 namespace App\Livewire;
 
 use App\Models\Permission;
-use Livewire\Component; 
+use Livewire\Component;
 use Livewire\WithPagination;
 
 #[AllowDynamicProperties]
@@ -99,7 +99,7 @@ class PermissionManager extends Component
                     'description' => $this->description,
                     'module' => $this->module,
                     'action' => $this->action,
-                    'is_active' => (bool) $this->is_active,
+                    'is_active' => (bool)$this->is_active,
                     'updated_at' => now(),
                 ];
 
@@ -107,12 +107,12 @@ class PermissionManager extends Component
                 session()->flash('message', 'Permiso actualizado correctamente');
             } else {
 
-                $permission = Permission::create([
+                Permission::create([
                     'name' => $this->name,
                     'description' => $this->description,
                     'module' => $this->module,
                     'action' => $this->action,
-                    'is_active' => (bool) $this->is_active,
+                    'is_active' => (bool)$this->is_active,
                     'created_at' => now(),
                     'updated_at' => now(),
                 ]);
@@ -125,7 +125,8 @@ class PermissionManager extends Component
         }
     }
 
-    public function delete($id) {
+    public function delete($id): void
+    {
         try {
             $permission = Permission::find($id);
             if (!$permission) {

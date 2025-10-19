@@ -8,7 +8,8 @@
     'wireModel' => null,
     'readonly' => false,
     'min' => 0,
-    'max' => 15
+    'max' => 155555555555555,
+    'step' => 0.1
 ])
 
 <div {{ $attributes->merge(['class' => '']) }}>
@@ -27,6 +28,7 @@
         :readonly="$readonly"
         min="{{ $min }}"
         max="{{ $max }}"
+        step="{{ $step }}"
         class="{{ $editing ? 'cursor-not-allowed opacity-75' : '' }}"
     />
     <x-input-error class="mt-2" :messages="$errors->get('{{ $name }}')"/>
