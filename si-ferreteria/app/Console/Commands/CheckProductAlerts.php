@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Services\ProductAlertChecker;
 use Illuminate\Console\Command;
 
 class CheckProductAlerts extends Command
