@@ -53,7 +53,6 @@ class ProductManager extends Component
     public function render(): View
     {
 
-
         $products = Product::query()
             ->search($this->search)
             ->orderedById()
@@ -112,7 +111,7 @@ class ProductManager extends Component
                 $this->syncSpecifications($product);
                 session()->flash('message', 'Producto actualizado correctamente');
             } else {
-                Product::create($data);
+                $product = Product::create($data);
                 session()->flash('message', 'Producto creado correctamente');
             }
 

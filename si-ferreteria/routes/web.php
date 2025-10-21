@@ -3,6 +3,7 @@
 use App\Http\Controllers\ProfileController;
 use App\Livewire\AuditLog;
 use App\Livewire\CategoryManager;
+use App\Livewire\ProductAlertManager;
 use App\Livewire\ProductManager;
 use App\Livewire\PurchaseManager;
 use App\Livewire\RoleManager;
@@ -21,6 +22,7 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
+    Route::get('/product-alerts', ProductAlertManager::class)->name('product-alerts.index');
     Route::middleware('Administrador')->group(function () {
         Route::get('/users', UserManager::class)->name('users.index');
         Route::get('/roles', RoleManager::class)->name('roles.index');

@@ -38,6 +38,11 @@
             </x-container-div>
         </x-gradient-div>
     </div>
+
+    <!-- Componente de alertas de productos (solo para usuarios autenticados) -->
+    @auth
+        <livewire:toast-alert-manager />
+    @endauth
 </div>
 @livewireScripts
 </body>

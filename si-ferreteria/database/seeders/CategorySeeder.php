@@ -4,6 +4,8 @@ namespace Database\Seeders;
 
 use App\Models\Category;
 use Illuminate\Database\Seeder;
+use App\Models\User;
+use Illuminate\Support\Facades\Auth;
 
 class CategorySeeder extends Seeder
 {
@@ -12,6 +14,13 @@ class CategorySeeder extends Seeder
      */
     public function run(): void
     {
+
+        $adminUser = User::first();
+        if ($adminUser) {
+            Auth::login($adminUser);
+        }
+
+
         $categories = [
             // ============================================
             // 08 09 - PINTURA
@@ -437,6 +446,7 @@ class CategorySeeder extends Seeder
         ];
 
         $this->createCategories($categories);
+        Auth::logout();
     }
 
     private function createCategories(array $categories,  ?int $parentId = null): void
