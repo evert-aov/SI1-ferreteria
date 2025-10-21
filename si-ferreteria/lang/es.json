@@ -69,5 +69,21 @@
     "Status": "Estado",
     "Parent": "Padre",
     "Level": "Nivel",
-    "Create Category": "Crear categoria"
-}
+    "Create Category": "Crear categoria",
+    "Categories": "Categorias",
+    "Products": "Productos",
+    "Inventory": "Inventario",
+    "Amount": "Cantidad",
+    "Product": "Producto",
+    "Supplier": "Proveedor",
+    "Action": "Acción",
+    "Document type": "Tipo de documento",
+    "Invoice number": "Número de factura",
+    "Payment method": "Metodo de pago",
+    "Suppliers": "Proveedores",
+    "Register a purchase": "Registrar una compra",
+    "Purchase": "Compra",
+    "Add": "Agregar",
+    "Save": "Guardar",
+    "Add Item": "Agregar nuevo articulo"
+ }

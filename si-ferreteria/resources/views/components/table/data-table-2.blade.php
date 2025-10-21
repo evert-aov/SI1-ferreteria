@@ -1,21 +1,10 @@
 @props([
-    'header' => null,
     'items' => collect(),
     'tableHeader' => null,
     'tableRows' => null,
-    'modal' => null,
-    'search' => '',
-    'show' => false,
-    'editing' => null,
-    'relations' => null,
 ])
 
 <div>
-    {{-- Encabezado(Buscar, Crear) Items --}}
-    @if($header)
-        @include($header, ['search' => $search ?? ''])
-    @endif
-
     {{-- Mensajes de Exito/Error --}}
     @if (session()->has('message'))
         <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-6">
@@ -60,16 +49,5 @@
                 </tbody>
             </table>
         </div>
-
-        <!-- Paginación -->
-        @if(method_exists($items, 'hasPages') && $items->hasPages())
-            <div class="mt-6">
-                {{ $items->links() }}
-            </div>
-        @endif
     </x-container-second-div>
-
-    @if($modal)
-        @include($modal, compact('show', 'editing'))
-    @endif
 </div>

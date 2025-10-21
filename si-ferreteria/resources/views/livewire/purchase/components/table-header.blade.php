@@ -1,41 +1,40 @@
 <div>
     <x-table-header>
         <x-input-label>
-            <x-icons.key/>
-            {{ __('Id') }}
+            <x-icons.settings/>
+            {{ __('Action') }}
         </x-input-label>
     </x-table-header>
+
     <x-table-header>
         <x-input-label>
-            <x-icons.user></x-icons.user>
-            {{ __('Nombre Completo') }}
+            {{ __('Product') }}
         </x-input-label>
     </x-table-header>
+
+
     <x-table-header>
         <x-input-label>
-            <x-icons.phone></x-icons.phone>
-            {{ __('Teléfono') }}
+            {{ __('Amount') }}
         </x-input-label>
     </x-table-header>
+
     <x-table-header>
         <x-input-label>
-            <x-icons.email></x-icons.email>
-            {{ __('Correo Electrónico') }}
+            {{ __('Purchase Price') }}
         </x-input-label>
     </x-table-header>
-    <x-table-header>
-        <x-input-label>Estado</x-input-label>
-    </x-table-header>
+
     <x-table-header>
         <x-input-label>
-            <x-icons.roles></x-icons.roles>
-            {{ __('Roles') }}
+            {{ __('Sale Price') }}
         </x-input-label>
     </x-table-header>
+
     <x-table-header>
         <x-input-label>
-            <x-icons.settings></x-icons.settings>
-            {{ __('Acción') }}
+            {{ __('Subtotal') }}
         </x-input-label>
     </x-table-header>
+
 </div>

@@ -36,7 +36,7 @@
 
     <x-table-header>
         <x-input-label>
-            {{ __('Input') }}
+            {{ __('Entry') }}
         </x-input-label>
     </x-table-header>
 

@@ -136,7 +136,7 @@
                 type="number"
                 min="0"
                 step="1"
-                label="{{ __('Input') }}"
+                label="{{ __('Entry') }}"
                 wire-model="form.input"
                 required
                 placeholder="{{ __('eg. 15') }}"
