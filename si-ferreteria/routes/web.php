@@ -10,6 +10,7 @@ use App\Livewire\RoleManager;
 use App\Livewire\UserManager;
 use Illuminate\Support\Facades\Route;
 use \App\Livewire\PermissionManager;
+use App\Livewire\SupplierManager;
 
 Route::redirect('/', '/login');
 
@@ -31,6 +32,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/product-inventory', ProductManager::class)->name('product-inventory.index');
         Route::get('/categories', CategoryManager::class)->name('categories.index');
         Route::get('/purchase', PurchaseManager::class)->name('purchase.index');
+        
+        //gestión de proveedores
+        Route::get('/suppliers', SupplierManager::class)->name('suppliers.index');    
     });
 });
 
