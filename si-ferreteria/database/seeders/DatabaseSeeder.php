@@ -15,17 +15,6 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call([
-<<<<<<< Updated upstream
-//            UserSeeder::class,
-//            RoleSeeder::class,
-//            PermissionSeeder::class,
-//            PermissionRoleSeeder::class,
-//            RoleUserSeeder::class,
-//            TechnicalSpecificationSeeder::class,
-//            CategorySeeder::class,
-//            PaymentMethodSeeder::class,
-//            SupplierSeeder::class,
-=======
             UserSeeder::class,
             RoleSeeder::class,
             PermissionSeeder::class,
@@ -33,8 +22,9 @@ class DatabaseSeeder extends Seeder
             RoleUserSeeder::class,
             TechnicalSpecificationSeeder::class,
             CategorySeeder::class,
-            ProductSeeder::class, 
->>>>>>> Stashed changes
+            PaymentMethodSeeder::class,
+            SupplierSeeder::class,
+            ProductSeeder::class,
         ]);
     }
 }

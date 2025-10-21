@@ -118,12 +118,12 @@ class ProductObserve
             $expiration = Carbon::parse($product->expiration_date);
 
             if ($expiration->isPast()) {
-                $this->dispatchLivewireAlert('⚠️ Producto vencido', "El producto '{$product->name}' ya está vencido", 'red');
+                $this->dispatchLivewireAlert('Producto vencido', "El producto '{$product->name}' ya está vencido", 'red');
             }
         }
 
         if ($product->stock == 0) {
-            $this->dispatchLivewireAlert('❌ Sin stock', "El producto '{$product->name}' se quedó sin stock", 'red');
+            $this->dispatchLivewireAlert('Sin stock', "El producto '{$product->name}' se quedó sin stock", 'red');
         }
     }
 

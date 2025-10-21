@@ -226,15 +226,6 @@ class ProductSeeder extends Seeder
             ]);
         }
 
-        $this->command->info('✅ ' . count($products) . ' productos creados exitosamente');
-        $this->command->info('📊 Distribución:');
-        $this->command->info('   🔴 2 productos vencidos');
-        $this->command->info('   🔴 3 productos urgentes (< 7 días)');
-        $this->command->info('   🟡 3 productos advertencia (8-15 días)');
-        $this->command->info('   🔵 3 productos información (16-30 días)');
-        $this->command->info('   ⚪ 2 productos vencimiento lejano (> 30 días)');
-        $this->command->info('   ⚫ 2 productos sin vencimiento');
-
         // Cerrar sesión después del seeding
         Auth::logout();
     }

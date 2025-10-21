@@ -20,9 +20,6 @@ return new class extends Migration
                 'expired',
                 'low_stock',
                 'promotion',
-                'price_changed',
-                'no_sales',
-                'overstock',
                 'out_of_stock'
             ]);
 
