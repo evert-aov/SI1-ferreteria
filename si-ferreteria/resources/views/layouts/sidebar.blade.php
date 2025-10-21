@@ -112,6 +112,15 @@
                             {{ __('Product Alerts') }}
                         </a>
                     </li>
+                   {{-- Proveedores --}}
+                    <li>
+                        <a href="{{ route('suppliers.index') }}"
+                            class="flex items-center p-3 text-gray-300 rounded-lg hover:bg-gradient-to-r hover:from-purple-600/20 hover:to-indigo-600/20 group transition-all duration-300 transform hover:scale-105 hover:shadow-lg border-l-4 border-transparent hover:border-purple-500">
+                            <x-icons.supplier/>
+                            <x-input-label value="Proveedores" class="ms-3"/>
+                        </a>
+                    </li>                    
+                    
                 </ul>
             </li>
 

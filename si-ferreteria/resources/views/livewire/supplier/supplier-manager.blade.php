@@ -1,0 +1,11 @@
+<div>
+    <x-table.data-table
+        :items="$suppliers"
+        header="livewire.supplier.components.header-supplier"
+        table-header="livewire.supplier.components.table-header"
+        table-rows="livewire.supplier.components.table-rows"
+        modal="livewire.supplier.modal-edit-store"
+        :editing="$editing"
+        :search="$search"
+        :show="$show"/>
+</div>
