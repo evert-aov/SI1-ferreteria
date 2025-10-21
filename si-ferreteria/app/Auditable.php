@@ -9,11 +9,12 @@ trait Auditable
     protected function logAction(string $action, $model, string $message = null): void
     {
         $actor = auth()->user();
+
         $original = $model->getOriginal();
         $changes  = $model->getChanges();
 
         AuditLog::create([
-            'user_id' => $actor?->id,
+            'user_id' => $actor?->id, 
             'action' => $message ?? $action,
             'changes' => [
                 'before' => $original,
