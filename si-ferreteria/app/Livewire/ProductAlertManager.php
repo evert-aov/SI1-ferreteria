@@ -2,17 +2,18 @@
 
 namespace App\Livewire;
 
-use App\Models\Product;
 use App\Models\ProductAlert;
-use App\Services\ProductAlertChecker;
+use App\Models\Product;
+use App\Services\ProductAlertService;
 use Livewire\Component;
 use Livewire\WithPagination;
+use App\Livewire\ToastManager;
+
 
 class ProductAlertManager extends Component
 {
     use WithPagination;
 
-    // Properties for data-table component
     public $show = false;
     public $search = '';
     public $editing = null;
@@ -28,13 +29,19 @@ class ProductAlertManager extends Component
 
     public $checkResults = [];
 
-    // Available options
+    protected $listeners = ['openModal' => 'openCreateModal',
+        'closeToast' => 'closeAlert',
+        'ignoreToast' => 'ignoreAlert',
+        ];
+
+
+
     public $alertTypes = [
         'promotion' => '🎉 Oferta/Promoción',
         'low_stock' => '📦 Stock Bajo',
         'expired' => '❌ Vencido',
         'upcoming_expiration' => '⚠️ Próximo a Vencer',
-        'out_of_stock' => '📭 Sin Stock',
+        'out_of_stock' => '🔭 Sin Stock',
     ];
 
     public $priorities = [
@@ -44,14 +51,14 @@ class ProductAlertManager extends Component
     ];
 
     public $availableRoles = [
-        'Administrador',
-        'Vendedor',
-        'Cliente',
-        'Proveedor',
+        'Administrador', 'Vendedor', 'Cliente', 'Proveedor',
     ];
 
-    protected $listeners = [
-        'openModal' => 'openCreateModal',
+    protected $rules = [
+        'selectedProductId' => 'required|exists:products,id',
+        'customMessage' => 'required|min:10|max:500',
+        'selectedPriority' => 'required|in:low,medium,high',
+        'selectedRoles' => 'required|array|min:1',
     ];
 
     public function mount()
@@ -64,25 +71,24 @@ class ProductAlertManager extends Component
     {
         $products = Product::active()->orderBy('name')->get();
 
-        // Solo mostrar alertas MANUALES (creadas por usuarios)
         $alerts = ProductAlert::with('producto')
-            ->whereNotNull('user_id') // Solo alertas creadas manualmente
-            ->when($this->search, function($query) {
-                $query->where('message', 'like', '%' . $this->search . '%')
-                      ->orWhereHas('producto', function($q) {
-                          $q->where('name', 'like', '%' . $this->search . '%');
-                      });
-            })
-            ->orderBy('created_at', 'desc')
+            ->whereNotNull('user_id') // solo manuales
+            ->when($this->search, fn($q) => $q->where('message', 'like', "%{$this->search}%")
+                ->orWhereHas('producto', fn($q2) => $q2->where('name', 'like', "%{$this->search}%")))
+            ->orderByDesc('created_at')
             ->paginate(10);
 
-        return view('livewire.product-alert.product-alert-manager',
-            compact('alerts', 'products'))->layout('layouts.app');
+        return view('livewire.product-alert.product-alert-manager', compact('alerts', 'products'))
+            ->layout('layouts.app');
     }
 
-    /**
-     * Abrir modal para crear alerta
-     */
+    protected function checkAccess(): void
+    {
+        $this->hasAccess = auth()->user()?->roles()
+            ->whereIn('name', ['Administrador', 'Vendedor'])
+            ->exists() ?? false;
+    }
+
     public function openCreateModal()
     {
         $this->resetForm();
@@ -90,111 +96,55 @@ class ProductAlertManager extends Component
         $this->show = true;
     }
 
-    /**
-     * Cerrar modal
-     */
     public function closeModal()
     {
         $this->show = false;
         $this->resetForm();
     }
 
-    protected function checkAccess(): void
-    {
-        $user = auth()->user();
-
-        if (!$user) {
-            $this->hasAccess = false;
-            return;
-        }
-
-        // Solo Administrador y Vendedor tienen acceso
-        $this->hasAccess = $user->roles()
-            ->whereIn('name', ['Administrador', 'Vendedor'])
-            ->exists();
-    }
-
-    protected $rules = [
-            'selectedProductId' => 'required|exists:products,id',
-            'customMessage' => 'required|min:10|max:500',
-            'selectedPriority' => 'required|in:low,medium,high',
-            'selectedRoles' => 'required|array|min:1',
-    ];
-
-    /**
-     * Guardar (crear o actualizar)
-     */
     public function save()
     {
         $rules = $this->rules;
 
-        // Validar umbral para tipos que lo requieren
         if (in_array($this->selectedAlertType, ['low_stock', 'upcoming_expiration'])) {
             $rules['thresholdValue'] = 'required|numeric|min:0';
         }
 
         $this->validate($rules);
 
+        $product = Product::find($this->selectedProductId);
+
         if ($this->editing) {
-            // Actualizar
             $alert = ProductAlert::find($this->editing);
+            if (!$alert) return;
 
-            if ($alert) {
-                $product = Product::find($this->selectedProductId);
-
-                // Determinar si debe estar activa después de la actualización
-                $shouldBeActive = $this->shouldAlertBeActive($product);
-
-                $alert->update([
-                    'alert_type' => $this->selectedAlertType,
-                    'threshold_value' => $this->thresholdValue,
-                    'message' => $this->customMessage,
-                    'priority' => $this->selectedPriority,
-                    'visible_to' => $this->selectedRoles,
-                    'product_id' => $this->selectedProductId,
-                    'active' => $shouldBeActive,
-                    'status' => 'pending',
-                ]);
-
-                $statusMessage = $this->getStatusMessage($shouldBeActive, true);
-                session()->flash('message', $statusMessage);
-            }
-        } else {
-            // Crear
-            $product = Product::find($this->selectedProductId);
-
-            // Verificar si se debe activar inmediatamente según el tipo de alerta
-            $shouldShowNow = $this->shouldAlertBeActive($product);
-
-            ProductAlert::create([
+            $alert->update([
                 'alert_type' => $this->selectedAlertType,
                 'threshold_value' => $this->thresholdValue,
                 'message' => $this->customMessage,
                 'priority' => $this->selectedPriority,
-                'status' => 'pending', // Siempre pending, el control es con 'active'
                 'visible_to' => $this->selectedRoles,
-                'user_id' => auth()->id(),
                 'product_id' => $this->selectedProductId,
-                'active' => $shouldShowNow, // Solo activa si cumple condición
+                'active' => $this->shouldAlertBeActive($product),
+                'status' => 'pending',
             ]);
-
-            $statusMessage = $this->getStatusMessage($shouldShowNow);
-            session()->flash('message', $statusMessage);
+        } else {
+            $alert = ProductAlert::create([
+                'alert_type' => $this->selectedAlertType,
+                'threshold_value' => $this->thresholdValue,
+                'message' => $this->customMessage,
+                'priority' => $this->selectedPriority,
+                'visible_to' => $this->selectedRoles,
+                'product_id' => $this->selectedProductId,
+                'user_id' => auth()->id(),
+                'status' => 'pending',
+                'active' => $this->shouldAlertBeActive($product),
+            ]);
         }
 
+        $statusMessage = $this->getStatusMessage($alert->active, $this->editing !== null);
+        session()->flash('message', $statusMessage);
         $this->closeModal();
-    }
-
-    protected function shouldAlertBeActive(Product $product): bool
-    {
-        if ($this->selectedAlertType === 'low_stock') {
-            return $product->stock <= $this->thresholdValue;
-        } elseif ($this->selectedAlertType === 'upcoming_expiration' && $product->expiration_date) {
-            $daysRemaining = now()->diffInDays($product->expiration_date, false);
-            return $daysRemaining >= 0 && $daysRemaining <= $this->thresholdValue;
-        }
-
-        return true;
     }
 
     protected function getStatusMessage(bool $isActive, bool $isEditing = false): string
@@ -212,9 +162,22 @@ class ProductAlertManager extends Component
         };
     }
 
-    /**
-     * Editar alerta
-     */
+    protected function shouldAlertBeActive($product): bool
+    {
+        if (!$product) return true;
+
+        if ($this->selectedAlertType === 'low_stock') {
+            return $product->stock <= $this->thresholdValue;
+        }
+
+        if ($this->selectedAlertType === 'upcoming_expiration' && $product->expiration_date) {
+            $daysRemaining = now()->diffInDays($product->expiration_date, false);
+            return $daysRemaining >= 0 && $daysRemaining <= $this->thresholdValue;
+        }
+
+        return true;
+    }
+
     public function edit($alertId)
     {
         $alert = ProductAlert::find($alertId);
@@ -231,9 +194,6 @@ class ProductAlertManager extends Component
         }
     }
 
-    /**
-     * Eliminar alerta
-     */
     public function delete($alertId)
     {
         $alert = ProductAlert::find($alertId);
@@ -244,122 +204,169 @@ class ProductAlertManager extends Component
         }
     }
 
-    /**
-     * Cambiar estado de notificación a "Pendiente"
-     */
-    public function markAsPending($alertId)
-    {
-        $alert = ProductAlert::find($alertId);
-
-        if ($alert && $alert->user_id !== null) {
-            $alert->update(['status' => 'pending']);
-            session()->flash('message', 'Alerta marcada como pendiente');
-        }
-    }
-
-    /**
-     * Cambiar estado de notificación a "Leída"
-     */
-    public function markAsRead($alertId)
-    {
-        $alert = ProductAlert::find($alertId);
-
-        if ($alert && $alert->user_id !== null) {
-            $alert->marcarComoLeida();
-            session()->flash('message', 'Alerta marcada como leída');
-        }
-    }
-
-    /**
-     * Cambiar estado de notificación a "Ignorada"
-     */
-    public function markAsIgnored($alertId)
-    {
-        $alert = ProductAlert::find($alertId);
-
-        if ($alert && $alert->user_id !== null) {
-            $alert->ignorar();
-            session()->flash('message', 'Alerta marcada como ignorada');
-        }
-    }
-
-    /**
-     * Resetear formulario
-     */
     protected function resetForm()
     {
         $this->reset(['selectedProductId', 'customMessage', 'thresholdValue', 'editing']);
-        $this->selectedAlertType = 'upcoming_expiration';
+        $this->selectedAlertType = 'promotion';
         $this->selectedPriority = 'medium';
         $this->selectedRoles = ['Administrador', 'Vendedor'];
     }
 
-        /**
-     * Ejecutar verificación automática de vencimientos
-     */
-    public function runExpirationCheck()
-    {
-        $checker = app(ProductAlertChecker::class);
-
-        $checker->checkVencido();
-        $checker->checkVencimientoProximo();
-
-        $expiredCount = ProductAlert::tipo('expired')->pendientes()->count();
-        $upcomingCount = ProductAlert::tipo('upcoming_expiration')->pendientes()->count();
-
-        $this->checkResults = [
-            'vencido' => "✅ {$expiredCount} alertas de productos vencidos",
-            'vencimiento_proximo' => "✅ {$upcomingCount} alertas de vencimiento próximo",
-        ];
-
-        session()->flash('message', "Se generaron {$expiredCount} alertas de vencidos y {$upcomingCount} de próximos a vencer");
-    }
-
-    /**
-     * Ejecutar verificación de stock
-     */
     public function runStockCheck()
     {
-        $checker = app(ProductAlertChecker::class);
+        $checker = app(ProductAlertService::class);
 
-        $checker->checkSinStock();
-        $checker->checkBajoStock();
+        $alerts = $checker->checkBajoStock();
+        $alerts = array_merge($alerts, $checker->checkSinStock());
 
-        $outOfStockCount = ProductAlert::tipo('out_of_stock')->pendientes()->count();
-        $lowStockCount = ProductAlert::tipo('low_stock')->pendientes()->count();
+        $toasts = [];
+        foreach ($alerts as $alert) {
+            $toasts[] = $this->makeToast($alert, 'stock');
+        }
 
-        $this->checkResults = [
-            'sin_stock' => "✅ {$outOfStockCount} alertas de sin stock",
-            'bajo_stock' => "✅ {$lowStockCount} alertas de stock bajo",
+        // Enviar directamente al ToastManager usando dispatch to
+        $this->dispatch('toast:addToasts', toasts: $toasts)->to(ToastManager::class);
+
+        session()->flash('message', 'Hay ' . count($toasts) . ' alertas de stock generadas');
+    }
+
+    public function runExpirationCheck()
+    {
+        $checker = app(ProductAlertService::class);
+
+        $alerts = $checker->checkVencido();
+        $alerts = array_merge($alerts, $checker->checkVencimientoProximo());
+
+        $toasts = [];
+        foreach ($alerts as $alert) {
+            $toasts[] = $this->makeToast($alert, 'expiration');
+        }
+
+        // Enviar directamente al ToastManager usando dispatch to
+        $this->dispatch('toast:addToasts', toasts: $toasts)->to(ToastManager::class);
+
+        session()->flash('message', 'Hay ' . count($toasts) . ' alertas de vencimiento generadas');
+    }
+
+    private function makeToast(array|ProductAlert $alert, string $idPrefix): array
+    {
+        if ($alert instanceof ProductAlert) {
+            return [
+                'id' => "{$idPrefix}-{$alert->id}",
+                'titulo' => "Alerta: {$alert->producto->name}",
+                'descripcion' => $alert->message,
+                'tipo' => match($alert->priority) {
+                    'high' => 'error',
+                    'medium' => 'warning',
+                    'low' => 'info',
+                    default => 'info',
+                },
+                'autoCierre' => $alert->priority !== 'high',
+                'duracion' => match($alert->priority) {
+                    'high' => 0,
+                    'medium' => 15000,
+                    'low' => 10000,
+                    default => 10000,
+                },
+            ];
+        }
+
+        // Caso array (alertas automáticas del ProductAlertService)
+        $priority = $alert['priority'] ?? 'low';
+
+        return [
+            'id' => "{$idPrefix}-{$alert['product_id']}-{$alert['alert_type']}",
+            'titulo' => $alert['titulo'] ?? 'Alerta de producto',
+            'descripcion' => $alert['message'] ?? '',
+            'tipo' => match($priority) {
+                'high' => 'error',
+                'medium' => 'warning',
+                'low' => 'info',
+                default => 'info',
+            },
+            'autoCierre' => $priority !== 'high',
+            'duracion' => match($priority) {
+                'high' => 0,
+                'medium' => 15000,
+                'low' => 10000,
+                default => 10000,
+            },
         ];
-
-        session()->flash('message', "Se encontraron {$outOfStockCount} productos sin stock y {$lowStockCount} con stock bajo");
     }
 
-
     /**
-     * Desactivar todas las alertas de un tipo específico
+     * Ignorar una alerta (no mostrar más)
      */
-    public function deactivateAllByType($alertType)
+    public function ignoreAlert($id): void
     {
-        $count = ProductAlert::whereNull('user_id')
-            ->where('alert_type', $alertType)
+        // Extraer el ID real de la alerta (formato: alert-123)
+        $alertId = str_replace('alert-', '', $id);
+
+        // Marcar como ignorada en la base de datos
+        $alert = ProductAlert::find($alertId);
+        if ($alert) {
+            $alert->ignorar();
+        }
+
+    }
+
+    public function closeAlert($id): void
+    {
+        // Extraer el ID real de la alerta (formato: alert-123)
+        $alertId = str_replace('alert-', '', $id);
+
+        // Marcar como leída en la base de datos
+        $alert = ProductAlert::find($alertId);
+        if ($alert) {
+            $alert->marcarComoLeida();
+        }
+    }
+
+    public function runManualAlerts(): void
+    {
+        $alerts = ProductAlert::where('status', 'pending')
             ->where('active', true)
-            ->update(['active' => false]);
+            ->with('producto')
+            ->get();
 
-        session()->flash('message', "{$count} alertas de tipo '{$this->alertTypes[$alertType]}' desactivadas");
+        $toasts = [];
+
+        foreach ($alerts as $alert) {
+            $product = $alert->producto;
+
+            // Verificar si la alerta realmente cumple su condición
+            $shouldTrigger = match($alert->alert_type) {
+                'low_stock' => $product && $product->stock <= $alert->threshold_value,
+                'upcoming_expiration' => $product && $product->expiration_date &&
+                                        now()->diffInDays($product->expiration_date, false) >= 0 &&
+                                        now()->diffInDays($product->expiration_date, false) <= $alert->threshold_value,
+                'expired' => $product && $product->expiration_date && now()->greaterThanOrEqualTo($product->expiration_date),
+                'out_of_stock' => $product && $product->stock == 0,
+                'promotion' => true, // siempre se puede disparar
+                default => false,
+            };
+
+            if ($shouldTrigger) {
+                $toasts[] = $this->makeToast($alert, 'alert');
+
+                // Opcional: marcar como leída/activada para no disparar nuevamente
+                $alert->marcarComoLeida();
+            }
+        }
+
+        if (!empty($toasts)) {
+            $this->dispatch('toast:addToasts', toasts: $toasts)->to(ToastManager::class);
+        }
     }
 
-    /**
-     * Activar todas las alertas de un tipo específico
-     */
-    public function activateAllByType($alertType)
+    public function markAsPending($alertId): void
     {
-        $count = ProductAlert::whereNull('user_id')
-            ->where('alert_type', $alertType)
-            ->where('active', false)
-            ->update(['active' => true]);
-
-        session()->flash('message', "{$count} alertas de tipo '{$this->alertTypes[$alertType]}' activadas");
+        $alert = ProductAlert::find($alertId);
+        if ($alert) {
+            $alert->status = 'pending';
+            $alert->save();
+        }
     }
+
+    
 }

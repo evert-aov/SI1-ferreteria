@@ -9,6 +9,9 @@
     @if(!$hasAccess)
         <x-restricted-user />
     @else
+        <!-- Polling invisible para alertas manuales -->
+        <div wire:poll.10s="runManualAlerts" class="hidden"></div>
+
             <x-table.data-table
                 :items="$alerts"
                 header="livewire.product-alert.components.header-alert"
@@ -36,6 +39,7 @@
             <div class="mb-8">
                 <h2 class="text-xl font-bold text-white mb-4">Ejecutar Verificaciones</h2>
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+
                     <button wire:click="runExpirationCheck"
                             class="p-4 bg-gradient-to-br from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg">
                         <div class="text-center">
