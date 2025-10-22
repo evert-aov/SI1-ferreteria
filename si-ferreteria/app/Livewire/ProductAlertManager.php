@@ -200,6 +200,7 @@ class ProductAlertManager extends Component
 
         if ($alert) {
             $alert->delete();
+            $alert->destroy();
             session()->flash('message', 'Alerta eliminada exitosamente');
         }
     }
@@ -308,6 +309,8 @@ class ProductAlertManager extends Component
             $alert->ignorar();
         }
 
+        $this->dispatch('toast:removeToast', id: $id)->to(ToastManager::class);
+
     }
 
     public function closeAlert($id): void
@@ -320,6 +323,8 @@ class ProductAlertManager extends Component
         if ($alert) {
             $alert->marcarComoLeida();
         }
+
+        $this->dispatch('toast:removeToast', id: $id)->to(ToastManager::class);
     }
 
     public function runManualAlerts(): void
@@ -368,5 +373,5 @@ class ProductAlertManager extends Component
         }
     }
 
-    
+
 }
