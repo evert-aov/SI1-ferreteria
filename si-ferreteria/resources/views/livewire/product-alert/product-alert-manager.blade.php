@@ -60,11 +60,11 @@
         <!-- Contenido de los tabs -->
         <div class="mt-6">
             <div class="{{ $activeTab === 'manual' ? 'block' : 'hidden' }}">
-                @livewire('manual-alert-manager')
+                @livewire('report-and-analysis.manual-alert-manager')
             </div>
 
             <div class="{{ $activeTab === 'automatic' ? 'block' : 'hidden' }}">
-                @livewire('automatic-alert-manager')
+                @livewire('report-and-analysis.automatic-alert-manager')
             </div>
         </div>
     @endif

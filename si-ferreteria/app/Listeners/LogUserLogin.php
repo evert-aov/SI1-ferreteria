@@ -2,8 +2,7 @@
 
 namespace App\Listeners;
 
-use App\Livewire\Actions\Logout;
-use App\Models\AuditLog;
+use App\Models\ReportAndAnalysis\AuditLog;
 use Illuminate\Auth\Events\Login;
 
 class LogUserLogin

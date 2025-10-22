@@ -3,7 +3,8 @@
 namespace App\Observers;
 
 use App\Auditable;
-use App\Models\Category;
+use App\Models\Inventory\Category;
+
 
 class CategoryObserver
 {

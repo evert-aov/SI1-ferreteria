@@ -2,8 +2,8 @@
 
 namespace App\Livewire\Forms;
 
-use App\Models\Entry;
-use App\Models\Product;
+use App\Models\Inventory\Product;
+use App\Models\Purchase\Entry;
 use Livewire\Features\SupportFormObjects\Form;
 
 class EntryForm extends Form

@@ -251,7 +251,7 @@ class PermissionSeeder extends Seeder
                 'is_active' => true,
             ],
 
-            // Permisos de Inventario
+            // Permisos de Inventory
             [
                 'name' => 'ver_inventario',
                 'description' => 'Ver estado del inventario',

@@ -2,15 +2,13 @@
 
 namespace Database\Seeders;
 
-
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
-use App\Models\Brand;
-use App\Models\Category;
-use App\Models\Color;
-use App\Models\Measure;
-use App\Models\Product;
-use App\Models\User;
-use App\Models\Volume;
+use App\Models\Inventory\Brand;
+use App\Models\Inventory\Category;
+use App\Models\Inventory\Measure;
+use App\Models\Inventory\Product;
+use App\Models\Inventory\Volume;
+use App\Models\Inventory\Color;
+use App\Models\User_security\User;
 use Carbon\Carbon;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Auth;

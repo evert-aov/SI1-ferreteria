@@ -2,10 +2,11 @@
 
 namespace Database\Seeders;
 
-use App\Models\Category;
+use App\Models\Inventory\Category;
+use App\Models\User_security\User;
 use Illuminate\Database\Seeder;
-use App\Models\User;
 use Illuminate\Support\Facades\Auth;
+
 
 class CategorySeeder extends Seeder
 {

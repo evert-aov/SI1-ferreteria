@@ -6,6 +6,26 @@
     click-close="closeModal"
     click-save="save"
 >
+
+    <div>
+        @if($this->editing)
+            <x-input-label value="{{ __('Supplier') }}"/>
+            <x-text-input wire:model="name"/>
+        @else
+            <x-input-label value="{{ __('Suppliers') }}"/>
+            <x-select-input
+                wire:model="user_id"
+            >
+                <option value="" selected>Seleccione un proveedor</option>
+                @foreach($this->allUsers as $user)
+                    <option value="{{ $user->id }}" }}>{{ $user->name }}</option>
+                @endforeach
+            </x-select-input>
+        @endif
+
+    </div>
+
+
     {{-- Nombre de la Empresa --}}
     <x-form.field
         name="company_name"

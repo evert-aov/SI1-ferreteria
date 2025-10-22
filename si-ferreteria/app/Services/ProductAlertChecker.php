@@ -2,8 +2,8 @@
 
 namespace App\Services;
 
-use App\Models\Product;
-use App\Models\ProductAlert;
+use App\Models\Inventario\Product;
+use App\Models\ReportAndAnalysis\ProductAlert;
 use Carbon\Carbon;
 
 /**

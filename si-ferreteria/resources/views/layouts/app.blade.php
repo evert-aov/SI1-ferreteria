@@ -41,7 +41,7 @@
 
     <!-- Componente de alertas de productos (solo para usuarios autenticados) -->
     @auth
-        <livewire:toast-alert-manager />
+        <livewire:report-and-analysis.toast-alert-manager />
     @endauth
 </div>
 @livewireScripts
