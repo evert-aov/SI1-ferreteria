@@ -11,7 +11,7 @@
             <x-input-label for="selectedAlertType">
                 {{ __('Tipo de Alerta') }}
             </x-input-label>
-            <select wire:model="selectedAlertType" id="selectedAlertType" required
+            <select wire:model.live="selectedAlertType" id="selectedAlertType" required
                     class="mt-2 block w-full bg-gray-800 border-gray-600 text-white focus:border-orange-500 focus:ring-orange-500 rounded-md shadow-sm">
                 @foreach($this->alertTypes as $key => $label)
                     <option value="{{ $key }}">{{ $label }}</option>
@@ -43,7 +43,7 @@
                     name="thresholdValue"
                     label="{{ $this->selectedAlertType === 'low_stock' ? 'Stock mínimo' : 'Días antes del vencimiento' }}"
                     type="number"
-                    wire:model="thresholdValue"
+                    wire:model.live="thresholdValue"
                     placeholder="Ej: 10"
                     required>
                 </x-form.field>
