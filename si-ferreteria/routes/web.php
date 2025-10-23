@@ -1,16 +1,16 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
-use App\Livewire\AuditLog;
-use App\Livewire\CategoryManager;
-use App\Livewire\ProductAlertManager;
-use App\Livewire\ProductManager;
-use App\Livewire\PurchaseManager;
-use App\Livewire\RoleManager;
-use App\Livewire\UserManager;
+use App\Livewire\Inventory\CategoryManager;
+use App\Livewire\Inventory\ProductManager;
+use App\Livewire\Purchase\PurchaseManager;
+use App\Livewire\Purchase\SupplierManager;
+use App\Livewire\ReportAndAnalysis\AuditLog;
+use App\Livewire\ReportAndAnalysis\ProductAlertManager;
+use App\Livewire\UserSecurity\PermissionManager;
+use App\Livewire\UserSecurity\RoleManager;
+use App\Livewire\UserSecurity\UserManager;
 use Illuminate\Support\Facades\Route;
-use \App\Livewire\PermissionManager;
-use App\Livewire\SupplierManager;
 
 Route::redirect('/', '/login');
 
@@ -32,9 +32,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/product-inventory', ProductManager::class)->name('product-inventory.index');
         Route::get('/categories', CategoryManager::class)->name('categories.index');
         Route::get('/purchase', PurchaseManager::class)->name('purchase.index');
-        
+
         //gestión de proveedores
-        Route::get('/suppliers', SupplierManager::class)->name('suppliers.index');    
+        Route::get('/suppliers', SupplierManager::class)->name('suppliers.index');
     });
 });
 

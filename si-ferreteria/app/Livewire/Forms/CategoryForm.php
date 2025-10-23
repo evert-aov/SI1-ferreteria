@@ -2,8 +2,9 @@
 
 namespace App\Livewire\Forms;
 
-use App\Models\Category;
+use App\Models\Inventory\Category;
 use Livewire\Form;
+
 
 class CategoryForm extends Form
 {

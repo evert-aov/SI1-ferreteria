@@ -2,7 +2,7 @@
 
 namespace Database\Seeders;
 
-use App\Models\TechnicalSpecification;
+use App\Models\Inventory\TechnicalSpecification;
 use Illuminate\Database\Seeder;
 
 class TechnicalSpecificationSeeder extends Seeder

@@ -3,7 +3,7 @@
 namespace App\Observers;
 
 use App\Auditable;
-use App\Models\Entry;
+use App\Models\Purchase\Entry;
 
 class PurchaseObserver
 {

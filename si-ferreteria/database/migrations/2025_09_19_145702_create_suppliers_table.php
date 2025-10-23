@@ -15,7 +15,7 @@ return new class extends Migration
             $table->foreignId('user_id')->primary()->constrained()->onDelete('cascade');
             $table->string('company_name');
             $table->string('main_contact');
-            $table->enum('category', ['materials', 'tools', 'electrical', 'plumbing', 'general'])->default('general');
+            $table->string('category');
             $table->text('commercial_terms')->nullable();
             $table->timestamps();
         });

@@ -2,7 +2,7 @@
 
 namespace App;
 
-use App\Models\AuditLog;
+use App\Models\ReportAndAnalysis\AuditLog;
 
 trait Auditable
 {
@@ -14,7 +14,7 @@ trait Auditable
         $changes  = $model->getChanges();
 
         AuditLog::create([
-            'user_id' => $actor?->id, 
+            'user_id' => $actor?->id,
             'action' => $message ?? $action,
             'changes' => [
                 'before' => $original,

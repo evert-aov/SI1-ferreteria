@@ -2,7 +2,7 @@
 
 namespace App\Listeners;
 
-use App\Models\AuditLog;
+use App\Models\ReportAndAnalysis\AuditLog;
 use Illuminate\Auth\Events\Logout;
 
 class LogUserLogout

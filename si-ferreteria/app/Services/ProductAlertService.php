@@ -2,9 +2,9 @@
 
 namespace App\Services;
 
-use App\Models\Product;
-use App\Models\ProductAlert;
-use App\Livewire\ProductAlertManager;
+use App\Models\Inventory\Product;
+use App\Models\ReportAndAnalysis\ProductAlert;
+use App\Livewire\ReportAndAnalysis\ProductAlertManager;
 use Carbon\Carbon;
 
 class ProductAlertService

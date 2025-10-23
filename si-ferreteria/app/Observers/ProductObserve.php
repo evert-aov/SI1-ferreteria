@@ -3,8 +3,8 @@
 namespace App\Observers;
 
 use App\Auditable;
-use App\Models\Product;
-use App\Models\ProductAlert;
+use App\Models\Inventory\Product;
+use App\Models\ReportAndAnalysis\ProductAlert;
 
 class ProductObserve
 {

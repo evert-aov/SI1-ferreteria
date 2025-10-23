@@ -3,7 +3,7 @@
 namespace App\Observers;
 
 use App\Auditable;
-use App\Models\User;
+use App\Models\User_security\User;
 
 class UserObserver
 {

@@ -1,7 +1,8 @@
 <div>
+    <x-table.td data="{{ $item->user->name }}"/>
     {{-- Empresa --}}
     <x-table.td data=" {{ $item->company_name }}"/>
-    
+
     {{-- Contacto Principal --}}
     <x-table.td data="{{ $item->main_contact }}"/>
 
@@ -15,10 +16,10 @@
             <span class="text-gray-500 text-xs">Sin categoría</span>
         @endif
     </td>
- 
-     {{-- Términos Comerciales --}}
-    <x-table.td data="{{ Str::limit($item->commercial_terms, 50) }}"/>
+
+
+    <x-table.td data="{{ $item->commercial_terms }}"/>
 
     {{-- Acciones --}}
-    <x-table.td-action :item="$item" />
+    <x-table.td-action :item="$item->user" />
 </div>
