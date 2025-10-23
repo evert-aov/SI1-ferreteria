@@ -71,6 +71,7 @@ class ProductForm extends Form
             'color_name' => 'nullable|string|max:20',
             'brand_name' => 'nullable|string|max:20',
 
+            //PARA LAS MEDIDAS(MEASURES)
             'length' => 'nullable|numeric|min:0.01',
             'length_unit' => 'nullable|in:m,cm,mm,in',
             'width' => 'nullable|numeric|min:0.01',
@@ -80,11 +81,13 @@ class ProductForm extends Form
             'thickness' => 'nullable|numeric|min:0.01',
             'thickness_unit' => 'nullable|in:mm,in,gauge',
 
+            //PARA EL VOLUMEN(VOLUME)
             'peso' => 'nullable|numeric|min:0.01',
             'peso_unit' => 'nullable|in:kg,g,lb,oz',
             'volume' => 'nullable|numeric|min:0.01',
             'volume_unit' => 'nullable|in:L,ml,gal,oz',
 
+            //SPECIFICACIONES TECNICAS(TECHNICAL_SPECIFICATION)
             'specifications' => 'nullable|array',
             'specifications.*' => 'nullable|string|max:500',
         ];
@@ -105,6 +108,7 @@ class ProductForm extends Form
         $this->is_active = (int)$product->is_active;
         $this->expiration_date = $product->expiration_date;
         $this->color_id = $product->color_id ?? '';
+        $this->color_id = $product->color_id ? $product->color_id : '';
         $this->brand_id = $product->brand_id ?? '';
         $this->category_id = $product->category_id ?? '';
         $this->measure_id = $product->measure_id ?? '';
