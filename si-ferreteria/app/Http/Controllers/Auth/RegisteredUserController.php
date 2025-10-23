@@ -31,15 +31,37 @@ class RegisteredUserController extends Controller
     {
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
+            'last_name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
+            'document_type' => ['required', 'in:CI,NIT,PASSPORT'],
+            'document_number' => ['required', 'string', 'max:255', 'unique:'.User::class],
+            'gender' => ['required', 'in:male,female'],
+            'phone' => ['nullable', 'string', 'max:255'],
+            'address' => ['nullable', 'string', 'max:255'],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
         $user = User::create([
             'name' => $request->name,
+            'last_name' => $request->last_name,
             'email' => $request->email,
+            'document_type' => $request->document_type,
+            'document_number' => $request->document_number,
+            'gender' => $request->gender,
+            'phone' => $request->phone,
+            'address' => $request->address,
             'password' => Hash::make($request->password),
+            'status' => true,
         ]);
+
+        $roleCliente = Role::where('name', 'Cliente')->first();
+
+        if ($roleCliente) {
+            $user->roles()->attach($roleCliente->id, [
+                'assigned_date' => now(),
+                'expiration_date' => null,
+            ]);
+        }
 
         event(new Registered($user));
 
