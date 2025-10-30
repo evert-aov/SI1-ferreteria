@@ -76,5 +76,21 @@
                 @endif
             </div>
         </div>
+
+        <div class="text-center mt-3">
+            <a href="{{ route('catalog.index') }}" 
+            class="btn w-100 py-2 fw-semibold text-white"
+            style="background: linear-gradient(90deg, #ff7a00, #ff9500); border: none; border-radius: 8px; transition: all 0.3s ease;">
+                <i class="bi bi-shop me-2"></i> Ver Catálogo de Productos
+            </a>
+        </div>
+
+        <style>
+        a.btn:hover {
+            background: linear-gradient(90deg, #ff9500, #ffaa33);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(255, 149, 0, 0.4);
+        }
+        </style>
     </div>
 </x-guest-layout>

@@ -11,8 +11,23 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // Configuración de alias
         $middleware->alias([
             'Administrador' => \App\Http\Middleware\IsAdmin::class,
+        ]);
+        
+        // IMPORTANTE: Configurar prioridad de middleware
+        $middleware->priority([
+            \Illuminate\Foundation\Http\Middleware\HandlePrecognitiveRequests::class,
+            \Illuminate\Cookie\Middleware\EncryptCookies::class,
+            \Illuminate\Session\Middleware\StartSession::class,
+            \Illuminate\View\Middleware\ShareErrorsFromSession::class,
+            \Illuminate\Contracts\Auth\Middleware\AuthenticatesRequests::class,
+            \Illuminate\Routing\Middleware\ThrottleRequests::class,
+            \Illuminate\Routing\Middleware\ThrottleRequestsWithRedis::class,
+            \Illuminate\Session\Middleware\AuthenticateSession::class,
+            \Illuminate\Routing\Middleware\SubstituteBindings::class,
+            \Illuminate\Auth\Middleware\Authorize::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

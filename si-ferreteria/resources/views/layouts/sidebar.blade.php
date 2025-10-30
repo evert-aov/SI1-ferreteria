@@ -1,3 +1,4 @@
+
 <aside id="logo-sidebar"
        class="fixed top-0 left-0 z-40 w-[275px] h-screen pt-10 transition-transform -translate-x-full sm:translate-x-0 bg-gradient-to-b from-gray-800 via-gray-900 to-black shadow-2xl border-r-4 border-orange-600"
        aria-label="Sidebar">
@@ -5,11 +6,24 @@
     <div class="h-full px-3 pb-4 overflow-y-auto bg-gradient-to-b from-gray-800 via-gray-900 to-black">
         <ul class="space-y-2 font-medium mt-4">
 
+            <!-- PANEL PRINCIPAL -->
             <li class="py-4">
                 <a href="{{ route('dashboard') }}"
                    class="flex items-center p-3 text-orange-100 rounded-lg hover:bg-gradient-to-r hover:from-orange-600/20 hover:to-amber-600/20 group transition-all duration-300 transform hover:scale-105 hover:shadow-lg border-l-4 border-transparent hover:border-orange-500">
                     <x-icons.dashboard/>
                     <span class="ms-3 text-orange-100 group-hover:text-white font-medium">Panel Principal</span>
+                </a>
+            </li>
+
+            <!-- ✅ NUEVO: VER CATÁLOGO -->
+            <li>
+                <a href="{{ route('catalog.index') }}"
+                   class="flex items-center p-3 text-green-100 rounded-lg hover:bg-gradient-to-r hover:from-green-600/20 hover:to-emerald-600/20 group transition-all duration-300 transform hover:scale-105 hover:shadow-lg border-l-4 border-transparent hover:border-green-500"
+                   wire:navigate>
+                    <svg class="w-6 h-6 text-green-400 group-hover:text-green-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                    </svg>
+                    <span class="ms-3 text-green-100 group-hover:text-white font-medium">Ver Catálogo</span>
                 </a>
             </li>
 
@@ -59,7 +73,7 @@
                 </li>
             @endif
 
-            {{-- Admin y Supplier pueden ver Inventario --}}
+            {{-- Admin y Vendedor pueden ver Inventario --}}
             @if(auth()->user()->roles->whereIn('name', ['Administrador', 'Vendedor'])->count() > 0)
                 <li class="pt-4 mt-4">
                     <x-dividers title="Gestión de Inventario"/>
@@ -93,8 +107,6 @@
                                 {{ __('Categories') }}
                             </a>
                         </li>
-
-
                     </ul>
                 </li>
             @endif
@@ -167,7 +179,6 @@
                                 Bitácora
                             </a>
                         </li>
-
                     </ul>
                 </li>
             @endif
