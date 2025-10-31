@@ -22,39 +22,61 @@
                 @endforeach
             </x-select-input>
         @endif
+        @error('user_id')
+                <span class="text-red-500 text-sm mt-1">{{ $message }}</span>
+        @enderror
 
     </div>
 
 
     {{-- Nombre de la Empresa --}}
-    <x-form.field
-        name="company_name"
-        label="Nombre de la Empresa"
-        wire:model="company_name"
-        placeholder="Ej: Pinturas y Complementos SRL"
-        required>
-        <x-icons.user/>
-    </x-form.field>
+    <div class="mt-2">
+        <x-form.field
+            name="company_name"
+            label="Nombre de la Empresa"
+            wire:model="company_name"
+            placeholder="Ej: Pinturas y Complementos SRL"
+            required>
+            <x-icons.user/>
+       
+        </x-form.field>
+        @error('company_name')
+            <span class="text-red-500 text-sm mt-1">{{ $message }}</span>
+        @enderror
+    </div>
+    
 
     {{-- Contacto Principal --}}
-    <x-form.field
-        name="main_contact"
-        label="Contacto Principal"
-        wire:model="main_contact"
-        placeholder="Ej: Susana Camacho"
-        required>
-        <x-icons.user/>
-    </x-form.field>
+    <div>
+        <x-form.field
+            name="main_contact"
+            label="Contacto Principal"
+            wire:model="main_contact"
+            placeholder="Ej: Susana Camacho"
+            required>
+            <x-icons.user/>
+        </x-form.field>
+        @error('main_contact')
+            <span class="text-red-500 text-sm mt-1">{{ $message }}</span>
+        @enderror
+    </div>
+
 
 
     {{-- Categoría --}}
-    <x-form.field
-        name="category"
-        label="Categoría"
-        wire:model="category"
-        placeholder="Ej: Materiales Eléctricos, Herramientas">
-        <x-icons.category/>
-    </x-form.field>
+    <div>
+        <x-form.field
+            name="category"
+            label="Categoría"
+            wire:model="category"
+            placeholder="Ej: Materiales Eléctricos, Herramientas">
+            <x-icons.category/>
+        </x-form.field>
+        @error('category')
+            <span class="text-red-500 text-sm mt-1">{{ $message }}</span>
+        @enderror
+    </div>
+    
 
     {{-- Términos Comerciales --}}
     <div>

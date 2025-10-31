@@ -16,7 +16,7 @@
             inicializado = true;
             show = true;
             if (autoCerrar) {
-                let duracionMs = duracion * 1000;
+                let duracionMs = duracion;
                 let intervalo = 50;
                 let pasos = duracionMs / intervalo;
                 let decrementoPorPaso = 100 / pasos;

@@ -1,3 +1,7 @@
+# Ignorar archivos y carpetas Legacy
+/app/livewire/Legacy
+/app/Services/Legacy
+/resources/views/livewire/product-alert/legacy
 *.log
 .DS_Store
 .env
@@ -22,3 +26,5 @@
 Homestead.json
 Homestead.yaml
 Thumbs.db
+
+
