@@ -1,0 +1,6 @@
+Herlin->CU10 Gestionar Ventas
+Susana->CU16 Gestionar Métodos de Pago
+Noelia->CU11 Gestionar Caja (apertura, cierre, arqueo)
+Ismael->CU15 Gestionar Carrito de Compras, CU20
+Evert->CU17 Gestionar Notas de Salida
+Marcos->CU14 Gestionar Catálogo Online
