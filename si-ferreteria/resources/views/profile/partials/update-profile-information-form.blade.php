@@ -61,12 +61,12 @@
                     <x-icons.roles></x-icons.roles>
                     {{ __('Role Principal Asignado') }}
                     <span
-                        class="ml-2 text-xs bg-emerald-600 text-white px-2 py-1 rounded-full">{{ $user->getRolPrincipal()->created_by }}</span>
+                        class="ml-2 text-xs bg-emerald-600 text-white px-2 py-1 rounded-full">{{ $user->getRolPrincipal()->created_by ?? 'system' }}</span>
                 </x-input-label>
                 <div class="mt-2 flex items-center">
                     <x-text-input
                         type="text"
-                        value="{{ $user->getRolPrincipal()->name }}"
+                        value="{{ $user->getRolPrincipal()->name ?? 'Cliente' }}"
                         readonly
                         class="cursor-not-allowed opacity-75"
                     />
@@ -74,7 +74,7 @@
                         <x-icons.look></x-icons.look>
                     </div>
                 </div>
-                <p class="mt-1 text-xs text-blue-300">{{ $user->getRolPrincipal()->description }}</p>
+                <p class="mt-1 text-xs text-blue-300">{{ $user->getRolPrincipal()->description ?? '|' }}</p>
             </div>
 
             <div>

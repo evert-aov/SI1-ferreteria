@@ -17,17 +17,17 @@
 
             <!-- Email Address -->
             <div>
-                <x-input-label for="email" :value="__('Correo')"/>
-                <x-text-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')"
-                              required autofocus autocomplete="username" class="border-black"/>
+                <x-input-label for="email" :value="__('Correo')" class="text-white"/>
+                <x-text-input id="email" class="block mt-1 w-full border-gray-300" type="email" name="email" :value="old('email')"
+                              required autofocus autocomplete="username"/>
                 <x-input-error :messages="$errors->get('email')" class="mt-2"/>
             </div>
 
             <!-- Password -->
             <div class="mt-4">
-                <x-input-label for="password" :value="__('Contraseña')"/>
+                <x-input-label for="password" :value="__('Contraseña')" class="text-white"/>
 
-                <x-text-input id="password" class="block mt-1 w-full border-black"
+                <x-text-input id="password" class="block mt-1 w-full border-gray-300"
                               type="password"
                               name="password"
                               required autocomplete="current-password"/>
@@ -37,11 +37,12 @@
 
             <!-- Remember Me -->
             <div class="block mt-4">
-                <x-input-label for="remember_me" class="inline-flex items-center"/>
-                <input id="remember_me" type="checkbox"
-                       class="rounded bg-white border-black text-indigo-600 shadow-sm focus:ring-indigo-500 focus:ring-indigo-600 focus:ring-offset-gray-800"
-                       name="remember">
-                <span class="ms-2 text-sm text-white">{{ __('Recordarme') }}</span>
+                <label for="remember_me" class="inline-flex items-center">
+                    <input id="remember_me" type="checkbox"
+                           class="rounded bg-white border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500 focus:ring-offset-gray-800"
+                           name="remember">
+                    <span class="ms-2 text-sm text-white">{{ __('Recordarme') }}</span>
+                </label>
             </div>
 
             <div class="flex items-center justify-end mt-4">
@@ -58,10 +59,38 @@
             </div>
         </form>
 
-        <div class="flex items-center justify-end mt-4">
-            <a class="underline text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800" href="{{ route('register') }}">
-                {{ __('Already registered?') }}
+        <!-- Register Section -->
+        <div class="mt-6 pt-6 border-t border-gray-700">
+            <div class="text-center">
+                <p class="text-gray-400 text-sm mb-3">
+                    ¿No tienes una cuenta?
+                </p>
+                @if (Route::has('register'))
+                    <a href="{{ route('register') }}"
+                       class="inline-flex items-center justify-center px-6 py-3 bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 text-white font-semibold rounded-lg shadow-lg transform hover:scale-105 transition-all duration-300 ease-in-out">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
+                        </svg>
+                        {{ __('Registrarme') }}
+                    </a>
+                @endif
+            </div>
+        </div>
+
+        <div class="text-center mt-3">
+            <a href="{{ route('catalog.index') }}" 
+            class="btn w-100 py-2 fw-semibold text-white"
+            style="background: linear-gradient(90deg, #ff7a00, #ff9500); border: none; border-radius: 8px; transition: all 0.3s ease;">
+                <i class="bi bi-shop me-2"></i> Ver Catálogo de Productos
             </a>
         </div>
+
+        <style>
+        a.btn:hover {
+            background: linear-gradient(90deg, #ff9500, #ffaa33);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(255, 149, 0, 0.4);
+        }
+        </style>
     </div>
 </x-guest-layout>

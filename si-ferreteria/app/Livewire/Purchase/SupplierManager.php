@@ -31,6 +31,7 @@ class SupplierManager extends Component
     protected $paginationTheme = 'tailwind';
 
     protected $rules = [
+        'user_id' => 'required|exist:user,id',
         'company_name' => 'required|string|max:100',
         'main_contact' => 'required|string|max:100',
         'category' => 'nullable|string|max:50',
