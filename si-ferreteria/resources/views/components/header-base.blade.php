@@ -16,7 +16,8 @@
                 {{ $title }}
             </x-input-label>
         </div
-        >    </x-container-second-div>
+        >
+    </x-container-second-div>
 
     <!-- Búsqueda -->
     <x-container-second-div>

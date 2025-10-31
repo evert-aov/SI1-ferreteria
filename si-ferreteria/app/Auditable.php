@@ -2,13 +2,14 @@
 
 namespace App;
 
-use App\Models\AuditLog;
+use App\Models\ReportAndAnalysis\AuditLog;
 
 trait Auditable
 {
     protected function logAction(string $action, $model, string $message = null): void
     {
         $actor = auth()->user();
+
         $original = $model->getOriginal();
         $changes  = $model->getChanges();
 

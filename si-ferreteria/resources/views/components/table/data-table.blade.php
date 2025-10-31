@@ -42,19 +42,21 @@
                 </thead>
                 <tbody>
                 {{-- Filas de la Tabla --}}
-                @forelse($items as $item)
-                    <tr class="bg-gray-800 hover:bg-gray-900">
-                        @if($tableRows)
-                            @include($tableRows, compact('item'))
-                        @endif
-                    </tr>
-                @empty
-                    <tr class="bg-gray-800">
-                        <td colspan="100%" class="px-6 py-4 text-center text-gray-400">
-                            No hay datos disponibles
-                        </td>
-                    </tr>
-                @endforelse
+                @if($items)
+                    @forelse($items as $item)
+                        <tr class="bg-gray-800 hover:bg-gray-900">
+                            @if($tableRows)
+                                @include($tableRows, compact('item'))
+                            @endif
+                        </tr>
+                    @empty
+                        <tr class="bg-gray-800">
+                            <td colspan="100%" class="px-6 py-4 text-center text-gray-400">
+                                No hay datos disponibles
+                            </td>
+                        </tr>
+                    @endforelse
+                @endif
                 </tbody>
             </table>
         </div>

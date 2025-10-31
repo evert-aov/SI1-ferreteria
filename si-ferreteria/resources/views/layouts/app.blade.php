@@ -16,15 +16,15 @@
     @livewireStyles
 </head>
 <body class="font-sans antialiased">
-<div class="min-h-screen bg-gray-100 dark:bg-gray-900 ">
+<div class="min-h-screen bg-gray-900 ">
     @include('layouts.navigation')
     @include('layouts.sidebar')
 
-    <div class="ml-0 sm:ml-64 bg-gray-100 dark:bg-gray-900">
+    <div class="ml-0 sm:ml-64  dark:bg-gray-900">
 
         <!-- Page Heading -->
         @isset($header)
-            <header class="bg-white dark:bg-gray-800 shadow">
+            <header class="dark:bg-gray-800 shadow">
                 {{ $header }}
             </header>
         @endisset
@@ -38,6 +38,11 @@
             </x-container-div>
         </x-gradient-div>
     </div>
+
+    <!-- Componente de alertas de productos (solo para usuarios autenticados) -->
+    @auth
+        <livewire:report-and-analysis.toast-alert-manager />
+    @endauth
 </div>
 @livewireScripts
 </body>

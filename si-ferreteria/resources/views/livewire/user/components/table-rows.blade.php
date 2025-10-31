@@ -1,4 +1,5 @@
 <div>
+    <x-table.td data="{{ $item->id }}"/>
     {{-- Nombre Completo --}}
     <x-table.td data=" {{ $item->name }} {{ $item->last_name }}"/>
 

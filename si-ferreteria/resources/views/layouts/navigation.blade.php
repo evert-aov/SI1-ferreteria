@@ -2,10 +2,9 @@
     <div class="px-3 py-3 lg:px-5 lg:pl-3">
         <div class="flex items-center justify-between">
             <div class="flex items-center justify-start rtl:justify-end">
-                <x-primary-button class="sm:hidden inline-flex items-center py-1 w-11 h-8" data-drawer-target="logo-sidebar" data-drawer-toggle="logo-sidebar" aria-controls="logo-sidebar">
-                    <span class="sr-only">Open sidebar</span>
+                <button class="sm:hidden inline-flex items-center w-8 h-8 px-0 py-0 bg-gradient-to-r from-orange-600 to-yellow-500 text-white rounded-md" data-drawer-target="logo-sidebar" data-drawer-toggle="logo-sidebar" aria-controls="logo-sidebar">
                     <x-icons.open-sidebar/>
-                </x-primary-button>
+                </button>
 
                 <div class="flex items-center space-x-2">
                     <x-icons.ferreteria/>

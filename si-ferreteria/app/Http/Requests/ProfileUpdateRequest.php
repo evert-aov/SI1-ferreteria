@@ -2,9 +2,10 @@
 
 namespace App\Http\Requests;
 
-use App\Models\User;
+use App\Models\User_security\User;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+
 
 class ProfileUpdateRequest extends FormRequest
 {

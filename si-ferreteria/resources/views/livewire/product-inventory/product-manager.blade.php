@@ -1,0 +1,12 @@
+<div>
+    <x-table.data-table
+    :items="$products"
+    modal="livewire.product-inventory.modal-edit-store"
+    header="livewire.product-inventory.components.header-product"
+    table-header="livewire.product-inventory.components.table-header"
+    table-rows="livewire.product-inventory.components.table-rows"
+    :editing="$editing"
+    :search="$search"
+    :show="$show"
+    />
+</div>

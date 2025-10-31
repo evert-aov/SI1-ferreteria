@@ -1,6 +1,12 @@
 <div>
     <x-table-header>
         <x-input-label>
+            <x-icons.key/>
+            {{ __('Id') }}
+        </x-input-label>
+    </x-table-header>
+    <x-table-header>
+        <x-input-label>
             <x-icons.user></x-icons.user>
             {{ __('Nombre Completo') }}
         </x-input-label>

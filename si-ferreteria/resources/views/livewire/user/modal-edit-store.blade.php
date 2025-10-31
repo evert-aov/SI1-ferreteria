@@ -8,24 +8,34 @@
 >
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         {{-- Nombre --}}
-        <x-form.field
-            name="name"
-            label="Nombre"
-            wire:model="name"
-            placeholder="Nombre"
-            required>
-            <x-icons.user/>
-        </x-form.field>
+        <div>
+            <x-form.field
+                name="name"
+                label="{{ __('Name') }}"
+                wire:model="name"
+                placeholder="{{ __('Name')}}"
+                required>
+                <x-icons.user/>
+            </x-form.field>
+            @error('name')
+            <span class="text-red-500 text-sm mt-1">{{ $message }}</span>
+            @enderror
+        </div>
 
         {{-- Apellido(s) --}}
-        <x-form.field
-            name="last_name"
-            label="Apellido(s)"
-            wire:model="last_name"
-            placeholder="Apellido(s)"
-            required>
-            <x-icons.user/>
-        </x-form.field>
+        <div>
+            <x-form.field
+                name="last_name"
+                label="Apellido(s)"
+                wire:model="last_name"
+                placeholder="Apellido(s)"
+                required>
+                <x-icons.user/>
+            </x-form.field>
+            @error('last_name')
+            <span class="text-red-500 text-sm mt-1">{{ $message }}</span>
+            @enderror
+        </div>
     </div>
 
     <!-- Campo de Email - Editable solo en creación -->
