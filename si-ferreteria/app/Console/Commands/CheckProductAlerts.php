@@ -1,7 +1,6 @@
 <?php
 
 namespace App\Console\Commands;
-
 use App\Services\ProductAlertService;
 use Illuminate\Console\Command;
 
@@ -24,7 +23,7 @@ class CheckProductAlerts extends Command
     /**
      * Execute the console command.
      */
-    public function handle()
+    public function handle(): void
     {
         $service = new ProductAlertService();
 
