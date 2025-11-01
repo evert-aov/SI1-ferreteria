@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Services\ProductAlertChecker;
 use Illuminate\Console\Command;
 
 class CheckProductAlerts extends Command
@@ -23,7 +24,7 @@ class CheckProductAlerts extends Command
     /**
      * Execute the console command.
      */
-    public function handle()
+    public function handle(): void
     {
         $checker = new ProductAlertChecker();
 
