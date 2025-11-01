@@ -45,66 +45,9 @@ class ProductAlert extends Model
     }
 
     /**
-     * Scope: Alertas activas
-     */
-    public function scopeActivas($query)
-    {
-        return $query->where('active', true);
-    }
-
-    /**
-     * Scope: Alertas pendientes (status='pending' Y active=true)
-     */
-    public function scopePendientes($query)
-    {
-        return $query->where('status', 'pending')
-                     ->where('active', true);
-    }
-
-    /**
-     * Scope: Alertas para un rol específico
-     */
-    public function scopeVisiblePara($query, $rol)
-    {
-        return $query->whereJsonContains('visible_to', $rol);
-    }
-
-    /**
-     * Scope: Alertas de un usuario
-     */
-    public function scopeDelUsuario($query, $userId)
-    {
-        return $query->where('user_id', $userId);
-    }
-
-    /**
-     * Scope: Alertas del sistema (sin usuario específico)
-     */
-    public function scopeDelSistema($query)
-    {
-        return $query->whereNull('user_id');
-    }
-
-    /**
-     * Scope: Por tipo de alerta
-     */
-    public function scopeTipo($query, $tipo)
-    {
-        return $query->where('alert_type', $tipo);
-    }
-
-    /**
-     * Scope: Por prioridad
-     */
-    public function scopePrioridad($query, $prioridad)
-    {
-        return $query->where('priority', $prioridad);
-    }
-
-    /**
      * Marcar como leída
      */
-    public function marcarComoLeida(): void
+    public function checkAsRead(): void
     {
         $this->update(['status' => 'read']);
     }
@@ -112,29 +55,34 @@ class ProductAlert extends Model
     /**
      * Marcar como ignorada
      */
-    public function ignorar(): void
+    public function checkAsIgnored(): void
     {
         $this->update(['status' => 'ignored']);
     }
 
-    /**
-     * Verificar si es visible para un rol
-     */
-    public function esVisiblePara(string $rol): bool
+    public function checkAsPending(): void
     {
-        return in_array($rol, $this->visible_to);
+        $this->update(['status' => 'pending']);
     }
 
-    /**
-     * Obtener color según prioridad
-     */
-    public function getColorAttribute(): string
+    protected function search(Builder $query, string $searchTerm): Builder
     {
-        return match($this->priority) {
-            'high' => 'red',
-            'medium' => 'yellow',
-            'low' => 'blue',
-            default => 'blue'
-        };
+        if (empty($searchTerm)) {
+            return $query;
+        }
+
+        $term = '%' . $searchTerm . '%';
+
+        return $query->where(function ($q) use ($term) {
+            $q->where('id', 'ILIKE', $term)
+              ->orWhere('alert_type', 'ILIKE', $term)
+              ->orWhere('message', 'ILIKE', $term)
+              ->orWhere('priority', 'ILIKE', $term)
+              ->orWhere('status', 'ILIKE', $term)
+              ->orWhereHas('producto', function ($q2) use ($term) {
+                  $q2->where('name', 'ILIKE', $term);
+              });
+        });
     }
+
 }

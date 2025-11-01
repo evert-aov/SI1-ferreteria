@@ -2,7 +2,11 @@
 
 namespace App\Console\Commands;
 
+<<<<<<< HEAD
 use App\Services\ProductAlertChecker;
+=======
+use App\Services\ProductAlertService;
+>>>>>>> 679fb29ee78332f574d5aa0d005233931cdb9840
 use Illuminate\Console\Command;
 
 class CheckProductAlerts extends Command
@@ -26,14 +30,13 @@ class CheckProductAlerts extends Command
      */
     public function handle(): void
     {
-        $checker = new ProductAlertChecker();
+        $service = new ProductAlertService();
 
-        $checker->checkVencimientoProximo(15);
-        $checker->checkVencido();
-        $checker->checkBajoStock();
-        $checker->checkSinStock();
-        $checker->cleanResolvedAlerts();
+        $stockToasts = $service->runStockCheckAutomatic();
+        $expToasts = $service->runExpirationCheckAutomatic();
 
-        $this->info('Revisión de alertas completada.');
+        //$manager->cleanResolvedAlerts();
+
+        $this->info('Product alerts checked and toasts generated. Count expired: ' . count($expToasts) . ', Count low stock: ' . count($stockToasts));
     }
 }

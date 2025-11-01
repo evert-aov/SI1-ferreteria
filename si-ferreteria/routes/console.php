@@ -8,4 +8,6 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
 
-app(Schedule::class)->command('alerts:check')->hourly();
+return function (Schedule $schedule) {
+    $schedule->command('alerts:check')->everyTenSeconds();
+};

@@ -59,7 +59,7 @@ class PurchaseManager extends Component
         try {
             $this->form->addItem();
             session()->flash('message', 'Producto agregado a la lista');
-            $this->form->clearProductFields();
+            //$this->form->clearProductFields();
         } catch (ValidationException $e) {
             $this->dispatch('validation-error', $e->getMessage());
         }
