@@ -225,7 +225,9 @@ class ProductAlertManager extends Component
         }
 
         // Enviar directamente al ToastManager usando dispatch to
-        $this->dispatch('toast:addToasts', toasts: $toasts)->to(ToastManager::class);
+        $this->dispatch('toast:addToasts', toasts: $toasts);
+
+        //$this->broadcast('toast:addToasts', toasts: $toasts);
 
         session()->flash('message', 'Hay ' . count($toasts) . ' alertas de stock generadas');
     }
@@ -308,7 +310,7 @@ class ProductAlertManager extends Component
             $this->checkAsIgnored($alertId);
         }
 
-        $this->dispatch('toast:removeToast', id: $id)->to(ToastManager::class);
+        $this->dispatch('toast:removeToast', id: $id);
 
     }
 
@@ -323,7 +325,7 @@ class ProductAlertManager extends Component
             $this->checkAsRead($alertId);
         }
 
-        $this->dispatch('toast:removeToast', id: $id)->to(ToastManager::class);
+        $this->dispatch('toast:removeToast', id: $id);
     }
 
     public function runManualAlerts(): void
@@ -359,7 +361,7 @@ class ProductAlertManager extends Component
         }
 
         if (!empty($toasts)) {
-            $this->dispatch('toast:addToasts', toasts: $toasts)->to(ToastManager::class);
+            $this->dispatch('toast:addToasts', toasts: $toasts);
         }
     }
 

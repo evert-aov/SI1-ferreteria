@@ -1,5 +1,10 @@
 @props(['toasts', 'closeMethod' => 'cerrarToast', 'ignoreMethod' => 'ignorarAlert'])
 
+@php
+    $toastsArray = is_array($this->toasts) ? $this->toasts : [];
+    $toastCount = count($toastsArray);
+@endphp
+
 <!-- Contenedor de Toasts con Toggle -->
 <div class="fixed right-10 bottom-4 z-50"
      x-data="{
@@ -11,8 +16,8 @@
      }">
 
     <!-- Botón Toggle -->
-    @if(count($toasts) > 0)
-        <x-toast.toggle-button :toastCount="count($toasts)" />
+    @if($toastCount > 0)
+        <x-toast.toggle-button :toastCount="$toastCount" />
     @endif
 
     <!-- Contenedor de Toasts -->
@@ -31,7 +36,7 @@
             }
         </style>
         <div class="flex flex-col-reverse gap-5 min-h-0 toast-container">
-            @foreach($toasts as $toast)
+            @foreach($toastsArray as $toast)
                 <x-toast.item
                     :toast="$toast"
                     :closeMethod="$closeMethod"

@@ -12,8 +12,6 @@ class ToastManager extends Component
 {
     public $toasts = [];
 
-
-
     // Escuchar eventos genéricos
     protected $listeners = [
         'toast:add' => 'addToast',
@@ -22,6 +20,13 @@ class ToastManager extends Component
         'toast:ignore' => 'ignoreToast',
         'toast:close' => 'closeToast',
     ];
+
+    public function mount()
+    {
+        // Cargar toasts desde la sesión al montar el componente
+        $this->toasts = session()->get('active_toasts', []);
+    }
+
 
     public function render()
     {
@@ -65,11 +70,13 @@ class ToastManager extends Component
         }
 
         $this->toasts[] = $toast;
+        $this->saveToastsToSession();
     }
 
     /**
      * Agregar múltiples toasts de una vez
      */
+
     public function addToasts(array $toasts): void
     {
         //dd($toasts);
@@ -134,9 +141,11 @@ class ToastManager extends Component
     public function closeToast($id): void
     {
         // Remover del array local
-        $this->toasts = array_filter($this->toasts, function($toast) use ($id) {
+        $this->toasts = array_values(array_filter($this->toasts, function($toast) use ($id) {
             return $toast['id'] !== $id;
-        });
+        }));
+
+        $this->saveToastsToSession();
     }
 
     /**
@@ -145,9 +154,23 @@ class ToastManager extends Component
     public function ignoreToast($id): void
     {
         // Remover del array local
-        $this->toasts = array_filter($this->toasts, function($toast) use ($id) {
+        $this->toasts = array_values(array_filter($this->toasts, function($toast) use ($id) {
             return $toast['id'] !== $id;
-        });
+        }));
+
+        $this->saveToastsToSession();
+    }
+
+    /**
+     * Guardar toasts en la sesión para persistencia entre vistas
+     */
+    protected function saveToastsToSession(): void
+    {
+        if (count($this->toasts) > 0) {
+            session()->put('active_toasts', $this->toasts);
+        } else {
+            session()->forget('active_toasts');
+        }
     }
 
     public function getDuracionFromPriority(string $priority): int
