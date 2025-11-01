@@ -1,12 +1,7 @@
 <?php
 
 namespace App\Console\Commands;
-
-<<<<<<< HEAD
-use App\Services\ProductAlertChecker;
-=======
 use App\Services\ProductAlertService;
->>>>>>> 679fb29ee78332f574d5aa0d005233931cdb9840
 use Illuminate\Console\Command;
 
 class CheckProductAlerts extends Command
