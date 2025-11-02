@@ -1,4 +1,4 @@
-<div>
+<div class="py-4">
     <x-container-second-div>
         <div class="flex items-center ml-4">
             <x-input-label class="text-lg font-semibold">

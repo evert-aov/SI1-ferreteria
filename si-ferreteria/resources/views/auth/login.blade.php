@@ -59,12 +59,12 @@
         </form>
 
         <div class="flex items-center justify-end mt-4">
-                @if (Route::has('password.request'))
-                    <a class="text-orange-600 font-semibold hover:text-blue-900 hover:underline transition-colors duration-300"
-                       href="{{ route('register') }}">
-                        {{ __('Registrarme') }}
-                    </a>
-                @endif
-            </div>
+            @if (Route::has('password.request'))
+                <a class="text-orange-600 font-semibold hover:text-blue-900 hover:underline transition-colors duration-300"
+                   href="{{ route('register') }}">
+                    {{ __('Registrarme') }}
+                </a>
+            @endif
+        </div>
     </div>
 </x-guest-layout>

@@ -1,5 +1,5 @@
 <x-app-layout>
-    <x-container-div>
+    <x-container-div class="space-y-6">
         <x-container-second-div>
             <div class="flex items-center mb-4 pb-2 border-b border-orange-200">
                 <x-icons.user/>
