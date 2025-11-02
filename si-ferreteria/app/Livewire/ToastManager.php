@@ -55,14 +55,20 @@ class ToastManager extends Component
         }
 
         // Aplicar defaults
-        $toast = array_merge([
+        $defaults = [
             'descripcion' => '',
             'tipo' => 'info',
-            'color' => $this->getColorFromType($toast['tipo'] ?? 'info'),
             'autoCierre' => true,
-            'duracion' => $this->getDuracionFromPriority($toast['prioridad'] ?? 'medium'),
+            'duracion' => 10000,
             'icono' => $this->getIconFromType($toast['tipo'] ?? 'info')
-        ], $toast);
+        ];
+
+        $toast = array_merge($defaults, $toast);
+
+        // Establecer color basado en tipo
+        if (!isset($toast['color'])) {
+            $toast['color'] = $this->getColorFromType($toast['tipo']);
+        }
 
         // Evitar duplicados
         if ($this->toastExists($toast['id'])) {
@@ -140,12 +146,9 @@ class ToastManager extends Component
      */
     public function closeToast($id): void
     {
-        // Remover del array local
-        $this->toasts = array_values(array_filter($this->toasts, function($toast) use ($id) {
-            return $toast['id'] !== $id;
-        }));
-
-        $this->saveToastsToSession();
+        // Disparar evento para que otros componentes manejen la lógica de negocio
+        $this->dispatch('closeToast', id: $id);
+        $this->removeToast($id);
     }
 
     /**
@@ -153,7 +156,16 @@ class ToastManager extends Component
      */
     public function ignoreToast($id): void
     {
-        // Remover del array local
+        // Disparar evento para que otros componentes manejen la lógica de negocio
+        $this->dispatch('ignoreToast', id: $id);
+        $this->removeToast($id);
+    }
+
+    /**
+     * Remover un toast del array (método auxiliar)
+     */
+    protected function removeToast($id): void
+    {
         $this->toasts = array_values(array_filter($this->toasts, function($toast) use ($id) {
             return $toast['id'] !== $id;
         }));
@@ -173,13 +185,4 @@ class ToastManager extends Component
         }
     }
 
-    public function getDuracionFromPriority(string $priority): int
-    {
-        return match($priority) {
-            'high' => 0,      // No se cierra automáticamente
-            'medium' => 15000,   // 15 segundos
-            'low' => 10000,      // 10 segundos
-            default => 10000
-        };
-    }
 }
