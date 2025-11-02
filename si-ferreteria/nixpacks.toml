@@ -1,0 +1,2 @@
+[providers.php]
+extensions = ["gd", "pdo_pgsql", "redis"]
