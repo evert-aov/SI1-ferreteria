@@ -20,19 +20,18 @@ RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
 # Instalar Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Instalar Node.js 22 (compatible con Laravel 12)
+# Instalar Node.js 22
 RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
     && apt-get install -y nodejs
 
 WORKDIR /app
 
-# Copiar archivos de dependencias primero (para aprovechar caché)
-COPY composer.json composer.lock package.json package-lock.json ./
+# Copiar archivos de dependencias
+COPY composer.json composer.lock ./
+COPY package.json package-lock.json ./
 
-# Instalar dependencias PHP
+# Instalar dependencias
 RUN composer install --optimize-autoloader --no-dev --no-scripts --no-interaction
-
-# Instalar dependencias Node
 RUN npm ci
 
 # Copiar el resto de la aplicación
@@ -45,12 +44,14 @@ RUN npm run build
 RUN mkdir -p storage/framework/{sessions,views,cache,testing} storage/logs bootstrap/cache \
     && chmod -R 777 storage bootstrap/cache
 
-# Cachear configuraciones de Laravel
-RUN php artisan config:cache \
-    && php artisan route:cache \
-    && php artisan view:cache
-
 EXPOSE 8080
 
-# Comando de inicio
-CMD php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=8080
+# Comando de inicio - cachear AQUÍ cuando las variables de entorno están disponibles
+CMD php artisan config:clear && \
+    php artisan cache:clear && \
+    php artisan view:clear && \
+    php artisan config:cache && \
+    php artisan route:cache && \
+    php artisan view:cache && \
+    php artisan migrate --force && \
+    php artisan serve --host=0.0.0.0 --port=8080
