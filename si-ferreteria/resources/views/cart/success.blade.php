@@ -1,19 +1,15 @@
 <x-sales-layout>
-    <div class="min-h-screen bg-gray-900 py-8">
-        <div class="container mx-auto px-4 max-w-4xl">
+    <x-container-div>
+        <x-container-div class="container mx-auto px-4 max-w-4xl space-y-4">
             <!-- Mensaje de éxito -->
             <div class="text-center mb-8">
-                <div class="inline-flex items-center justify-center w-20 h-20 bg-green-500 rounded-full mb-4">
-                    <svg class="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                    </svg>
-                </div>
-                <h1 class="text-4xl font-bold text-white mb-2">¡Pedido Confirmado!</h1>
+                <x-icons.success/>
+                <h2 class="text-4xl font-bold text-white mb-2">¡Pedido Confirmado!</h2>
                 <p class="text-gray-400 text-lg">Tu pedido ha sido registrado exitosamente</p>
             </div>
 
             <!-- Información del pedido -->
-            <div class="bg-gray-800 rounded-lg p-8 mb-6">
+            <x-container-second-div id="invoice-section">
                 <div class="flex justify-between items-start mb-6 pb-6 border-b border-gray-700">
                     <div>
                         <h2 class="text-2xl font-bold text-white mb-2">Número de Pedido</h2>
@@ -59,10 +55,12 @@
                                 <p class="text-white font-semibold">Efectivo</p>
                                 <p class="text-gray-400 text-sm">Pago contra entrega</p>
                             </div>
-                        @elseif($order['payment_method'] == 'bank_transfer')
-                            <span class="text-2xl">🏦</span>
+                        @elseif($order['payment_method'] == 'paypal')
+                            <img
+                                src="https://www.paypalobjects.com/webstatic/mktg/logo/AM_mc_vs_dc_ae.jpg"
+                                alt="PayPal" class="h-6">
                             <div>
-                                <p class="text-white font-semibold">Transferencia Bancaria</p>
+                                <p class="text-white font-semibold">PayPal</p>
                                 <p class="text-gray-400 text-sm">Recibirás los datos por correo</p>
                             </div>
                         @else
@@ -78,13 +76,13 @@
                 <!-- Productos -->
                 <div class="mb-6">
                     <h3 class="text-lg font-bold text-white mb-4">Productos</h3>
-                    <div class="space-y-3">
+                    <xcon class="space-y-3">
                         @foreach($order['items'] as $id => $item)
-                            <div class="flex items-center gap-4 bg-gray-700 rounded-lg p-4">
+                            <x-container-second-div class="flex items-center gap-4 p-4">
                                 <img
-                                    src="{{ $item['image'] ?? 'https://via.placeholder.com/80x80?text=Sin+Imagen' }}"
+                                    src="{{ asset($item['image']) }}"
                                     alt="{{ $item['name'] }}"
-                                    class="w-20 h-20 object-contain rounded bg-gray-600"
+                                    class="w-16 h-16 object-contain rounded bg-gray-700"
                                 >
                                 <div class="flex-1">
                                     <h4 class="text-white font-semibold">{{ $item['name'] }}</h4>
@@ -96,13 +94,13 @@
                                         {{ $item['currency'] }} {{ number_format($item['price'] * $item['quantity'], 2) }}
                                     </p>
                                 </div>
-                            </div>
+                            </x-container-second-div>
                         @endforeach
-                    </div>
+                    </xcon>
                 </div>
 
                 <!-- Resumen de totales -->
-                <div class="bg-gray-700 rounded-lg p-6">
+                <x-container-second-div class="bg-gray-700 rounded-lg p-6">
                     <div class="space-y-3">
                         <div class="flex justify-between text-gray-400">
                             <span>Subtotal:</span>
@@ -121,7 +119,7 @@
                             <span class="text-3xl font-bold text-yellow-500">USD {{ number_format($order['total'], 2) }}</span>
                         </div>
                     </div>
-                </div>
+                </x-container-second-div>
 
                 @if($order['order_notes'])
                     <div class="mt-6 p-4 bg-gray-700 rounded-lg">
@@ -129,10 +127,10 @@
                         <p class="text-gray-400">{{ $order['order_notes'] }}</p>
                     </div>
                 @endif
-            </div>
+            </x-container-second-div>
 
             <!-- Información adicional -->
-            <div class="bg-blue-900 border border-blue-700 rounded-lg p-6 mb-6">
+            <x-container-second-div class="bg-blue-900 border border-blue-700 rounded-lg p-6 mb-6">
                 <h3 class="text-white font-bold mb-3 flex items-center gap-2">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
@@ -159,7 +157,7 @@
                         </li>
                     @endif
                 </ul>
-            </div>
+            </x-container-second-div>
 
             <!-- Botones de acción -->
             <div class="flex flex-col sm:flex-row gap-4 justify-center">
@@ -174,11 +172,10 @@
             <!-- Contacto -->
             <div class="text-center mt-8 text-gray-400">
                 <p>¿Necesitas ayuda con tu pedido?</p>
-                <p class="text-white font-semibold">Contáctanos: <a href="tel:+59112345678" class="text-yellow-500 hover:underline">+591 123 456 78</a></p>
+                <p class="text-white font-semibold">Contáctanos: <a href="#" class="text-yellow-500 hover:underline">+591 609 624 33</a></p>
             </div>
-        </div>
-    </div>
-
+        </x-container-div>
+    </x-container-div>
     <style>
         @media print {
             body * {

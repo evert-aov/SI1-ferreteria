@@ -1,0 +1,2 @@
+<a <?php echo e($attributes->merge(['class' => 'text-white font-semibold text-lg mb-2 hover:text-yellow-500 transition line-clamp-2'])); ?>><?php echo e($slot); ?></a>
+<?php /**PATH /mnt/disco_d/sexto_semestre/si1-ferreteria/si-ferreteria/resources/views/components/dropdown-link.blade.php ENDPATH**/ ?>
