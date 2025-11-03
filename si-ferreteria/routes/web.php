@@ -11,6 +11,7 @@ use App\Livewire\Purchase\PurchaseManager;
 use App\Livewire\Purchase\SupplierManager;
 use App\Livewire\ReportAndAnalysis\AuditLog;
 use App\Livewire\ReportAndAnalysis\ProductAlertManager;
+use App\Livewire\Sales\SaleManager;
 use App\Livewire\UserSecurity\PermissionManager;
 use App\Livewire\UserSecurity\RoleManager;
 use App\Livewire\UserSecurity\UserManager;
@@ -57,6 +58,9 @@ Route::middleware('auth')->group(function () {
 
     //gestión de proveedores
     Route::get('/suppliers', SupplierManager::class)->name('suppliers.index');
+
+    //gestión de ventas presenciales
+    Route::get('/sales', SaleManager::class)->name('sales.index');
     //});
 });
 
