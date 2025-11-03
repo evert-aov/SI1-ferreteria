@@ -161,6 +161,14 @@
                         </li>
 
                         <li>
+                            <a href="{{ route('discounts.index') }}"
+                               class="flex items-center p-3 text-gray-400 rounded-lg hover:bg-amber-600/10 hover:text-amber-300 transition-all duration-200 text-sm">
+                                <x-icons.alerts/>
+                                {{ __('Gestion de Descuentos') }}
+                            </a>
+                        </li>
+
+                        <li>
                             <a href="{{ route('audit-logs.index') }}"
                                class="flex items-center p-2 text-gray-400 rounded-lg hover:bg-blue-600/10 hover:text-blue-300 transition-all duration-200 text-sm">
                                 <x-icons.audit_log/>

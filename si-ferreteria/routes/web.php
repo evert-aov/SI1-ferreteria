@@ -11,6 +11,7 @@ use App\Livewire\UserSecurity\PermissionManager;
 use App\Livewire\UserSecurity\RoleManager;
 use App\Livewire\UserSecurity\UserManager;
 use Illuminate\Support\Facades\Route;
+use App\Livewire\DiscountManager;
 
 Route::redirect('/', '/login');
 
@@ -35,6 +36,7 @@ Route::middleware('auth')->group(function () {
 
         //gestión de proveedores
         Route::get('/suppliers', SupplierManager::class)->name('suppliers.index');
+        Route::get('/discounts', DiscountManager::class)->name('discounts.index');
     //});
 });
 
