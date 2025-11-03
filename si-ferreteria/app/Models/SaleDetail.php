@@ -24,13 +24,34 @@ class SaleDetail extends Model
         'subtotal' => 'decimal:2',
     ];
 
+    /**
+     * Relación con la venta
+     */
     public function sale(): BelongsTo
     {
         return $this->belongsTo(Sale::class);
     }
 
+    /**
+     * Relación con el producto
+     */
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
+    }
+
+    /**
+     * Calcular el total con descuento
+     */
+    public function getTotalAttribute(): float
+    {
+        $total = $this->subtotal;
+
+        if ($this->discount_percentage > 0) {
+            $discount = ($total * $this->discount_percentage) / 100;
+            $total -= $discount;
+        }
+
+        return $total;
     }
 }

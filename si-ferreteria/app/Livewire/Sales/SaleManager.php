@@ -6,17 +6,14 @@ use App\Livewire\Forms\SaleForm;
 use App\Models\Inventory\Product;
 use App\Models\Payment;
 use App\Models\Purchase\PaymentMethod;
-use App\Models\Sale;
 use App\Models\SaleDetail;
-use App\Models\Sales\Customer;
+use App\Models\SaleUnperson;
 use App\Models\User_security\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
-use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Livewire\WithPagination;
-
 
 
 class SaleManager extends Component
@@ -57,7 +54,7 @@ class SaleManager extends Component
 
     public function render(): View
     {
-        $sales = Sale::with(['customer', 'saleDetails.product'])
+        $sales = SaleUnperson::with(['customer', 'saleDetails.product'])
             ->orderBy('created_at', 'desc')
             ->paginate(10);
 
@@ -91,7 +88,7 @@ class SaleManager extends Component
 
         try {
             // Crear la venta
-            $sale = Sale::create([
+            $sale = SaleUnperson::create([
                 'invoice_number' => $this->form->invoice_number,
                 'customer_id' => $this->form->customer_id,
                 'payment_id' => null,

@@ -3,7 +3,8 @@
 namespace App\Models\User_security;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
-use App\Models\Usuariosuse;
+use App\Models\ReportAndAnalysis\AuditLog;
+use App\Models\Sales\Customer;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
