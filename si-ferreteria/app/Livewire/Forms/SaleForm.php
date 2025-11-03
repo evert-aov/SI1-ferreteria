@@ -3,7 +3,7 @@
 namespace App\Livewire\Forms;
 
 use App\Models\Inventory\Product;
-use App\Models\Sale;
+use App\Models\SaleUnperson;
 use Livewire\Features\SupportFormObjects\Form;
 
 class SaleForm extends Form
@@ -112,7 +112,7 @@ class SaleForm extends Form
 
     public function generateInvoiceNumber(): void
     {
-        $lastSale = Sale::orderBy('id', 'desc')->first();
+        $lastSale = SaleUnperson::orderBy('id', 'desc')->first();
 
         if ($lastSale) {
             preg_match('/\d+/', $lastSale->invoice_number, $matches);
@@ -122,7 +122,7 @@ class SaleForm extends Form
             $newNumber = 1;
         }
 
-        $this->invoice_number = sprintf('VEN-%06d', $newNumber);
+        $this->invoice_number = $this->formatInvoiceNumber($newNumber);
     }
 
     public function loadProductPrice(): void
@@ -143,5 +143,11 @@ class SaleForm extends Form
         $this->discount = $sale->discount;
         $this->tax = $sale->tax;
         $this->notes = $sale->notes;
+    }
+
+    private function formatInvoiceNumber(int $number): string
+    {
+        $prefix = 'FAC';
+        return sprintf('%s-%06d', $prefix, $number);
     }
 }

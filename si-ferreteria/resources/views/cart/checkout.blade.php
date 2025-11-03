@@ -1,5 +1,30 @@
 <x-sales-layout>
     <x-container-div>
+        @if(session('error'))
+            <div class="mb-4 p-4 bg-red-800 text-white rounded-lg border border-red-600">
+                <h3 class="font-bold text-lg">¡Error!</h3>
+                <p>{{ session('error') }}</p>
+            </div>
+        @endif
+
+        @if(session('success'))
+            <div class="mb-4 p-4 bg-green-800 text-white rounded-lg border border-green-600">
+                <h3 class="font-bold text-lg">¡Éxito!</h3>
+                <p>{{ session('success') }}</p>
+            </div>
+        @endif
+
+        {{-- Muestra errores de validación (por si acaso) --}}
+        @if ($errors->any())
+            <div class="mb-4 p-4 bg-red-800 text-white rounded-lg border border-red-600">
+                <h3 class="font-bold text-lg">Por favor corrige los siguientes errores:</h3>
+                <ul class="list-disc list-inside">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
         <x-container-div>
             <x-input-label class="text-3xl mb-8">
                 <x-icons.credit-cart/>
@@ -87,16 +112,7 @@
                                             required
                                             class="w-full bg-gray-700 text-white rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
                                         >
-                                            <option value="">Seleccione...</option>
                                             <option value="Santa Cruz">Santa Cruz</option>
-                                            <option value="La Paz">La Paz</option>
-                                            <option value="Cochabamba">Cochabamba</option>
-                                            <option value="Oruro">Oruro</option>
-                                            <option value="Potosí">Potosí</option>
-                                            <option value="Tarija">Tarija</option>
-                                            <option value="Chuquisaca">Chuquisaca</option>
-                                            <option value="Beni">Beni</option>
-                                            <option value="Pando">Pando</option>
                                         </x-select-input>
                                     </div>
                                     <div>
@@ -120,9 +136,29 @@
                         </x-container-second-div>
 
                         <!-- Método de pago -->
-                        <x-container-second-div>
+                        <x-container-second-div class="space-y-4">
                             <h2 class="text-xl font-bold text-white mb-4">3. Método de Pago</h2>
-                            <div class="space-y-3">
+                            <div>
+                                <label
+                                    class="flex items-center p-4 bg-gray-700 rounded-lg cursor-pointer hover:bg-gray-600 transition">
+                                    <input
+                                        type="radio"
+                                        name="payment_method"
+                                        value="paypal"
+                                        class="w-5 h-5 text-blue-600"
+                                    >
+                                    <div class="ml-4 flex-1">
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-white font-semibold">💳 PayPal</span>
+                                            <img
+                                                src="https://www.paypalobjects.com/webstatic/mktg/logo/AM_mc_vs_dc_ae.jpg"
+                                                alt="PayPal" class="h-6">
+                                        </div>
+                                        <p class="text-gray-400 text-sm">Pago seguro con PayPal (tarjeta o cuenta)</p>
+                                    </div>
+                                </label>
+                            </div>
+                            <div>
                                 <label
                                     class="flex items-center p-4 bg-gray-700 rounded-lg cursor-pointer hover:bg-gray-600 transition">
                                     <input
@@ -137,38 +173,6 @@
                                             <span class="text-white font-semibold">💵 Efectivo</span>
                                         </div>
                                         <p class="text-gray-400 text-sm">Pago contra entrega</p>
-                                    </div>
-                                </label>
-
-                                <label
-                                    class="flex items-center p-4 bg-gray-700 rounded-lg cursor-pointer hover:bg-gray-600 transition">
-                                    <input
-                                        type="radio"
-                                        name="payment_method"
-                                        value="bank_transfer"
-                                        class="w-5 h-5 text-blue-600"
-                                    >
-                                    <div class="ml-4 flex-1">
-                                        <div class="flex items-center gap-2">
-                                            <span class="text-white font-semibold">🏦 Transferencia Bancaria</span>
-                                        </div>
-                                        <p class="text-gray-400 text-sm">Recibirás los datos bancarios por correo</p>
-                                    </div>
-                                </label>
-
-                                <label
-                                    class="flex items-center p-4 bg-gray-700 rounded-lg cursor-pointer hover:bg-gray-600 transition">
-                                    <input
-                                        type="radio"
-                                        name="payment_method"
-                                        value="qr"
-                                        class="w-5 h-5 text-blue-600"
-                                    >
-                                    <div class="ml-4 flex-1">
-                                        <div class="flex items-center gap-2">
-                                            <span class="text-white font-semibold">📱 QR Simple</span>
-                                        </div>
-                                        <p class="text-gray-400 text-sm">Pago mediante código QR</p>
                                     </div>
                                 </label>
                             </div>
@@ -239,4 +243,18 @@
             </x-container-second-div>
         </x-container-div>
     </x-container-div>
+    <script>
+        document.getElementById('checkoutForm').addEventListener('submit', function (e) {
+            const selectedPayment = document.querySelector('input[name="payment_method"]:checked').value;
+
+            if (selectedPayment === 'paypal') {
+                e.preventDefault();
+                this.action = '{{ route("paypal.create") }}';
+
+                this.submit();
+            } else {
+                this.action = '{{ route("cart.process") }}';
+            }
+        });
+    </script>
 </x-sales-layout>

@@ -30,7 +30,6 @@ class CartController extends Controller
         if (isset($cart[$id])) {
             $newQuantity = $cart[$id]['quantity'] + $request->quantity;
 
-            // Verificar que no exceda el stock
             if ($newQuantity > $product->stock) {
                 return redirect()->back()->with('error', 'No hay suficiente stock disponible.');
             }
@@ -99,6 +98,7 @@ class CartController extends Controller
 
     public function checkout()
     {
+        // El middleware 'auth' ya garantiza que hay un usuario autenticado
         $cart = session()->get('cart', []);
 
         if (empty($cart)) {
@@ -128,8 +128,8 @@ class CartController extends Controller
         return [
             'items' => $items,
             'subtotal' => $subtotal,
-            'tax' => $subtotal * 0.13, // 13% de impuesto (ajusta según tu país)
-            'total' => $subtotal * 1.13
+            'tax' => $subtotal * 0.13,
+            'total' => $subtotal * 1.13,
         ];
     }
 
@@ -164,13 +164,13 @@ class CartController extends Controller
             'shipping_zip' => 'nullable|string',
             'shipping_notes' => 'nullable|string',
             'payment_method' => 'required|in:cash,bank_transfer,qr',
+            'discount' => 'nullable|numeric|min:0',
         ]);
 
-        // 2. Verificar stock de todos los productos ANTES de la transacción
+        // Verificar stock de todos los productos ANTES de la transacción
         foreach ($cart as $id => $details) {
             $product = Product::find($id);
             if (!$product || $product->stock < $details['quantity']) {
-                // Redirige de vuelta con los datos y un error
                 return redirect()->back()
                     ->with('error', 'Stock insuficiente para el producto: ' . $details['name'])
                     ->withInput();
@@ -182,35 +182,27 @@ class CartController extends Controller
 
             $total = $this->calculateTotal($cart);
 
-            $customerData = [
+            /** @var User $user */
+            $user = auth()->user();
+
+            // Actualizar información del usuario
+            $user->update([
                 'name' => $request->customer_name,
-                'email' => $request->customer_email,
                 'phone' => $request->customer_phone,
-                'nit' => $request->customer_nit,
+                'document_number' => $request->customer_nit,
+            ]);
+
+            $customerData = [
+                'name' => $user->name,
+                'email' => $user->email,
+                'phone' => $user->phone,
+                'nit' => $user->document_number,
             ];
 
-            if (auth()->check()) {
-                /** @var User $user */
-                $user = auth()->user();
-
-                $user->update([
-                    'name' => $request->customer_name,
-                    'phone' => $request->customer_phone,
-                    'document_number' => $request->customer_nit,
-                ]);
-
-                $customerData = [
-                    'name' => $user->name,
-                    'email' => $user->email,
-                    'phone' => $user->phone,
-                    'nit' => $user->document_number,
-                ];
-            }
-
-            // 6. Generar número de factura único
+            // Generar número de factura único
             $invoiceNumber = 'INV-' . date('Ymd') . '-' . str_pad(rand(1, 9999), 4, '0', STR_PAD_LEFT);
 
-            // 7. Crear el array de datos de la orden
+            // Crear el array de datos de la orden
             $orderData = [
                 'invoice_number' => $invoiceNumber,
                 'customer' => $customerData,
@@ -222,6 +214,7 @@ class CartController extends Controller
                 ],
                 'payment_method' => $request->payment_method,
                 'order_notes' => $request->shipping_notes,
+                'discount' => $request->discount,
                 'subtotal' => $total['subtotal'],
                 'tax' => $total['tax'],
                 'total' => $total['total'],
@@ -229,6 +222,7 @@ class CartController extends Controller
                 'created_at' => now(),
             ];
 
+            // Actualizar stock de productos
             foreach ($cart as $id => $details) {
                 $product = Product::find($id);
                 $product->stock -= $details['quantity'];
@@ -239,18 +233,13 @@ class CartController extends Controller
             DB::commit();
 
             session()->put('last_order', $orderData);
-
-
             session()->forget('cart');
 
-            // 12. Redirigir a página de confirmación
             return redirect()->route('cart.success')->with('success', '¡Pedido realizado con éxito!');
 
         } catch (\Exception $e) {
-            // 13. Si algo falla, revertir la transacción
             DB::rollBack();
 
-            // Redirigir de vuelta con el error y los datos del formulario
             return redirect()->back()
                 ->with('error', 'Error al procesar el pedido: ' . $e->getMessage())
                 ->withInput();

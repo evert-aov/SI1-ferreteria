@@ -25,11 +25,22 @@
                         class="text-2xl font-bold text-yellow-500">USD {{ number_format($total['total'], 2) }}</span>
                 </div>
             </div>
-
-            <a href="{{ route('cart.checkout') }}"
-               class="block w-full bg-blue-600 hover:bg-blue-700 text-white font-bold text-center py-4 rounded-lg transition mb-3">
-                Proceder al Pago
-            </a>
+            @auth
+                <!-- Usuario autenticado: ir al checkout -->
+                <a href="{{ route('cart.checkout') }}"
+                   class="block w-full bg-green-600 hover:bg-green-700 text-white text-center px-6 py-3 rounded-lg font-bold transition mb-3">
+                    Proceder al Pago
+                </a>
+            @else
+                <!-- Usuario NO autenticado: ir al login -->
+                <a href="{{ route('login') }}"
+                   class="block w-full bg-blue-600 hover:bg-blue-700 text-white text-center px-6 py-3 rounded-lg font-bold transition mb-3">
+                    🔐 Iniciar Sesión para Comprar
+                </a>
+                <p class="text-gray-400 text-sm text-center mb-3">
+                    Debes iniciar sesión para finalizar tu compra
+                </p>
+            @endauth
 
             <div class="space-y-2 text-sm text-gray-400">
                 <div class="flex items-center gap-2">
