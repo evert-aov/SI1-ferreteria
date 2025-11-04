@@ -24,9 +24,11 @@ class PayPalController extends Controller
             'shipping_address' => 'required|string',
             'shipping_state' => 'required|string',
             'shipping_zip' => 'nullable|string',
+            //'discount_code' => 'nullable|string',
             'shipping_notes' => 'nullable|string',
         ]);
 
+        //$discountCode = $request->get('discount_code');
         // Guardar datos del cliente en sesión para usarlos después
         session()->put('checkout_data', $request->all());
 
@@ -85,6 +87,11 @@ class PayPalController extends Controller
                                     'currency_code' => 'USD',
                                     'value' => number_format($tax, 2, '.', ''),
                                 ],
+                              /*'discount' => [
+                                    'currency_code' => 'USD',
+                                    'value' => number_format($discountAmount, 2, '.', ''),
+                                ],
+                               */
                             ],
                         ],
                         'items' => $items,
@@ -135,6 +142,29 @@ class PayPalController extends Controller
                 foreach ($cart as $id => $details) {
                     $subtotal += $details['price'] * $details['quantity'];
                 }
+
+                /*
+                if ($discountCode) {
+                    // Lógica para aplicar el descuento basado en el código
+                    $discount = \App\Models\Discount::where('code', $discountCode)
+                        ->where('is_active', true)
+                        ->first();
+
+                    if ($discount) {
+                        $discountValue = $discount->toApplyDiscount($subtotal);
+                        $discountId = $discount->id;
+
+                    }
+                } else {
+                    $discountValue = 0;
+                    $discountId = null;
+                }
+
+                $subtotalAfterDiscount = $subtotal - $discountValue;
+                $tax = $subtotalAfterDiscount * 0.13;
+                $total = $subtotalAfterDiscount + $tax;
+                */
+
                 $tax = $subtotal * 0.13;
                 $total = $subtotal + $tax;
 
@@ -156,7 +186,8 @@ class PayPalController extends Controller
                         'shipping_notes' => $checkoutData['shipping_notes'] ?? null,
                         'payment_method' => 'paypal',
                         'payment_transaction_id' => $result['purchase_units'][0]['payments']['captures'][0]['id'] ?? null,
-                        'subtotal' => $subtotal,
+                        'subtotal' => $subtotal, //$subtotalAfterDiscount,
+                        //'discount_id' => $discountId ?? null,
                         'tax' => $tax,
                         'total' => $total,
                         'status' => 'paid', // PayPal ya está pagado
@@ -184,6 +215,12 @@ class PayPalController extends Controller
                         }
                     }
 
+                    /*
+                    if ($discount && $discountValue > 0) {
+                        $discount->increment('count_used');
+                    }
+                    */
+
                     \DB::commit();
 
                     // Datos de la orden para la vista
@@ -209,6 +246,7 @@ class PayPalController extends Controller
                         'payment_status' => 'completed',
                         'order_notes' => $checkoutData['order_notes'] ?? null,
                         'subtotal' => $subtotal,
+                        // 'discount' => $discountValue ?? 0,
                         'tax' => $tax,
                         'total' => $total,
                         'items' => $cart,

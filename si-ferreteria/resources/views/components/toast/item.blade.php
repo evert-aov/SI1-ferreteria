@@ -2,38 +2,12 @@
 
 <div
     wire:key="toast-{{ $toast['id'] }}"
-    x-data="{
-        toastId: '{{ $toast['id'] }}',
-        show: false,
-        autoCerrar: {{ $toast['autoCierre'] ? 'true' : 'false' }},
-        duracion: {{ $toast['duracion'] ?? 5 }},
-        progreso: 100,
-        timerInterval: null,
-        inicializado: false
-    }"
-    x-init="
-        if (!inicializado) {
-            inicializado = true;
-            show = true;
-            if (autoCerrar) {
-                let duracionMs = duracion;
-                let intervalo = 50;
-                let pasos = duracionMs / intervalo;
-                let decrementoPorPaso = 100 / pasos;
-
-                timerInterval = setInterval(() => {
-                    progreso -= decrementoPorPaso;
-                    if (progreso <= 0) {
-                        clearInterval(timerInterval);
-                        show = false;
-                        setTimeout(() => {
-                            @this.{{ $closeMethod }}(toastId);
-                        }, 200);
-                    }
-                }, intervalo);
-            }
-        }
-    "
+    <x-toast.alpine-logic
+        :toastId="$toast['id']"
+        :autoCierre="$toast['autoCierre']"
+        :duracion="$toast['duracion']"
+        :closeMethod="$closeMethod" />
+        
     x-show="show"
     x-transition:enter="transition ease-out duration-300 transform"
     x-transition:enter-start="opacity-0 translate-y-24 scale-95"

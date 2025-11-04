@@ -3,39 +3,9 @@
 namespace App\Services;
 
 use App\Models\Inventory\Product;
-use App\Models\ReportAndAnalysis\ProductAlert;
-use App\Livewire\Repor\ProductAlertManager;
-use Carbon\Carbon;
 
 class ProductAlertService
 {
-    /**
-     * Genera alertas automáticas sin guardarlas en la BD.
-     * Retorna un array de alertas listas para mostrar.
-     */
-    public function runAllChecks(): array
-    {
-        return array_merge(
-            $this->checkVencimientoProximo(),
-            $this->checkVencido(),
-            $this->checkBajoStock(),
-            $this->checkSinStock(),
-        );
-    }
-
-    /**
-     * Devuelve todas las alertas manuales activas desde la BD en formato unificado.
-     */
-    public function getManualAlerts(): array
-    {
-        $manualAlerts = ProductAlert::activas()
-            ->pendientes()
-            ->whereNotNull('user_id') // solo manuales
-            ->with('producto')
-            ->get();
-
-        return $manualAlerts->map(fn($alert) => $this->formatAlert($alert))->toArray();
-    }
 
     /**
      * Vencimiento próximo
@@ -81,7 +51,7 @@ class ProductAlertService
 
         $alerts = [];
         foreach ($products as $product) {
-            $daysExpired = (int) $now->diffInDays($product->expiration_date);
+            $daysExpired = abs((int) $now->diffInDays($product->expiration_date));
             $alerts[] = $this->makeAlert($product, 'expired', [
                 'message' => "{$product->name} venció hace {$daysExpired} " . ($daysExpired === 1 ? 'día' : 'días'),
                 'priority' => 'high',
@@ -124,7 +94,8 @@ class ProductAlertService
         $alerts = [];
 
         foreach ($products as $product) {
-            $alerts[] = $this->makeAlert($product, 'out_of_stock', [
+            $alerts[] = $this->makeAlert($product, 'out_of_stock',
+            [
                 'message' => "{$product->name} no tiene stock disponible",
                 'priority' => 'high',
             ]);
@@ -134,48 +105,16 @@ class ProductAlertService
     }
 
     /**
-     * Construye una alerta de producto (automática o manual)
+     * Construye una alerta simple con los datos necesarios
      */
     protected function makeAlert($product, string $type, array $data): array
     {
         return [
             'product_id' => $product->id,
-            'alert_type' => $type,
             'message' => $data['message'] ?? '',
             'priority' => $data['priority'] ?? 'low',
-            'color' => $this->getColorByPriority($data['priority'] ?? 'low'),
             'titulo' => $this->getTitulo($type),
         ];
-    }
-
-    /**
-     * Convierte cualquier alerta (manual de BD o automática) al formato que espera el Toast
-     */
-    public function formatAlert($alert): array
-    {
-        return [
-            'id' => 'alert-' . ($alert->id ?? uniqid()),
-            'titulo' => $alert['titulo'] ?? $this->getTitulo($alert['alert_type']),
-            'descripcion' => $alert['message'] ?? '',
-            'tipo' => $this->getTipoByPriority($alert['priority'] ?? 'low'),
-            'color' => $alert['color'] ?? $this->getColorByPriority($alert['priority'] ?? 'low'),
-            'duracion' => match($alert['priority'] ?? 'low') {
-                'high' => 0,
-                'medium' => 15000,
-                default => 10000,
-            },
-            'autoCierre' => ($alert['priority'] ?? 'low') !== 'high',
-        ];
-    }
-
-    protected function getColorByPriority(string $priority): string
-    {
-        return match ($priority) {
-            'high' => 'red',
-            'medium' => 'yellow',
-            'low' => 'green',
-            default => 'blue',
-        };
     }
 
     protected function getTitulo(string $type): string
@@ -189,53 +128,4 @@ class ProductAlertService
         };
     }
 
-     protected function getTipoByPriority(string $priority): string
-    {
-        return match ($priority) {
-            'high' => 'error',
-            'medium' => 'warning',
-            'low' => 'info',
-            default => 'info',
-        };
-    }
-
-    /**
-     * Ejecuta las verificaciones de stock y devuelve los toasts listos.
-     */
-    public function runStockCheckAutomatic(): array
-    {
-        $alerts = array_merge(
-            $this->checkBajoStock(),
-            $this->checkSinStock()
-        );
-
-        $toasts = [];
-        foreach ($alerts as $alert) {
-            $toasts[] = $this->formatAlert($alert);
-        }
-
-        echo "Se generaron " . count($toasts) . " alertas de stock.\n";
-
-        return $toasts;
-    }
-
-    /**
-     * Ejecuta las verificaciones de vencimiento y devuelve los toasts listos.
-     */
-    public function runExpirationCheckAutomatic(): array
-    {
-        $alerts = array_merge(
-            $this->checkVencido(),
-            $this->checkVencimientoProximo()
-        );
-
-        $toasts = [];
-        foreach ($alerts as $alert) {
-            $toasts[] = $this->formatAlert($alert);
-        }
-
-        echo "Se generaron " . count($toasts) . " alertas de vencimiento.\n";
-
-        return $toasts;
-    }
 }

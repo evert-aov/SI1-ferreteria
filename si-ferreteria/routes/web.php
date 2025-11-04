@@ -16,6 +16,7 @@ use App\Livewire\Sales\SaleManager;
 use App\Livewire\UserSecurity\PermissionManager;
 use App\Livewire\UserSecurity\RoleManager;
 use App\Livewire\UserSecurity\UserManager;
+use App\Livewire\DiscountManager;
 use Illuminate\Support\Facades\Route;
 use App\Livewire\ExitNotes\ExitNoteManager;
 
@@ -74,6 +75,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/purchase', PurchaseManager::class)->name('purchase.index');
     Route::get('/suppliers', SupplierManager::class)->name('suppliers.index');
     Route::get('/sales', SaleManager::class)->name('sales.index');
+    Route::get('/discounts', DiscountManager::class)->name('discounts.index');
 });
 
 require __DIR__ . '/auth.php';
