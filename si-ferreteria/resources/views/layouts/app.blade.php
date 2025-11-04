@@ -39,7 +39,7 @@
         </x-gradient-div>
     </div>
 
-    <!-- Componente de alertas de productos (solo para usuarios autenticados) -->
+    <!-- Componente de alertas de productos -->
     @auth
         <livewire:toast-manager />
     @endauth

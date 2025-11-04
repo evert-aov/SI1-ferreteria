@@ -21,7 +21,7 @@ class Sale extends Model
         'payment_method',
         'payment_transaction_id',
         'subtotal',
-        'discount',
+        //'discount_id',
         'tax',
         'shipping_cost',
         'total',
@@ -37,7 +37,7 @@ class Sale extends Model
 
     protected $casts = [
         'subtotal' => 'decimal:2',
-        'discount' => 'decimal:2',
+        //'discount_id' => 'decimal:2', <- No deberia estar aqui
         'tax' => 'decimal:2',
         'shipping_cost' => 'decimal:2',
         'total' => 'decimal:2',
@@ -62,6 +62,15 @@ class Sale extends Model
     {
         return $this->belongsTo(Payment::class);
     }
+
+    /*
+     * Relación con el descuento
+
+    public function discount(): BelongsTo
+    {
+        return $this->belongsTo(Discount::class);
+    }
+    */
 
     /**
      * Scope para ventas online

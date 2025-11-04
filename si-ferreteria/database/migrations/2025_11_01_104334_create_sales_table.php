@@ -33,6 +33,7 @@ return new class extends Migration
 
             // Montos
             $table->decimal('subtotal', 10, 2);
+            //$table->foreignId('discount_id')->nullable()->constrained('discounts')->onDelete('set null');
             $table->decimal('discount', 10, 2)->default(0);
             $table->decimal('tax', 10, 2)->default(0);
             $table->decimal('shipping_cost', 10, 2)->default(0);

@@ -12,8 +12,6 @@ class ToastManager extends Component
 {
     public $toasts = [];
 
-
-
     // Escuchar eventos genéricos
     protected $listeners = [
         'toast:add' => 'addToast',
@@ -22,6 +20,13 @@ class ToastManager extends Component
         'toast:ignore' => 'ignoreToast',
         'toast:close' => 'closeToast',
     ];
+
+    public function mount()
+    {
+        // Cargar toasts desde la sesión al montar el componente
+        $this->toasts = session()->get('active_toasts', []);
+    }
+
 
     public function render()
     {
@@ -50,14 +55,20 @@ class ToastManager extends Component
         }
 
         // Aplicar defaults
-        $toast = array_merge([
+        $defaults = [
             'descripcion' => '',
             'tipo' => 'info',
-            'color' => $this->getColorFromType($toast['tipo'] ?? 'info'),
             'autoCierre' => true,
-            'duracion' => $this->getDuracionFromPriority($toast['prioridad'] ?? 'medium'),
+            'duracion' => 10000,
             'icono' => $this->getIconFromType($toast['tipo'] ?? 'info')
-        ], $toast);
+        ];
+
+        $toast = array_merge($defaults, $toast);
+
+        // Establecer color basado en tipo
+        if (!isset($toast['color'])) {
+            $toast['color'] = $this->getColorFromType($toast['tipo']);
+        }
 
         // Evitar duplicados
         if ($this->toastExists($toast['id'])) {
@@ -65,11 +76,13 @@ class ToastManager extends Component
         }
 
         $this->toasts[] = $toast;
+        $this->saveToastsToSession();
     }
 
     /**
      * Agregar múltiples toasts de una vez
      */
+
     public function addToasts(array $toasts): void
     {
         //dd($toasts);
@@ -133,10 +146,9 @@ class ToastManager extends Component
      */
     public function closeToast($id): void
     {
-        // Remover del array local
-        $this->toasts = array_filter($this->toasts, function($toast) use ($id) {
-            return $toast['id'] !== $id;
-        });
+        // Disparar evento para que otros componentes manejen la lógica de negocio
+        $this->dispatch('closeToast', id: $id);
+        $this->removeToast($id);
     }
 
     /**
@@ -144,19 +156,33 @@ class ToastManager extends Component
      */
     public function ignoreToast($id): void
     {
-        // Remover del array local
-        $this->toasts = array_filter($this->toasts, function($toast) use ($id) {
-            return $toast['id'] !== $id;
-        });
+        // Disparar evento para que otros componentes manejen la lógica de negocio
+        $this->dispatch('ignoreToast', id: $id);
+        $this->removeToast($id);
     }
 
-    public function getDuracionFromPriority(string $priority): int
+    /**
+     * Remover un toast del array (método auxiliar)
+     */
+    protected function removeToast($id): void
     {
-        return match($priority) {
-            'high' => 0,      // No se cierra automáticamente
-            'medium' => 15000,   // 15 segundos
-            'low' => 10000,      // 10 segundos
-            default => 10000
-        };
+        $this->toasts = array_values(array_filter($this->toasts, function($toast) use ($id) {
+            return $toast['id'] !== $id;
+        }));
+
+        $this->saveToastsToSession();
     }
+
+    /**
+     * Guardar toasts en la sesión para persistencia entre vistas
+     */
+    protected function saveToastsToSession(): void
+    {
+        if (count($this->toasts) > 0) {
+            session()->put('active_toasts', $this->toasts);
+        } else {
+            session()->forget('active_toasts');
+        }
+    }
+
 }
