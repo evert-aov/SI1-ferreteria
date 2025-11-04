@@ -6,6 +6,8 @@ use App\Models\Inventory\Product;
 use App\Models\User_security\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Psr\Container\ContainerExceptionInterface;
+use Psr\Container\NotFoundExceptionInterface;
 
 class CartController extends Controller
 {
@@ -145,6 +147,11 @@ class CartController extends Controller
         return response()->json(['count' => $count]);
     }
 
+    /**
+     * @throws \Throwable
+     * @throws NotFoundExceptionInterface
+     * @throws ContainerExceptionInterface
+     */
     public function processOrder(Request $request)
     {
         $cart = session()->get('cart', []);
@@ -154,16 +161,12 @@ class CartController extends Controller
         }
 
         $request->validate([
-            'customer_name' => 'required|string|max:255',
-            'customer_email' => 'required|email',
-            'customer_phone' => 'required|string',
-            'customer_nit' => 'required|string',
             'shipping_address' => 'required|string',
             'shipping_city' => 'required|string',
             'shipping_state' => 'required|string',
             'shipping_zip' => 'nullable|string',
             'shipping_notes' => 'nullable|string',
-            'payment_method' => 'required|in:cash,bank_transfer,qr',
+            'payment_method' => 'required|in:cash,paypal,qr',
             'discount' => 'nullable|numeric|min:0',
         ]);
 
