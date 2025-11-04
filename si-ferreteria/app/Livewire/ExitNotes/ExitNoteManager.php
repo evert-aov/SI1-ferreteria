@@ -2,6 +2,7 @@
 
 namespace App\Livewire\ExitNotes;
 
+use Illuminate\View\View;
 use Livewire\Component;
 use App\Models\Inventory\Product;
 use App\Models\Inventory\ExitNote;
@@ -18,7 +19,7 @@ class ExitNoteManager extends Component
     public $reason;
     public $exit_date;
 
-    public function mount()
+    public function mount(): void
     {
         // Cargar productos activos SIN relaciones automáticas
         $this->products = Product::without('category')
@@ -32,7 +33,7 @@ class ExitNoteManager extends Component
             ->get();
     }
 
-    public function save()
+    public function save(): void
     {
         $this->validate([
             'product_id' => 'required|exists:products,id',
@@ -41,7 +42,7 @@ class ExitNoteManager extends Component
             'unit_price' => 'required|numeric|min:0',
         ]);
 
-        // ✅ CALCULAR SUBTOTAL
+        // CALCULAR SUBTOTAL
         $subtotal = $this->quantity * $this->unit_price;
 
         // VALIDAR QUE HAY SUFICIENTE STOCK
@@ -68,7 +69,7 @@ class ExitNoteManager extends Component
             'subtotal' => $subtotal,              // ← GUARDAR SUBTOTAL
             'reason' => $this->exit_type,
         ]);
-        
+
         // DESCONTAR DEL INVENTARIO
         $product = Product::find($this->product_id);
         if ($product) {
@@ -82,13 +83,13 @@ class ExitNoteManager extends Component
         $this->exitNotes = ExitNote::with(['items.product:id,name', 'user:id,name'])
             ->latest()
             ->get();
-        
+
         // Mensaje de éxito
         session()->flash('message', 'Nota de salida creada exitosamente.');
 
     }
 
-    public function render()
+    public function render(): View
     {
         return view('livewire.exit-notes.exit-note-manager');
     }

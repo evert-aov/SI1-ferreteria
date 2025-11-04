@@ -23,8 +23,8 @@ class PayPalController extends Controller
         $request->validate([
             'shipping_address' => 'required|string',
             'shipping_state' => 'required|string',
-            'shipping_zip' => 'nullable|string',     // <-- AÑADIDO
-            'shipping_notes' => 'nullable|string',    // <-- AÑADIDO
+            'shipping_zip' => 'nullable|string',
+            'shipping_notes' => 'nullable|string',
         ]);
 
         // Guardar datos del cliente en sesión para usarlos después
@@ -47,8 +47,8 @@ class PayPalController extends Controller
                 $items[] = [
                     'name' => $details['name'],
                     'quantity' => $details['quantity'],
-                    'unit_amount' => [  // <-- 1. Cambia 'price' por 'unit_amount'
-                        'currency_code' => 'USD', // <-- 2. Mueve la moneda aquí dentro
+                    'unit_amount' => [
+                        'currency_code' => 'USD',
                         'value' => number_format($details['price'], 2, '.', ''), // <-- 3. El valor va aquí
                     ],
                 ];
@@ -105,8 +105,8 @@ class PayPalController extends Controller
             return redirect()->route('cart.checkout')->with('error', 'Error al crear el pago en PayPal.');
 
         } catch (\Exception $e) {
-            dd($e);
-            //return redirect()->route('cart.checkout')->with('error', 'Error: ' . $e->getMessage());
+            //dd($e);
+            return redirect()->route('cart.checkout')->with('error', 'Error: ' . $e->getMessage());
         }
     }
 

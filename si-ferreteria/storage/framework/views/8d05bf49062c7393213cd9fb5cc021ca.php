@@ -350,6 +350,34 @@
 
                             </a>
                         </li>
+                        
+                        <li>
+                            <a href="<?php echo e(route('exit-notes')); ?>"
+                                class="flex items-center p-2 text-gray-400 rounded-lg hover:bg-amber-600/10 hover:text-amber-300 transition-all duration-200 text-sm">
+                                <?php if (isset($component)) { $__componentOriginal99ac1c16a03f727a9924680a63f90716 = $component; } ?>
+<?php if (isset($attributes)) { $__attributesOriginal99ac1c16a03f727a9924680a63f90716 = $attributes; } ?>
+<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.icons.exit','data' => []] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component->withName('icons.exit'); ?>
+<?php if ($component->shouldRender()): ?>
+<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
+<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
+<?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
+<?php endif; ?>
+<?php $component->withAttributes([]); ?>
+<?php echo $__env->renderComponent(); ?>
+<?php endif; ?>
+<?php if (isset($__attributesOriginal99ac1c16a03f727a9924680a63f90716)): ?>
+<?php $attributes = $__attributesOriginal99ac1c16a03f727a9924680a63f90716; ?>
+<?php unset($__attributesOriginal99ac1c16a03f727a9924680a63f90716); ?>
+<?php endif; ?>
+<?php if (isset($__componentOriginal99ac1c16a03f727a9924680a63f90716)): ?>
+<?php $component = $__componentOriginal99ac1c16a03f727a9924680a63f90716; ?>
+<?php unset($__componentOriginal99ac1c16a03f727a9924680a63f90716); ?>
+<?php endif; ?>
+                                <?php echo e(__('Notas de Salida')); ?>
+
+                            </a>
+                        </li>
                     </ul>
                 </li>
             <?php endif; ?>
