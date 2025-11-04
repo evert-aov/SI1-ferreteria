@@ -69,6 +69,11 @@ class Product extends Model
         return $this->belongsTo(Volume::class);
     }
 
+    public function exitNotes(): HasMany
+    {
+        return $this->hasMany(ExitNote::class);
+    }
+
     public function technicalSpecifications(): BelongsToMany
     {
         return $this->belongsToMany(TechnicalSpecification::class)
