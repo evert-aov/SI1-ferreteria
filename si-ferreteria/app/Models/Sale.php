@@ -63,6 +63,15 @@ class Sale extends Model
         return $this->belongsTo(Payment::class);
     }
 
+    /*
+     * Relación con el descuento
+
+    public function discount(): BelongsTo
+    {
+        return $this->belongsTo(Discount::class);
+    }
+    */
+
     /**
      * Scope para ventas online
      */

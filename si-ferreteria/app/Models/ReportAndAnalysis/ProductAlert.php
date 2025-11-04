@@ -47,22 +47,22 @@ class ProductAlert extends Model
     /**
      * Marcar como leída
      */
-    public function checkAsRead(): void
+    public function markAsPending(): void
     {
-        $this->update(['status' => 'read']);
+        $this->update(['status' => 'pending']);
     }
 
     /**
      * Marcar como ignorada
      */
-    public function checkAsIgnored(): void
+    public function markAsIgnored(): void
     {
         $this->update(['status' => 'ignored']);
     }
 
-    public function checkAsPending(): void
+    public function markAsRead(): void
     {
-        $this->update(['status' => 'pending']);
+        $this->update(['status' => 'read']);
     }
 
     protected function search(Builder $query, string $searchTerm): Builder
