@@ -17,6 +17,11 @@ use App\Livewire\UserSecurity\PermissionManager;
 use App\Livewire\UserSecurity\RoleManager;
 use App\Livewire\UserSecurity\UserManager;
 use Illuminate\Support\Facades\Route;
+use App\Livewire\ExitNotes\ExitNoteManager;
+
+Route::middleware(['auth'])->group(function () {
+    Route::get('/exit-notes', ExitNoteManager::class)->name('exit-notes');
+});
 
 Route::get('/catalog', ProductCatalog::class)->name('catalog.index');
 Route::get('/catalog/product/{id}', ProductDetail::class)->name('catalog.product');
