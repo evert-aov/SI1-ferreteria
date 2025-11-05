@@ -54,7 +54,7 @@ class ProductController extends Controller
                 $query->orderBy('id', 'desc');
         }
 
-        $products = $query->paginate(12)->withQueryString();
+        $products = $query->paginate(15)->withQueryString();
 
         // Para los filtros
         $categories = Category::where('level', 3)->orderBy('name')->get();
