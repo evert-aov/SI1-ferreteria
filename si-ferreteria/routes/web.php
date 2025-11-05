@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\CartController;
+use App\Http\Controllers\OrderController;
 use App\Http\Controllers\PayPalController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProfileController;
@@ -35,25 +36,38 @@ Route::get('/products', [ProductController::class, 'index'])->name('products.ind
 Route::get('/products/{id}', [ProductController::class, 'show'])->name('products.show');
 
 // Rutas del carrito (públicas - pueden agregar sin login)
-Route::get('/carrito', [CartController::class, 'index'])->name('cart.index');
-Route::post('/carrito/agregar/{id}', [CartController::class, 'add'])->name('cart.add');
-Route::patch('/carrito/actualizar/{id}', [CartController::class, 'update'])->name('cart.update');
-Route::delete('/carrito/eliminar/{id}', [CartController::class, 'remove'])->name('cart.remove');
-Route::delete('/carrito/vaciar', [CartController::class, 'clear'])->name('cart.clear');
+Route::prefix('carrito')->name('cart.')->group(function () {
+    Route::get('/', [CartController::class, 'index'])->name('index');
+    Route::post('/agregar/{id}', [CartController::class, 'add'])->name('add');
+    Route::patch('/actualizar/{id}', [CartController::class, 'update'])->name('update');
+    Route::delete('/eliminar/{id}', [CartController::class, 'remove'])->name('remove');
+    Route::delete('/vaciar', [CartController::class, 'clear'])->name('clear');
 
-// API para obtener conteo del carrito
-Route::get('/api/cart/count', [CartController::class, 'getCartCount'])->name('cart.count');
+    // API para obtener conteo del carrito
+    Route::get('/count', [CartController::class, 'getCartCount'])->name('count');
+});
 
 // Rutas de checkout PROTEGIDAS (requieren autenticación)
 Route::middleware(['auth'])->group(function () {
+    // Checkout del carrito
     Route::get('/carrito/checkout', [CartController::class, 'checkout'])->name('cart.checkout');
-    Route::post('/carrito/procesar', [CartController::class, 'processOrder'])->name('cart.process');
-    Route::get('/carrito/exito', [CartController::class, 'success'])->name('cart.success');
 
-    // Rutas de PayPal (también protegidas)
-    Route::post('/paypal/create', [PayPalController::class, 'createPayment'])->name('paypal.create');
-    Route::get('/paypal/success', [PayPalController::class, 'capturePayment'])->name('paypal.success');
-    Route::get('/paypal/cancel', [PayPalController::class, 'cancelPayment'])->name('paypal.cancel');
+//    // Procesamiento de órdenes (efectivo/QR)
+//    Route::prefix('order')->name('order.')->group(function () {
+//        Route::post('/process', [OrderController::class, 'process'])->name('process');
+//        Route::get('/success', [OrderController::class, 'success'])->name('success');
+//    });
+
+    // Rutas de PayPal
+    Route::prefix('paypal')->name('paypal.')->group(function () {
+        Route::post('/create', [PayPalController::class, 'createPayment'])->name('create');
+
+        Route::get('/capture', [PayPalController::class, 'capturePayment'])->name('capture');
+
+        Route::get('/success', [PayPalController::class, 'success'])->name('success');
+
+        Route::get('/cancel', [PayPalController::class, 'cancelPayment'])->name('cancel');
+    });
 });
 
 Route::get('/dashboard', function () {

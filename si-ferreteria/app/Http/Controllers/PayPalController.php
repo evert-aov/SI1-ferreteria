@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Inventory\Product;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\View\View;
 use Srmklive\PayPal\Services\PayPal as PayPalClient;
 
 class PayPalController extends Controller
@@ -65,10 +67,10 @@ class PayPalController extends Controller
                 'application_context' => [
                     'brand_name' => 'Ferretería Nando',
                     'locale' => 'es-BO',
-                    'landing_page' => 'BILLING',
+                    'LANDING_PAGE' => 'BILLING',
                     'shipping_preference' => 'NO_SHIPPING',
                     'user_action' => 'PAY_NOW',
-                    'return_url' => route('paypal.success'),
+                    'return_url' => route('paypal.capture'),
                     'cancel_url' => route('paypal.cancel'),
                 ],
                 'purchase_units' => [
@@ -178,7 +180,7 @@ class PayPalController extends Controller
                     // Crear la venta en la base de datos
                     $sale = \App\Models\Sale::create([
                         'invoice_number' => $invoiceNumber,
-                        'customer_id' => auth()->id(), // null si no está autenticado
+                        'customer_id' => auth()->id(),
                         'shipping_address' => $checkoutData['shipping_address'],
                         'shipping_city' => 'Santa Cruz',
                         'shipping_state' => $checkoutData['shipping_state'],
@@ -261,7 +263,7 @@ class PayPalController extends Controller
                     session()->forget('cart');
                     session()->forget('checkout_data');
 
-                    return redirect()->route('cart.success')->with('success', '¡Pago procesado exitosamente!');
+                    return redirect()->route('paypal.success')->with('success', '¡Pago procesado exitosamente!');
 
                 } catch (\Exception $e) {
                     \DB::rollBack();
@@ -283,5 +285,16 @@ class PayPalController extends Controller
     public function cancelPayment()
     {
         return redirect()->route('cart.checkout')->with('error', 'Has cancelado el pago de PayPal.');
+    }
+
+    public function success(): View|RedirectResponse
+    {
+        $order = session()->get('last_order');
+
+        if (!$order) {
+            return redirect()->route('products.index');
+        }
+
+        return view('cart.success', compact('order'));
     }
 }

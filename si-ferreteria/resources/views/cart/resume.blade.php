@@ -34,8 +34,9 @@
             @else
                 <!-- Usuario NO autenticado: ir al login -->
                 <a href="{{ route('login') }}"
-                   class="block w-full bg-blue-600 hover:bg-blue-700 text-white text-center px-6 py-3 rounded-lg font-bold transition mb-3">
-                    🔐 Iniciar Sesión para Comprar
+                   class="flex items-center w-full bg-blue-600 hover:bg-blue-700 text-white text-center px-6 py-3 rounded-lg font-bold transition mb-3">
+                    <x-icons.look/>
+                    Iniciar Sesión para Comprar
                 </a>
                 <p class="text-gray-400 text-sm text-center mb-3">
                     Debes iniciar sesión para finalizar tu compra

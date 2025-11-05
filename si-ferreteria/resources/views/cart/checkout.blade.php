@@ -14,7 +14,6 @@
             </div>
         @endif
 
-        {{-- Muestra errores de validación (por si acaso) --}}
         @if ($errors->any())
             <div class="mb-4 p-4 bg-red-800 text-white rounded-lg border border-red-600">
                 <h3 class="font-bold text-lg">Por favor corrige los siguientes errores:</h3>
@@ -25,6 +24,7 @@
                 </ul>
             </div>
         @endif
+
         <x-container-div>
             <x-input-label class="text-3xl mb-8">
                 <x-icons.credit-cart/>
@@ -32,7 +32,7 @@
             </x-input-label>
 
             <x-container-second-div class="grid grid-cols-1 sm:grid-cols-2 gap-8">
-                <form action="{{ route('cart.process') }}" method="POST" id="checkoutForm">
+                <form action="{{ route('paypal.create') }}" method="POST" id="checkoutForm">
                     @csrf
                     <!-- Formulario de checkout -->
                     <x-container-div class="lg:col-span-2 space-y-6">
@@ -47,7 +47,7 @@
                                     <x-text-input
                                         name="customer_name"
                                         required
-                                        value="{{ auth()->user()->name ?? old('customer_name') }}"
+                                        value="{{ auth()->user()->name ?? old('customer_name') }}  {{ auth()->user()->last_name ?? '' }}"
                                         placeholder="Juan Pérez"
                                     />
                                 </div>
@@ -82,9 +82,8 @@
                                 </div>
                             </div>
 
-
                             <!-- Dirección de envío -->
-                            <div class="space-y-4">
+                            <div class="space-y-4 mt-4">
                                 <div>
                                     <x-input-label value="{{ __('Address') }}"/>
                                     <x-text-input
@@ -101,7 +100,7 @@
                                         <x-text-input
                                             name="shipping_city"
                                             required
-                                            value="{{ old('shipping_city') }}"
+                                            value="{{ old('shipping_city', 'Santa Cruz') }}"
                                             placeholder="Santa Cruz"
                                         />
                                     </div>
@@ -137,7 +136,8 @@
 
                         <!-- Método de pago -->
                         <x-container-second-div class="space-y-4">
-                            <h2 class="text-xl font-bold text-white mb-4">3. Método de Pago</h2>
+                            <h2 class="text-xl font-bold text-white mb-4">2. Método de Pago</h2>
+
                             <div>
                                 <label
                                     class="flex items-center p-4 bg-gray-700 rounded-lg cursor-pointer hover:bg-gray-600 transition">
@@ -158,6 +158,7 @@
                                     </div>
                                 </label>
                             </div>
+
                             <div>
                                 <label
                                     class="flex items-center p-4 bg-gray-700 rounded-lg cursor-pointer hover:bg-gray-600 transition">
@@ -176,14 +177,43 @@
                                     </div>
                                 </label>
                             </div>
+
+                            <div>
+                                <label
+                                    class="flex items-center p-4 bg-gray-700 rounded-lg cursor-pointer hover:bg-gray-600 transition">
+                                    <input
+                                        type="radio"
+                                        name="payment_method"
+                                        value="qr"
+                                        class="w-5 h-5 text-blue-600"
+                                    >
+                                    <div class="ml-4 flex-1">
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-white font-semibold">📱 QR Simple</span>
+                                        </div>
+                                        <p class="text-gray-400 text-sm">Código QR para pago móvil</p>
+                                    </div>
+                                </label>
+                            </div>
+                        </x-container-second-div>
+
+                        <!-- Notas adicionales -->
+                        <x-container-second-div>
+                            <h2 class="text-xl font-bold text-white mb-4">3. Notas del Pedido (Opcional)</h2>
+                            <x-textarea-input
+                                name="order_notes"
+                                rows="3"
+                                placeholder="¿Alguna instrucción especial para tu pedido?"
+                            >{{ old('order_notes') }}</x-textarea-input>
                         </x-container-second-div>
                     </x-container-div>
                 </form>
 
                 <!-- Resumen del pedido -->
                 <div class="lg:col-span-1">
-                    <x-container-second-div class=" sticky top-4">
+                    <x-container-second-div class="sticky top-4">
                         <x-input-label class="text-2xl font-bold mb-6">{{ __('Resumen del pedido') }}</x-input-label>
+
                         <!-- Productos -->
                         <div class="space-y-3 mb-6 max-h-64 overflow-y-auto">
                             @foreach($cart as $id => $details)
@@ -208,13 +238,11 @@
                         <div class="space-y-3 mb-6">
                             <div class="flex justify-between text-gray-400">
                                 <span>Subtotal:</span>
-                                <span
-                                    class="text-white font-semibold">USD {{ number_format($total['subtotal'], 2) }}</span>
+                                <span class="text-white font-semibold">USD {{ number_format($total['subtotal'], 2) }}</span>
                             </div>
                             <div class="flex justify-between text-gray-400">
                                 <span>Impuestos (13%):</span>
-                                <span
-                                    class="text-white font-semibold">USD {{ number_format($total['tax'], 2) }}</span>
+                                <span class="text-white font-semibold">USD {{ number_format($total['tax'], 2) }}</span>
                             </div>
                             <div class="flex justify-between text-gray-400">
                                 <span>Envío:</span>
@@ -222,20 +250,16 @@
                             </div>
                             <div class="border-t border-gray-700 pt-3 flex justify-between">
                                 <span class="text-xl font-bold text-white">Total:</span>
-                                <span
-                                    class="text-2xl font-bold text-yellow-500">USD {{ number_format($total['total'], 2) }}</span>
+                                <span class="text-2xl font-bold text-yellow-500">USD {{ number_format($total['total'], 2) }}</span>
                             </div>
                         </div>
 
-                        <x-primary-button
-                            type="submit"
-                            form="checkoutForm"
-                        >
+                        <x-primary-button type="submit" form="checkoutForm">
                             Confirmar Pedido
                         </x-primary-button>
 
                         <a href="{{ route('cart.index') }}"
-                           class="block text-center text-gray-400 hover:text-white transition">
+                           class="block text-center text-gray-400 hover:text-white transition mt-4">
                             ← Volver al carrito
                         </a>
                     </x-container-second-div>
@@ -243,6 +267,7 @@
             </x-container-second-div>
         </x-container-div>
     </x-container-div>
+
     <script>
         document.getElementById('checkoutForm').addEventListener('submit', function (e) {
             const selectedPayment = document.querySelector('input[name="payment_method"]:checked').value;
@@ -250,10 +275,7 @@
             if (selectedPayment === 'paypal') {
                 e.preventDefault();
                 this.action = '{{ route("paypal.create") }}';
-
                 this.submit();
-            } else {
-                this.action = '{{ route("cart.process") }}';
             }
         });
     </script>
