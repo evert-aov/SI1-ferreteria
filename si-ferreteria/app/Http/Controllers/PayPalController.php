@@ -3,8 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Models\Inventory\Product;
+use App\Models\Payment;
+use App\Models\Purchase\PaymentMethod;
+use App\Models\Sale;
+use App\Models\SaleDetail;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 use Srmklive\PayPal\Services\PayPal as PayPalClient;
 
@@ -13,7 +18,7 @@ class PayPalController extends Controller
     /**
      * Crear el pago en PayPal
      */
-    public function createPayment(Request $request)
+    public function createPayment(Request $request): RedirectResponse
     {
         $cart = session()->get('cart', []);
 
@@ -26,11 +31,9 @@ class PayPalController extends Controller
             'shipping_address' => 'required|string',
             'shipping_state' => 'required|string',
             'shipping_zip' => 'nullable|string',
-            //'discount_code' => 'nullable|string',
             'shipping_notes' => 'nullable|string',
         ]);
 
-        //$discountCode = $request->get('discount_code');
         // Guardar datos del cliente en sesión para usarlos después
         session()->put('checkout_data', $request->all());
 
@@ -53,7 +56,7 @@ class PayPalController extends Controller
                     'quantity' => $details['quantity'],
                     'unit_amount' => [
                         'currency_code' => 'USD',
-                        'value' => number_format($details['price'], 2, '.', ''), // <-- 3. El valor va aquí
+                        'value' => number_format($details['price'], 2, '.', ''),
                     ],
                 ];
             }
@@ -89,11 +92,6 @@ class PayPalController extends Controller
                                     'currency_code' => 'USD',
                                     'value' => number_format($tax, 2, '.', ''),
                                 ],
-                              /*'discount' => [
-                                    'currency_code' => 'USD',
-                                    'value' => number_format($discountAmount, 2, '.', ''),
-                                ],
-                               */
                             ],
                         ],
                         'items' => $items,
@@ -101,20 +99,18 @@ class PayPalController extends Controller
                 ],
             ]);
 
-            if (isset($order['id']) && $order['id'] != null) { //
+            if (isset($order['id']) && $order['id'] != null) {
                 // Encontrar el link de aprobación
-                foreach ($order['links'] as $link) { //
+                foreach ($order['links'] as $link) {
                     if ($link['rel'] === 'approve') {
                         return redirect()->away($link['href']);
                     }
                 }
             }
 
-            //dd($order);
             return redirect()->route('cart.checkout')->with('error', 'Error al crear el pago en PayPal.');
 
         } catch (\Exception $e) {
-            //dd($e);
             return redirect()->route('cart.checkout')->with('error', 'Error: ' . $e->getMessage());
         }
     }
@@ -122,7 +118,7 @@ class PayPalController extends Controller
     /**
      * Capturar el pago después de la aprobación
      */
-    public function capturePayment(Request $request)
+    public function capturePayment(Request $request): RedirectResponse
     {
         $provider = new PayPalClient;
         $provider->setApiCredentials(config('paypal'));
@@ -145,40 +141,31 @@ class PayPalController extends Controller
                     $subtotal += $details['price'] * $details['quantity'];
                 }
 
-                /*
-                if ($discountCode) {
-                    // Lógica para aplicar el descuento basado en el código
-                    $discount = \App\Models\Discount::where('code', $discountCode)
-                        ->where('is_active', true)
-                        ->first();
-
-                    if ($discount) {
-                        $discountValue = $discount->toApplyDiscount($subtotal);
-                        $discountId = $discount->id;
-
-                    }
-                } else {
-                    $discountValue = 0;
-                    $discountId = null;
-                }
-
-                $subtotalAfterDiscount = $subtotal - $discountValue;
-                $tax = $subtotalAfterDiscount * 0.13;
-                $total = $subtotalAfterDiscount + $tax;
-                */
-
                 $tax = $subtotal * 0.13;
                 $total = $subtotal + $tax;
 
                 // Generar número de factura
                 $invoiceNumber = 'INV-' . date('Ymd') . '-' . str_pad(rand(1, 9999), 4, '0', STR_PAD_LEFT);
 
-                // Crear la orden
-                \DB::beginTransaction();
+                DB::beginTransaction();
 
                 try {
-                    // Crear la venta en la base de datos
-                    $sale = \App\Models\Sale::create([
+                    // 1. Obtener el método de pago PayPal
+                    $paymentMethod = PaymentMethod::where('slug', 'paypal')->firstOrFail();
+
+                    // 2. Crear el registro de pago
+                    $payment = Payment::create([
+                        'payment_method_id' => $paymentMethod->id,
+                        'transaction_id' => $result['purchase_units'][0]['payments']['captures'][0]['id'] ?? $orderId,
+                        'amount' => $total,
+                        'currency' => 'USD',
+                        'status' => 'completed',
+                        'gateway_response' => $result, // Guardar respuesta completa de PayPal
+                        'paid_at' => now(),
+                    ]);
+
+                    // 3. Crear la venta
+                    $sale = Sale::create([
                         'invoice_number' => $invoiceNumber,
                         'customer_id' => auth()->id(),
                         'shipping_address' => $checkoutData['shipping_address'],
@@ -186,21 +173,20 @@ class PayPalController extends Controller
                         'shipping_state' => $checkoutData['shipping_state'],
                         'shipping_zip' => $checkoutData['shipping_zip'] ?? null,
                         'shipping_notes' => $checkoutData['shipping_notes'] ?? null,
-                        'payment_method' => 'paypal',
-                        'payment_transaction_id' => $result['purchase_units'][0]['payments']['captures'][0]['id'] ?? null,
-                        'subtotal' => $subtotal, //$subtotalAfterDiscount,
-                        //'discount_id' => $discountId ?? null,
+                        'payment_id' => $payment->id, // ← Solo la relación
+                        'subtotal' => $subtotal,
                         'tax' => $tax,
                         'total' => $total,
-                        'status' => 'paid', // PayPal ya está pagado
+                        'currency' => 'USD',
+                        'status' => 'paid',
                         'notes' => $checkoutData['order_notes'] ?? null,
                         'sale_type' => 'online',
                         'paid_at' => now(),
                     ]);
 
-                    // Crear los detalles de la venta
+                    // 4. Crear los detalles de la venta
                     foreach ($cart as $id => $details) {
-                        \App\Models\SaleDetail::create([
+                        SaleDetail::create([
                             'sale_id' => $sale->id,
                             'product_id' => $id,
                             'quantity' => $details['quantity'],
@@ -217,43 +203,36 @@ class PayPalController extends Controller
                         }
                     }
 
-                    /*
-                    if ($discount && $discountValue > 0) {
-                        $discount->increment('count_used');
-                    }
-                    */
-
-                    \DB::commit();
+                    DB::commit();
 
                     // Datos de la orden para la vista
                     $orderData = [
                         'invoice_number' => $invoiceNumber,
                         'sale_id' => $sale->id,
                         'paypal_order_id' => $orderId,
-                        'paypal_payment_id' => $result['purchase_units'][0]['payments']['captures'][0]['id'] ?? null,
+                        'paypal_payment_id' => $payment->transaction_id,
                         'customer' => [
-                            'name' => $checkoutData['customer_name'],
-                            'email' => $checkoutData['customer_email'],
-                            'phone' => $checkoutData['customer_phone'],
-                            'nit' => $checkoutData['customer_nit'],
+                            'name' => $checkoutData['customer_name'] ?? auth()->user()->name,
+                            'email' => $checkoutData['customer_email'] ?? auth()->user()->email,
+                            'phone' => $checkoutData['customer_phone'] ?? null,
+                            'nit' => $checkoutData['customer_nit'] ?? null,
                         ],
                         'shipping' => [
                             'address' => $checkoutData['shipping_address'],
-                            'city' => $checkoutData['shipping_city'],
+                            'city' => 'Santa Cruz',
                             'state' => $checkoutData['shipping_state'],
                             'zip' => $checkoutData['shipping_zip'] ?? null,
                             'notes' => $checkoutData['shipping_notes'] ?? null,
                         ],
-                        'payment_method' => 'paypal',
-                        'payment_status' => 'completed',
+                        'payment_method' => $payment->paymentMethod->name,
+                        'payment_status' => $payment->status,
                         'order_notes' => $checkoutData['order_notes'] ?? null,
                         'subtotal' => $subtotal,
-                        // 'discount' => $discountValue ?? 0,
+                        'discount' => 0,
                         'tax' => $tax,
                         'total' => $total,
                         'items' => $cart,
                         'created_at' => now(),
-                        'paypal_response' => $result,
                     ];
 
                     // Guardar en sesión
@@ -266,7 +245,7 @@ class PayPalController extends Controller
                     return redirect()->route('paypal.success')->with('success', '¡Pago procesado exitosamente!');
 
                 } catch (\Exception $e) {
-                    \DB::rollBack();
+                    DB::rollBack();
                     return redirect()->route('cart.checkout')->with('error', 'Error al procesar la orden: ' . $e->getMessage());
                 }
 
@@ -282,11 +261,14 @@ class PayPalController extends Controller
     /**
      * Pago cancelado
      */
-    public function cancelPayment()
+    public function cancelPayment(): RedirectResponse
     {
         return redirect()->route('cart.checkout')->with('error', 'Has cancelado el pago de PayPal.');
     }
 
+    /**
+     * Página de éxito
+     */
     public function success(): View|RedirectResponse
     {
         $order = session()->get('last_order');

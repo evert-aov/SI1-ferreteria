@@ -87,7 +87,7 @@ class User extends Authenticatable
             ->withTimestamps();
     }
 
-    public function getRolPrincipal(): ?Role
+    public function getRolPrincipal(): object
     {
         return $this->roles()->orderBy('level', 'desc')->first();
     }
