@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Inventory\Product;
+use App\Models\Purchase\PaymentMethod;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -128,8 +129,9 @@ class CartController extends Controller
         }
 
         $total = $this->calculateTotal($cart);
+        $paymentMethods = PaymentMethod::active()->orderBy('sort_order')->get();
 
-        return view('cart.checkout', compact(['cart', 'total']));
+        return view('cart.checkout', compact(['cart', 'total', 'paymentMethods']));
     }
 
     /**

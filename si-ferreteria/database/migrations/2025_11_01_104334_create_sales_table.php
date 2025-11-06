@@ -15,26 +15,24 @@ return new class extends Migration
             $table->id();
             $table->string('invoice_number')->unique(); // Número de factura
 
-            // Cliente (registrado)
+            // Cliente (puede ser null para ventas rápidas)
             $table->foreignId('customer_id')->nullable()->constrained('users')->onDelete('cascade');
 
-
-            // Dirección de envío
-            $table->text('shipping_address');
-            $table->string('shipping_city');
-            $table->string('shipping_state');
+            // Dirección de envío (null si es recogida en tienda)
+            $table->text('shipping_address')->nullable();
+            $table->string('shipping_city')->nullable();
+            $table->string('shipping_state')->nullable();
             $table->string('shipping_zip')->nullable();
+            $table->string('shipping_country', 2)->default('BO'); // Código ISO
             $table->text('shipping_notes')->nullable();
 
-            // Información de pago
-            $table->foreignId('payment_id')->nullable()->constrained()->onDelete('set null');
-            $table->enum('payment_method', ['paypal', 'cash', 'bank_transfer', 'qr', 'card'])->default('cash');
-            $table->string('payment_transaction_id')->nullable(); // ID de PayPal u otro gateway
+            // Relación con pago (ELIMINAMOS los campos redundantes)
+            $table->foreignId('payment_id')->nullable()->constrained('payments')->onDelete('set null');
 
             // Montos
             $table->decimal('subtotal', 10, 2);
-            //$table->foreignId('discount_id')->nullable()->constrained('discounts')->onDelete('set null');
             $table->decimal('discount', 10, 2)->default(0);
+            $table->string('discount_code')->nullable(); // Código de cupón aplicado
             $table->decimal('tax', 10, 2)->default(0);
             $table->decimal('shipping_cost', 10, 2)->default(0);
             $table->decimal('total', 10, 2);
@@ -45,23 +43,31 @@ return new class extends Migration
                 'pending',      // Pendiente de pago
                 'processing',   // Procesando
                 'paid',         // Pagado
+                'preparing',    // Preparando pedido
                 'shipped',      // Enviado
                 'delivered',    // Entregado
                 'cancelled',    // Cancelado
                 'refunded'      // Reembolsado
             ])->default('pending');
 
-            // Notas y observaciones
-            $table->text('notes')->nullable();
+            // Notas
+            $table->text('notes')->nullable(); // Notas del cliente
             $table->text('admin_notes')->nullable(); // Notas internas
 
             // Origen de la venta
-            $table->enum('sale_type', ['online', 'pos', 'phone'])->default('online');
+            $table->enum('sale_type', ['online', 'pos', 'phone', 'whatsapp'])->default('online');
 
-            // Timestamps
+            // Información de envío
+            $table->string('shipping_method')->nullable(); // 'standard', 'express', 'pickup'
+            $table->string('tracking_number')->nullable(); // Número de seguimiento
+            $table->string('carrier')->nullable(); // Empresa de envío
+
+            // Timestamps importantes
             $table->timestamp('paid_at')->nullable();
+            $table->timestamp('preparing_at')->nullable();
             $table->timestamp('shipped_at')->nullable();
             $table->timestamp('delivered_at')->nullable();
+            $table->timestamp('cancelled_at')->nullable();
             $table->timestamps();
         });
     }

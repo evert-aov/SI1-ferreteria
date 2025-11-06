@@ -85,5 +85,10 @@
     "Purchase": "Compra",
     "Add": "Agregar",
     "Save": "Guardar",
-    "Add Item": "Agregar nuevo articulo"
+    "Add Item": "Agregar nuevo articulo",
+    "Full name": "Nombre completo",
+    "Phone": "Telefono",
+    "Address": "Dirección",
+    "City": "Ciudad",
+    "Postal code": "Código postal"
  }

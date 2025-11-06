@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Sale extends Model
 {
+
     protected $fillable = [
         'invoice_number',
         'customer_id',
@@ -16,108 +17,94 @@ class Sale extends Model
         'shipping_city',
         'shipping_state',
         'shipping_zip',
+        'shipping_country',
         'shipping_notes',
         'payment_id',
-        'payment_method',
-        'payment_transaction_id',
         'subtotal',
-        //'discount_id',
+        'discount',
+        'discount_code',
         'tax',
         'shipping_cost',
         'total',
         'currency',
         'status',
         'notes',
-        'admin_notes',
         'sale_type',
+        'shipping_method',
+        'tracking_number',
+        'carrier',
         'paid_at',
+        'preparing_at',
         'shipped_at',
         'delivered_at',
+        'cancelled_at',
     ];
 
     protected $casts = [
         'subtotal' => 'decimal:2',
-        //'discount_id' => 'decimal:2', <- No deberia estar aqui
+        'discount' => 'decimal:2',
         'tax' => 'decimal:2',
         'shipping_cost' => 'decimal:2',
         'total' => 'decimal:2',
         'paid_at' => 'datetime',
+        'preparing_at' => 'datetime',
         'shipped_at' => 'datetime',
         'delivered_at' => 'datetime',
+        'cancelled_at' => 'datetime',
     ];
 
-
-    /**
-     * Relación con los detalles de la venta
-     */
-    public function saleDetails(): HasMany
+    // Relaciones
+    public function customer(): BelongsTo
     {
-        return $this->hasMany(SaleDetail::class);
+        return $this->belongsTo(User::class, 'customer_id');
     }
 
-    /**
-     * Relación con el pago
-     */
     public function payment(): BelongsTo
     {
         return $this->belongsTo(Payment::class);
     }
 
-    /*
-     * Relación con el descuento
-
-    public function discount(): BelongsTo
+    public function saleDetails(): HasMany
     {
-        return $this->belongsTo(Discount::class);
-    }
-    */
-
-    /**
-     * Scope para ventas online
-     */
-    #[Scope]
-    protected function online($query)
-    {
-        return $query->where('sale_type', 'online');
+        return $this->hasMany(SaleDetail::class);
     }
 
-    /**
-     * Scope para ventas pendientes
-     */
-    #[Scope]
-    protected function pending($query)
+
+    // Accessors para acceder a datos de pago
+    public function getPaymentMethodNameAttribute()
     {
-        return $query->where('status', 'pending');
+        return $this->payment?->paymentMethod?->name;
     }
 
-    /**
-     * Scope para ventas pagadas
-     */
+    public function getTransactionIdAttribute()
+    {
+        return $this->payment?->transaction_id;
+    }
+
+    public function getPaymentStatusAttribute()
+    {
+        return $this->payment?->status;
+    }
+
+    // Scopes
     #[Scope]
     protected function paid($query)
     {
         return $query->where('status', 'paid');
     }
 
-    /**
-     * Verificar si la venta está pagada
-     */
-    public function isPaid(): bool
+    #[Scope]
+    protected function pending($query)
     {
-        return in_array($this->status, ['paid', 'processing', 'shipped', 'delivered']);
+        return $query->where('status', 'pending');
     }
 
-    /**
-     * Verificar si la venta puede ser cancelada
-     */
-    public function canBeCancelled(): bool
+    public function scopeShipped($query)
     {
-        return in_array($this->status, ['pending', 'processing']);
+        return $query->where('status', 'shipped');
     }
 
-    /**
-     * Marcar como pagada
-     */
+    // Métodos de estado
     public function markAsPaid(): void
     {
         $this->update([
@@ -126,20 +113,16 @@ class Sale extends Model
         ]);
     }
 
-    /**
-     * Marcar como enviada
-     */
-    public function markAsShipped(): void
+    public function markAsShipped($trackingNumber = null, $carrier = null): void
     {
         $this->update([
             'status' => 'shipped',
             'shipped_at' => now(),
+            'tracking_number' => $trackingNumber,
+            'carrier' => $carrier,
         ]);
     }
 
-    /**
-     * Marcar como entregada
-     */
     public function markAsDelivered(): void
     {
         $this->update([
@@ -148,37 +131,11 @@ class Sale extends Model
         ]);
     }
 
-    /**
-     * Obtener el nombre del estado en español
-     */
-    public function getStatusNameAttribute(): string
+    public function cancel(): void
     {
-        return match ($this->status) {
-            'pending' => 'Pendiente',
-            'processing' => 'Procesando',
-            'paid' => 'Pagado',
-            'shipped' => 'Enviado',
-            'delivered' => 'Entregado',
-            'cancelled' => 'Cancelado',
-            'refunded' => 'Reembolsado',
-            default => 'Desconocido',
-        };
-    }
-
-    /**
-     * Obtener el badge color del estado
-     */
-    public function getStatusColorAttribute(): string
-    {
-        return match ($this->status) {
-            'pending' => 'yellow',
-            'processing' => 'blue',
-            'paid' => 'green',
-            'shipped' => 'purple',
-            'delivered' => 'green',
-            'cancelled' => 'red',
-            'refunded' => 'orange',
-            default => 'gray',
-        };
+        $this->update([
+            'status' => 'cancelled',
+            'cancelled_at' => now(),
+        ]);
     }
 }

@@ -138,62 +138,20 @@
                         <x-container-second-div class="space-y-4">
                             <h2 class="text-xl font-bold text-white mb-4">2. Método de Pago</h2>
 
-                            <div>
-                                <label
-                                    class="flex items-center p-4 bg-gray-700 rounded-lg cursor-pointer hover:bg-gray-600 transition">
-                                    <input
-                                        type="radio"
-                                        name="payment_method"
-                                        value="paypal"
-                                        class="w-5 h-5 text-blue-600"
-                                    >
-                                    <div class="ml-4 flex-1">
-                                        <div class="flex items-center gap-2">
-                                            <span class="text-white font-semibold">💳 PayPal</span>
-                                            <img
-                                                src="https://www.paypalobjects.com/webstatic/mktg/logo/AM_mc_vs_dc_ae.jpg"
-                                                alt="PayPal" class="h-6">
-                                        </div>
-                                        <p class="text-gray-400 text-sm">Pago seguro con PayPal (tarjeta o cuenta)</p>
-                                    </div>
-                                </label>
-                            </div>
-
-                            <div>
-                                <label
-                                    class="flex items-center p-4 bg-gray-700 rounded-lg cursor-pointer hover:bg-gray-600 transition">
-                                    <input
-                                        type="radio"
-                                        name="payment_method"
-                                        value="cash"
-                                        checked
-                                        class="w-5 h-5 text-blue-600"
-                                    >
-                                    <div class="ml-4 flex-1">
-                                        <div class="flex items-center gap-2">
-                                            <span class="text-white font-semibold">💵 Efectivo</span>
-                                        </div>
-                                        <p class="text-gray-400 text-sm">Pago contra entrega</p>
-                                    </div>
-                                </label>
-                            </div>
-
-                            <div>
-                                <label
-                                    class="flex items-center p-4 bg-gray-700 rounded-lg cursor-pointer hover:bg-gray-600 transition">
-                                    <input
-                                        type="radio"
-                                        name="payment_method"
-                                        value="qr"
-                                        class="w-5 h-5 text-blue-600"
-                                    >
-                                    <div class="ml-4 flex-1">
-                                        <div class="flex items-center gap-2">
-                                            <span class="text-white font-semibold">📱 QR Simple</span>
-                                        </div>
-                                        <p class="text-gray-400 text-sm">Código QR para pago móvil</p>
-                                    </div>
-                                </label>
+                            <div class="space-y-3">
+                                @foreach($paymentMethods as $method)
+                                    @if($method->is_active && $method->requires_gateway)
+                                        <x-input-label class="flex items-start p-4 border rounded-lg cursor-pointer hover:border-blue-500 transition payment-method-option">
+                                            <input type="radio" name="payment_method_slug" value="{{ $method->slug }}"
+                                                   data-requires-gateway="{{'true'}}"
+                                                   class="mt-1 mr-3" required>
+                                            <div class="flex-1">
+                                                <div class="font-semibold">{{ $method->name }}</div>
+                                                <div class="text-sm text-gray-500">{{ $method->description }}</div>
+                                            </div>
+                                        </x-input-label>
+                                    @endif
+                                @endforeach
                             </div>
                         </x-container-second-div>
 

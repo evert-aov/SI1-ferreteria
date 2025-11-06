@@ -13,13 +13,14 @@ return new class extends Migration
     {
         Schema::create('payment_methods', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
-            $table->string('slug')->unique(); // 'stripe', 'paypal', 'cash', etc.
-            $table->string('provider')->nullable(); // nombre del gateway
+            $table->string('name'); // 'PayPal', 'Efectivo', 'Transferencia'
+            $table->string('slug')->unique(); // 'paypal', 'cash', 'bank_transfer'
+            $table->string('provider')->nullable(); // 'stripe', 'paypal_api', null para métodos locales
             $table->json('credentials')->nullable(); // API keys encriptadas
             $table->text('description')->nullable();
             $table->boolean('is_active')->default(true);
             $table->boolean('requires_gateway')->default(false); // true para online, false para efectivo
+            $table->integer('sort_order')->default(0); // Para ordenar en el frontend
             $table->timestamps();
         });
     }

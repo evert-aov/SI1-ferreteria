@@ -28,8 +28,8 @@
                         <div class="space-y-2 text-gray-400">
                             <p><span class="text-white font-semibold">Nombre:</span> {{ $order['customer']['name'] }}</p>
                             <p><span class="text-white font-semibold">Email:</span> {{ $order['customer']['email'] }}</p>
-                            <p><span class="text-white font-semibold">Teléfono:</span> {{ $order['customer']['phone'] }}</p>
-                            <p><span class="text-white font-semibold">NIT/CI:</span> {{ $order['customer']['nit'] }}</p>
+                            <p><span class="text-white font-semibold">Teléfono:</span> {{ $order['customer']['phone'] ?? 'No proporcionado' }}</p>
+                            <p><span class="text-white font-semibold">NIT/CI:</span> {{ $order['customer']['nit'] ?? 'No proporcionado' }}</p>
                         </div>
                     </div>
 
@@ -49,25 +49,54 @@
                 <div class="mb-6 pb-6 border-b border-gray-700">
                     <h3 class="text-lg font-bold text-white mb-3">Método de Pago</h3>
                     <div class="flex items-center gap-3">
-                        @if($order['payment_method'] == 'cash')
+                        @php
+                            // Obtener el nombre y slug del método de pago
+                            $paymentMethodName = $order['payment_method'] ?? 'Desconocido';
+                            $paymentMethodSlug = strtolower(str_replace(' ', '_', $paymentMethodName));
+                        @endphp
+
+                        @if(str_contains(strtolower($paymentMethodName), 'efectivo') || str_contains(strtolower($paymentMethodName), 'cash'))
                             <span class="text-2xl">💵</span>
                             <div>
-                                <p class="text-white font-semibold">Efectivo</p>
+                                <p class="text-white font-semibold">{{ $paymentMethodName }}</p>
                                 <p class="text-gray-400 text-sm">Pago contra entrega</p>
                             </div>
-                        @elseif($order['payment_method'] == 'paypal')
+                        @elseif(str_contains(strtolower($paymentMethodName), 'paypal'))
                             <img
                                 src="https://www.paypalobjects.com/webstatic/mktg/logo/AM_mc_vs_dc_ae.jpg"
                                 alt="PayPal" class="h-6">
                             <div>
-                                <p class="text-white font-semibold">PayPal</p>
-                                <p class="text-gray-400 text-sm">Recibirás los datos por correo</p>
+                                <p class="text-white font-semibold">{{ $paymentMethodName }}</p>
+                                <p class="text-gray-400 text-sm">
+                                    Estado: <span class="text-green-500">{{ ucfirst($order['payment_status']) }}</span>
+                                </p>
+                                @if(isset($order['paypal_payment_id']))
+                                    <p class="text-gray-400 text-sm">ID: {{ $order['paypal_payment_id'] }}</p>
+                                @endif
                             </div>
-                        @else
+                        @elseif(str_contains(strtolower($paymentMethodName), 'qr'))
                             <span class="text-2xl">📱</span>
                             <div>
-                                <p class="text-white font-semibold">QR Simple</p>
+                                <p class="text-white font-semibold">{{ $paymentMethodName }}</p>
                                 <p class="text-gray-400 text-sm">Código QR enviado por correo</p>
+                            </div>
+                        @elseif(str_contains(strtolower($paymentMethodName), 'transferencia') || str_contains(strtolower($paymentMethodName), 'transfer'))
+                            <span class="text-2xl">🏦</span>
+                            <div>
+                                <p class="text-white font-semibold">{{ $paymentMethodName }}</p>
+                                <p class="text-gray-400 text-sm">Transferencia bancaria - En revisión</p>
+                            </div>
+                        @elseif(str_contains(strtolower($paymentMethodName), 'tarjeta') || str_contains(strtolower($paymentMethodName), 'card'))
+                            <span class="text-2xl">💳</span>
+                            <div>
+                                <p class="text-white font-semibold">{{ $paymentMethodName }}</p>
+                                <p class="text-gray-400 text-sm">Pago con tarjeta</p>
+                            </div>
+                        @else
+                            <span class="text-2xl">💰</span>
+                            <div>
+                                <p class="text-white font-semibold">{{ $paymentMethodName }}</p>
+                                <p class="text-gray-400 text-sm">Método de pago seleccionado</p>
                             </div>
                         @endif
                     </div>
@@ -76,7 +105,7 @@
                 <!-- Productos -->
                 <div class="mb-6">
                     <h3 class="text-lg font-bold text-white mb-4">Productos</h3>
-                    <xcon class="space-y-3">
+                    <div class="space-y-3">
                         @foreach($order['items'] as $id => $item)
                             <x-container-second-div class="flex items-center gap-4 p-4">
                                 <img
@@ -87,16 +116,16 @@
                                 <div class="flex-1">
                                     <h4 class="text-white font-semibold">{{ $item['name'] }}</h4>
                                     <p class="text-gray-400 text-sm">Cantidad: {{ $item['quantity'] }}</p>
-                                    <p class="text-gray-400 text-sm">Precio unitario: {{ $item['currency'] }} {{ number_format($item['price'], 2) }}</p>
+                                    <p class="text-gray-400 text-sm">Precio unitario: USD {{ number_format($item['price'], 2) }}</p>
                                 </div>
                                 <div class="text-right">
                                     <p class="text-yellow-500 font-bold text-lg">
-                                        {{ $item['currency'] }} {{ number_format($item['price'] * $item['quantity'], 2) }}
+                                        USD {{ number_format($item['price'] * $item['quantity'], 2) }}
                                     </p>
                                 </div>
                             </x-container-second-div>
                         @endforeach
-                    </xcon>
+                    </div>
                 </div>
 
                 <!-- Resumen de totales -->
@@ -138,22 +167,25 @@
                     ¿Qué sigue?
                 </h3>
                 <ul class="space-y-2 text-gray-300">
-                    <li class="flex items-start gap-2">
-                        <span class="text-yellow-500">✓</span>
-                        <span>Recibirás un correo de confirmación en {{ $order['customer']['email'] }}</span>
-                    </li>
-                    <li class="flex items-start gap-2">
-                        <span class="text-yellow-500">✓</span>
-                        <span>Te contactaremos al {{ $order['customer']['phone'] }} para coordinar la entrega</span>
-                    </li>
+                    @if(isset($order['customer']['phone']) && $order['customer']['phone'])
+                        <li class="flex items-start gap-2">
+                            <span class="text-yellow-500">✓</span>
+                            <span>Te contactaremos al {{ $order['customer']['phone'] }} para coordinar la entrega</span>
+                        </li>
+                    @endif
                     <li class="flex items-start gap-2">
                         <span class="text-yellow-500">✓</span>
                         <span>El tiempo estimado de entrega es de 2-5 días hábiles</span>
                     </li>
-                    @if($order['payment_method'] == 'bank_transfer')
+                    @if(str_contains(strtolower($order['payment_method']), 'transferencia') || str_contains(strtolower($order['payment_method']), 'transfer'))
                         <li class="flex items-start gap-2">
                             <span class="text-yellow-500">✓</span>
-                            <span>Recibirás los datos bancarios para realizar la transferencia</span>
+                            <span>Tu comprobante está siendo verificado. Te notificaremos cuando sea aprobado</span>
+                        </li>
+                    @elseif(str_contains(strtolower($order['payment_method']), 'qr'))
+                        <li class="flex items-start gap-2">
+                            <span class="text-yellow-500">✓</span>
+                            <span>Tu pago QR está siendo verificado. Te notificaremos cuando sea aprobado</span>
                         </li>
                     @endif
                 </ul>
@@ -172,24 +204,26 @@
             <!-- Contacto -->
             <div class="text-center mt-8 text-gray-400">
                 <p>¿Necesitas ayuda con tu pedido?</p>
-                <p class="text-white font-semibold">Contáctanos: <a href="#" class="text-yellow-500 hover:underline">+591 609 624 33</a></p>
+                <p class="text-white font-semibold">Contáctanos: <a href="tel:+59160962433" class="text-yellow-500 hover:underline">+591 609 624 33</a></p>
             </div>
         </x-container-div>
     </x-container-div>
+
     <style>
         @media print {
             body * {
                 visibility: hidden;
             }
-            .container, .container * {
+            #invoice-section, #invoice-section * {
                 visibility: visible;
             }
-            .container {
+            #invoice-section {
                 position: absolute;
                 left: 0;
                 top: 0;
+                width: 100%;
             }
-            button, a {
+            button, a[href*="products"], a[href*="orders"] {
                 display: none !important;
             }
         }
