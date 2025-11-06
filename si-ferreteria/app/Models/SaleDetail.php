@@ -10,6 +10,7 @@ class SaleDetail extends Model
 {
     protected $fillable = [
         'sale_id',
+        'sale_unperson_id',
         'product_id',
         'quantity',
         'unit_price',
