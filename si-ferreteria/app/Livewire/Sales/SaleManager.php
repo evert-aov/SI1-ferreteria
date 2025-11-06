@@ -103,7 +103,7 @@ class SaleManager extends Component
             // Crear los detalles de venta y actualizar el inventario
             foreach ($this->form->items as $item) {
                 SaleDetail::create([
-                    'sale_id' => $sale->id,
+                    'sale_unperson_id' => $sale->id,
                     'product_id' => $item['product_id'],
                     'quantity' => $item['quantity'],
                     'unit_price' => $item['unit_price'],
