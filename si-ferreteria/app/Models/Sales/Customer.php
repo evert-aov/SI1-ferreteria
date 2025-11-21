@@ -2,7 +2,7 @@
 
 namespace App\Models\Sales;
 
-use App\Models\User;
+use \App\Models\User_security\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 

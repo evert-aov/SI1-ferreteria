@@ -62,7 +62,7 @@ class ProductSeeder extends Seeder
         if (!$volume) {
             $volume = Volume::create([
                 'volume' => 1.0,
-                'volume_unit' => 'L',
+                'volume_unit' => 'L'
             ]);
         }
 
@@ -184,7 +184,7 @@ class ProductSeeder extends Seeder
 
             // PRODUCTOS SIN FECHA DE VENCIMIENTO
             [
-                'name' => 'Tornillos Galvanizados 3"',
+                'name' => 'Tornillos Galvanizados 3',
                 'description' => 'Caja de 100 tornillos',
                 'purchase_price' => 3.50,
                 'sale_price' => 6.00,
@@ -192,7 +192,7 @@ class ProductSeeder extends Seeder
                 'expiration_date' => null, // Sin vencimiento
             ],
             [
-                'name' => 'Clavos de Acero 2.5"',
+                'name' => 'Clavos de Acero 2.5',
                 'description' => 'Caja de 500g de clavos',
                 'purchase_price' => 2.75,
                 'sale_price' => 5.00,

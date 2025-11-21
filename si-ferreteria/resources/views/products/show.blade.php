@@ -103,6 +103,38 @@
                 </div>
             </div>
         </x-container-second-div>
+
+        {{-- Reviews Section --}}
+        <x-container-second-div>
+            <div class="p-8">
+                <h2 class="text-3xl font-bold text-white mb-8">Reseñas de Clientes</h2>
+                
+                {{-- Submit Review Form (Auth required) --}}
+                @auth
+                    <div class="mb-12">
+                        @livewire('submit-review', ['product' => $product])
+                    </div>
+                @else
+                    <div class="mb-12 p-6 bg-gray-800/50 rounded-xl border border-gray-700 text-center">
+                        <p class="text-gray-400 mb-4">
+                            <svg class="w-12 h-12 mx-auto mb-2 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                            </svg>
+                            Inicia sesión para dejar una reseña
+                        </p>
+                        <a href="{{ route('login') }}" class="inline-block px-6 py-3 bg-gradient-to-r from-orange-600 to-yellow-500 text-white rounded-lg hover:from-yellow-500 hover:to-orange-600 transition-all duration-300 font-medium">
+                            Iniciar Sesión
+                        </a>
+                    </div>
+                @endauth
+
+                {{-- Reviews List --}}
+                <div class="border-t border-gray-700 pt-8">
+                    @livewire('product-reviews', ['product' => $product])
+                </div>
+            </div>
+        </x-container-second-div>
+
         <x-container-second-div>
             @include('products.similar')
         </x-container-second-div>

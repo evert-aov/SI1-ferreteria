@@ -19,6 +19,8 @@ use App\Livewire\UserSecurity\UserManager;
 use App\Livewire\DiscountManager;
 use Illuminate\Support\Facades\Route;
 use App\Livewire\ExitNotes\ExitNoteManager;
+use App\Http\Controllers\ReportController;
+use App\Http\Controllers\ReviewController;
 
 Route::middleware(['auth'])->group(function () {
     Route::get('/exit-notes', ExitNoteManager::class)->name('exit-notes');
@@ -50,12 +52,6 @@ Route::prefix('carrito')->name('cart.')->group(function () {
 Route::middleware(['auth'])->group(function () {
     // Checkout del carrito
     Route::get('/carrito/checkout', [CartController::class, 'checkout'])->name('cart.checkout');
-
-//    // Procesamiento de órdenes (efectivo/QR)
-//    Route::prefix('order')->name('order.')->group(function () {
-//        Route::post('/process', [OrderController::class, 'process'])->name('process');
-//        Route::get('/success', [OrderController::class, 'success'])->name('success');
-//    });
 
     // Rutas de PayPal
     Route::prefix('paypal')->name('paypal.')->group(function () {
@@ -89,6 +85,22 @@ Route::middleware('auth')->group(function () {
     Route::get('/suppliers', SupplierManager::class)->name('suppliers.index');
     Route::get('/sales', SaleManager::class)->name('sales.index');
     Route::get('/discounts', DiscountManager::class)->name('discounts.index');
+    
+    // Reportes dinámicos
+    Route::get('/reports/dynamic', [ReportController::class, 'index'])->name('reports.users.index');
+    Route::post('/reports/get-table-fields', [ReportController::class, 'getTableFields'])->name('reports.get-table-fields');
+    Route::post('/reports/dynamic/generate', [ReportController::class, 'generate'])->name('reports.users.generate');
+    Route::post('/reports/download-pdf', [ReportController::class, 'downloadPdf'])->name('reports.download-pdf');
+    Route::post('/reports/download-excel', [ReportController::class, 'downloadExcel'])->name('reports.download-excel');
+    Route::post('/reports/download-html', [ReportController::class, 'downloadHtml'])->name('reports.download-html');
+    
+    // Review routes
+    Route::post('/products/{product}/reviews', [ReviewController::class, 'store'])->name('reviews.store');
+    Route::post('/reviews/{review}/helpful', [ReviewController::class, 'markHelpful'])->name('reviews.helpful');
+    Route::delete('/reviews/{review}', [ReviewController::class, 'destroy'])->name('reviews.destroy');
+    
+    // Admin routes
+    Route::get('/admin/reviews', [ReviewController::class, 'moderate'])->name('admin.reviews.moderate');
 });
 
 require __DIR__ . '/auth.php';

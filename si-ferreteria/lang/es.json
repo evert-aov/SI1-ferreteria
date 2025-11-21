@@ -90,5 +90,12 @@
     "Phone": "Telefono",
     "Address": "Dirección",
     "City": "Ciudad",
-    "Postal code": "Código postal"
+    "Postal code": "Código postal",
+    "Reviews": "Reseñas",
+    "Moderate Reviews": "Moderar Reseñas",
+    "User": "Usuario",
+    "Rating": "Calificación",
+    "Comment": "Comentario",
+    "Date": "Fecha",
+    "Actions": "Acciones"
  }
