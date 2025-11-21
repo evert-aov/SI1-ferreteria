@@ -13,11 +13,24 @@
                     <form action="{{ route('reports.download-pdf') }}" method="POST" style="display: inline;">
                         @csrf
                         <input type="hidden" name="table" value="{{ $table }}">
-                        @foreach($selectedFields as $field)
+                        @foreach ($selectedFields as $field)
                             <input type="hidden" name="fields[]" value="{{ $field }}">
                         @endforeach
-                        <button 
-                            type="submit"
+                        @foreach ($filters as $index => $filter)
+                            <input type="hidden" name="filters[{{ $index }}][field]"
+                                value="{{ $filter['field'] }}">
+                            <input type="hidden" name="filters[{{ $index }}][operator]"
+                                value="{{ $filter['operator'] }}">
+                            @if (isset($filter['value']))
+                                <input type="hidden" name="filters[{{ $index }}][value]"
+                                    value="{{ $filter['value'] }}">
+                            @endif
+                            @if (isset($filter['value2']))
+                                <input type="hidden" name="filters[{{ $index }}][value2]"
+                                    value="{{ $filter['value2'] }}">
+                            @endif
+                        @endforeach
+                        <button type="submit"
                             class="px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-500 text-white rounded-lg hover:from-blue-500 hover:to-blue-600 transition-all duration-300 hover:shadow-lg hover:shadow-blue-600/25 font-medium inline-flex items-center">
                             <x-icons.save class="w-5 h-5 mr-2"></x-icons.save>
                             PDF
@@ -26,11 +39,24 @@
                     <form action="{{ route('reports.download-excel') }}" method="POST" style="display: inline;">
                         @csrf
                         <input type="hidden" name="table" value="{{ $table }}">
-                        @foreach($selectedFields as $field)
+                        @foreach ($selectedFields as $field)
                             <input type="hidden" name="fields[]" value="{{ $field }}">
                         @endforeach
-                        <button 
-                            type="submit"
+                        @foreach ($filters as $index => $filter)
+                            <input type="hidden" name="filters[{{ $index }}][field]"
+                                value="{{ $filter['field'] }}">
+                            <input type="hidden" name="filters[{{ $index }}][operator]"
+                                value="{{ $filter['operator'] }}">
+                            @if (isset($filter['value']))
+                                <input type="hidden" name="filters[{{ $index }}][value]"
+                                    value="{{ $filter['value'] }}">
+                            @endif
+                            @if (isset($filter['value2']))
+                                <input type="hidden" name="filters[{{ $index }}][value2]"
+                                    value="{{ $filter['value2'] }}">
+                            @endif
+                        @endforeach
+                        <button type="submit"
                             class="px-4 py-2 bg-gradient-to-r from-green-600 to-emerald-500 text-white rounded-lg hover:from-green-500 hover:to-emerald-600 transition-all duration-300 hover:shadow-lg hover:shadow-green-600/25 font-medium inline-flex items-center">
                             <x-icons.save class="w-5 h-5 mr-2"></x-icons.save>
                             Excel
@@ -39,18 +65,30 @@
                     <form action="{{ route('reports.download-html') }}" method="POST" style="display: inline;">
                         @csrf
                         <input type="hidden" name="table" value="{{ $table }}">
-                        @foreach($selectedFields as $field)
+                        @foreach ($selectedFields as $field)
                             <input type="hidden" name="fields[]" value="{{ $field }}">
                         @endforeach
-                        <button 
-                            type="submit"
+                        @foreach ($filters as $index => $filter)
+                            <input type="hidden" name="filters[{{ $index }}][field]"
+                                value="{{ $filter['field'] }}">
+                            <input type="hidden" name="filters[{{ $index }}][operator]"
+                                value="{{ $filter['operator'] }}">
+                            @if (isset($filter['value']))
+                                <input type="hidden" name="filters[{{ $index }}][value]"
+                                    value="{{ $filter['value'] }}">
+                            @endif
+                            @if (isset($filter['value2']))
+                                <input type="hidden" name="filters[{{ $index }}][value2]"
+                                    value="{{ $filter['value2'] }}">
+                            @endif
+                        @endforeach
+                        <button type="submit"
                             class="px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-500 text-white rounded-lg hover:from-purple-500 hover:to-indigo-600 transition-all duration-300 hover:shadow-lg hover:shadow-purple-600/25 font-medium inline-flex items-center">
                             <x-icons.save class="w-5 h-5 mr-2"></x-icons.save>
                             HTML
                         </button>
                     </form>
-                    <a 
-                        href="{{ route('reports.users.index') }}" 
+                    <a href="{{ route('reports.users.index') }}"
                         class="px-4 py-2 bg-gradient-to-r from-orange-600 to-yellow-500 text-white rounded-lg hover:from-yellow-500 hover:to-orange-600 transition-all duration-300 hover:shadow-lg hover:shadow-orange-600/25 font-medium inline-flex items-center">
                         <x-icons.search class="w-5 h-5 mr-2"></x-icons.search>
                         Nuevo Reporte
@@ -80,8 +118,9 @@
                 <table class="min-w-full divide-y divide-gray-700">
                     <thead class="bg-gradient-to-r from-gray-900 via-gray-950 to-gray-900">
                         <tr>
-                            @foreach($headers as $field => $label)
-                                <th scope="col" class="px-6 py-4 text-left text-xs font-bold text-orange-500 uppercase tracking-wider border-b-2 border-orange-600/50">
+                            @foreach ($headers as $field => $label)
+                                <th scope="col"
+                                    class="px-6 py-4 text-left text-xs font-bold text-orange-500 uppercase tracking-wider border-b-2 border-orange-600/50">
                                     {{ $label }}
                                 </th>
                             @endforeach
@@ -89,19 +128,22 @@
                     </thead>
                     <tbody class="bg-gray-800/50 divide-y divide-gray-700">
                         @forelse($data as $row)
-                            <tr class="hover:bg-gradient-to-r hover:from-orange-600/10 hover:to-yellow-600/10 transition-all duration-200">
-                                @foreach($displayFields as $field)
+                            <tr
+                                class="hover:bg-gradient-to-r hover:from-orange-600/10 hover:to-yellow-600/10 transition-all duration-200">
+                                @foreach ($displayFields as $field)
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
                                         @php
                                             // Para foreign keys, intentar obtener el nombre relacionado
                                             $displayValue = null;
-                                            $rawValue = is_object($row) ? ($row->$field ?? null) : ($row[$field] ?? null);
-                                            
+                                            $rawValue = is_object($row) ? $row->$field ?? null : $row[$field] ?? null;
+
                                             // Si es una foreign key y existe el campo _name del JOIN
                                             if (str_ends_with($field, '_id')) {
                                                 $nameField = $field . '_name';
-                                                $relatedName = is_object($row) ? ($row->$nameField ?? null) : ($row[$nameField] ?? null);
-                                                
+                                                $relatedName = is_object($row)
+                                                    ? $row->$nameField ?? null
+                                                    : $row[$nameField] ?? null;
+
                                                 if ($relatedName) {
                                                     $displayValue = $relatedName;
                                                 } else {
@@ -111,43 +153,42 @@
                                                 $displayValue = $rawValue;
                                             }
                                         @endphp
-                                        
-                                        @if($field === 'status' && !is_null($displayValue))
-                                            <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full {{ $displayValue ? 'bg-gradient-to-r from-green-600 to-emerald-500 text-white' : 'bg-gradient-to-r from-red-600 to-red-500 text-white' }}">
+
+                                        @if ($field === 'status' && !is_null($displayValue))
+                                            <span
+                                                class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full {{ $displayValue ? 'bg-gradient-to-r from-green-600 to-emerald-500 text-white' : 'bg-gradient-to-r from-red-600 to-red-500 text-white' }}">
                                                 {{ $displayValue ? 'Activo' : 'Inactivo' }}
                                             </span>
                                         @elseif($field === 'gender' && !is_null($displayValue))
                                             <span class="flex items-center">
-                                                <x-icons.gender class="w-4 h-4 mr-2 text-gray-400"></x-icons.gender>
                                                 {{ $displayValue === 'male' ? 'Masculino' : 'Femenino' }}
                                             </span>
                                         @elseif($field === 'email' && !is_null($displayValue))
                                             <span class="flex items-center">
-                                                <x-icons.email class="w-4 h-4 mr-2 text-gray-400"></x-icons.email>
                                                 {{ $displayValue }}
                                             </span>
                                         @elseif($field === 'phone' && !is_null($displayValue))
                                             <span class="flex items-center">
-                                                <x-icons.phone class="w-4 h-4 mr-2 text-gray-400"></x-icons.phone>
                                                 {{ $displayValue }}
                                             </span>
                                         @elseif(($field === 'created_at' || $field === 'updated_at') && !is_null($displayValue))
                                             <span class="flex items-center text-xs">
-                                                <x-icons.calendar class="w-4 h-4 mr-2 text-gray-400"></x-icons.calendar>
                                                 {{ \Carbon\Carbon::parse($displayValue)->format('d/m/Y H:i') }}
                                             </span>
                                         @elseif(str_ends_with($field, '_id'))
                                             {{-- Para foreign keys, mostrar el nombre si está disponible, sino el ID --}}
-                                            @if(!is_null($displayValue) && !is_numeric($displayValue))
+                                            @if (!is_null($displayValue) && !is_numeric($displayValue))
                                                 <span class="flex items-center">
-                                                    <x-icons.user class="w-4 h-4 mr-2 text-orange-400"></x-icons.user>
-                                                    <span class="font-medium text-orange-300">{{ $displayValue }}</span>
+                                                    <span
+                                                        class="font-medium text-orange-300">{{ $displayValue }}</span>
                                                 </span>
                                             @else
-                                                <span class="text-gray-500 text-xs">ID: {{ $displayValue ?? 'N/A' }}</span>
+                                                <span class="text-gray-500 text-xs">ID:
+                                                    {{ $displayValue ?? 'N/A' }}</span>
                                             @endif
                                         @elseif(is_numeric($displayValue) && in_array($field, ['price', 'total', 'subtotal', 'discount']))
-                                            <span class="font-semibold text-green-400">Bs. {{ number_format($displayValue, 2) }}</span>
+                                            <span class="font-semibold text-green-400">Bs.
+                                                {{ number_format($displayValue, 2) }}</span>
                                         @else
                                             {{ $displayValue ?? 'N/A' }}
                                         @endif
@@ -177,40 +218,47 @@
 
     <style>
         @media print {
+
             /* Ocultar elementos de navegación */
-            .no-print, nav, aside, button, header, a[href] {
+            .no-print,
+            nav,
+            aside,
+            button,
+            header,
+            a[href] {
                 display: none !important;
             }
-            
+
             /* Fondo blanco para impresión */
             body {
                 background-color: white !important;
             }
-            
+
             /* Optimizar tabla para impresión */
             table {
                 border-collapse: collapse;
                 width: 100%;
                 page-break-inside: auto;
             }
-            
+
             thead {
                 display: table-header-group;
             }
-            
+
             tr {
                 page-break-inside: avoid;
                 page-break-after: auto;
             }
-            
-            th, td {
+
+            th,
+            td {
                 border: 1px solid #000 !important;
                 padding: 8px !important;
                 text-align: left;
                 color: #000 !important;
                 background: white !important;
             }
-            
+
             th {
                 background-color: #f3f4f6 !important;
                 font-weight: bold;
@@ -219,25 +267,26 @@
             tr:hover {
                 background: transparent !important;
             }
-            
+
             /* Ocultar iconos en impresión */
-            svg, img {
+            svg,
+            img {
                 display: none !important;
             }
-            
+
             /* Mejor contraste para texto */
             span {
                 color: #000 !important;
                 background: transparent !important;
             }
-            
+
             /* Asegurar que el título sea visible */
             .text-lg {
                 color: #000 !important;
                 font-size: 18px !important;
                 margin-bottom: 10px !important;
             }
-            
+
             /* Margen de página */
             @page {
                 margin: 2cm;

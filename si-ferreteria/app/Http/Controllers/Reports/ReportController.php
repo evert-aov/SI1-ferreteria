@@ -1,0 +1,629 @@
+<?php
+
+namespace App\Http\Controllers\Reports;
+
+use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\View\View;
+
+class ReportController extends Controller
+{
+    /**
+     * Mapeo de tablas a nombres amigables
+     */
+    private function getAvailableTables(): array
+    {
+        return [
+            'users' => 'Usuarios',
+            'products' => 'Productos',
+            'categories' => 'Categorías',
+            'brands' => 'Marcas',
+            'sales' => 'Ventas',
+            'sale_details' => 'Detalles de Ventas',
+            'entries' => 'Compras/Entradas',
+            'entry_details' => 'Detalles de Compras',
+            'customers' => 'Clientes',
+            'suppliers' => 'Proveedores',
+            'employees' => 'Empleados',
+            'roles' => 'Roles',
+            'permissions' => 'Permisos',
+            'audit_logs' => 'Bitácora de Auditoría',
+            'product_alerts' => 'Alertas de Productos',
+            'exit_notes' => 'Notas de Salida',
+            'discounts' => 'Descuentos',
+        ];
+    }
+
+    /**
+     * Mapeo de relaciones: foreign_key => [tabla_relacionada, campo_nombre_o_expresion]
+     * Para tablas sin campo 'name', usar expresión CONCAT
+     */
+
+    /**
+     * Mapeo de relaciones: foreign_key => [tabla_relacionada, campo_nombre_o_expresion, primary_key_opcional]
+     * Para tablas sin campo 'name', usar expresión CONCAT
+     * Si la tabla relacionada no usa 'id' como PK, especificar el tercer parámetro
+     * Si el campo es una FK a otra tabla (nested), especificar como array anidado
+     */
+    private function getRelationshipMappings(): array
+    {
+        return [
+            'user_id' => ['users', 'CONCAT(name, \' \', last_name)', 'id'],
+            'product_id' => ['products', 'name', 'id'],
+            'category_id' => ['categories', 'name', 'id'],
+            'brand_id' => ['brands', 'name', 'id'],
+            'color_id' => ['colors', 'name', 'id'],
+            'volume_id' => ['volumes', 'CONCAT(peso, peso_unit, \' / \', volume, volume_unit)', 'id'],
+            'measure_id' => ['measures', 'CONCAT(length, length_unit, \'x\', width, width_unit, \'x\', height, height_unit)', 'id'],
+            'application_id' => ['applications', 'name', 'id'],
+            // customer_id en sales apunta directamente a users.id (no a customers)
+            'customer_id' => ['users', 'CONCAT(name, \' \', last_name)', 'id'],
+            'supplier_id' => ['suppliers', ['users', 'CONCAT(name, \' \', last_name)'], 'user_id'],
+            'employee_id' => ['employees', 'user_id', 'user_id'],
+            'sale_id' => ['sales', 'id', 'id'],
+            'entry_id' => ['entries', 'id', 'id'],
+            'role_id' => ['roles', 'name', 'id'],
+            'permission_id' => ['permissions', 'name', 'id'],
+        ];
+    }
+
+    /**
+     * Obtiene los nombres amigables de las columnas de una tabla
+     */
+    private function getFieldLabels(string $table): array
+    {
+        $labels = [
+            'id' => 'ID',
+            'name' => 'Nombre',
+            'last_name' => 'Apellido',
+            'email' => 'Email',
+            'phone' => 'Teléfono',
+            'address' => 'Dirección',
+            'status' => 'Estado',
+            'created_at' => 'Fecha de Creación',
+            'updated_at' => 'Fecha de Actualización',
+            'gender' => 'Género',
+            'document_type' => 'Tipo de Documento',
+            'document_number' => 'Número de Documento',
+            'description' => 'Descripción',
+            'price' => 'Precio',
+            'stock' => 'Stock',
+            'category_id' => 'Categoría',
+            'brand_id' => 'Marca',
+            'color_id' => 'Color',
+            'volume_id' => 'Volumen',
+            'measure_id' => 'Medida',
+            'application_id' => 'Aplicación',
+            'quantity' => 'Cantidad',
+            'total' => 'Total',
+            'subtotal' => 'Subtotal',
+            'discount' => 'Descuento',
+            'user_id' => 'Usuario',
+            'product_id' => 'Producto',
+            'sale_id' => 'Venta',
+            'customer_id' => 'Cliente',
+            'supplier_id' => 'Proveedor',
+            'employee_id' => 'Empleado',
+            'role_id' => 'Rol',
+            'permission_id' => 'Permiso',
+            'level' => 'Nivel',
+            'action' => 'Acción',
+            'ip_address' => 'Dirección IP',
+            'user_agent' => 'Navegador',
+        ];
+
+        return $labels;
+    }
+
+    /**
+     * Prepara la consulta y los datos necesarios para el reporte
+     * 
+     * @throws \Exception
+     */
+    /**
+     * Prepara la consulta y los datos necesarios para el reporte
+     * 
+     * @throws \Exception
+     */
+    private function prepareReportQuery(string $table, array $selectedFields, array $filters = []): array
+    {
+        $availableTables = $this->getAvailableTables();
+
+        if (!array_key_exists($table, $availableTables)) {
+            throw new \Exception('Tabla no válida');
+        }
+
+        // Validar que los campos existen en la tabla
+        $tableColumns = Schema::getColumnListing($table);
+        foreach ($selectedFields as $field) {
+            if (!in_array($field, $tableColumns)) {
+                throw new \Exception('Campo no válido: ' . $field);
+            }
+        }
+
+        $fieldLabels = $this->getFieldLabels($table);
+        $relationshipMappings = $this->getRelationshipMappings();
+        
+        // Construir la consulta con JOINs automáticos
+        $query = DB::table($table);
+        $selectFields = [];
+        $joinedTables = [];
+        
+        foreach ($selectedFields as $field) {
+            // Si es una foreign key, hacer JOIN
+            if (str_ends_with($field, '_id') && isset($relationshipMappings[$field])) {
+                $mapping = $relationshipMappings[$field];
+                $relatedTable = $mapping[0];
+                $relatedFieldOrExpression = $mapping[1];
+                $primaryKey = $mapping[2] ?? 'id'; // Por defecto 'id'
+                
+                // Verificar si es una relación anidada (array dentro de array)
+                $isNestedRelation = is_array($relatedFieldOrExpression);
+                
+                if ($isNestedRelation) {
+                    // Relación anidada: ej. customer_id -> customers -> users
+                    $intermediateTable = $relatedTable;
+                    $finalTable = $relatedFieldOrExpression[0];
+                    $finalExpression = $relatedFieldOrExpression[1];
+                    
+                    // JOIN a la tabla intermedia (ej. customers)
+                    $intermediateJoinKey = $intermediateTable . '_' . $field;
+                    if (!in_array($intermediateJoinKey, $joinedTables)) {
+                        $query->leftJoin(
+                            $intermediateTable . ' as ' . $intermediateJoinKey,
+                            $table . '.' . $field,
+                            '=',
+                            $intermediateJoinKey . '.' . $primaryKey
+                        );
+                        $joinedTables[] = $intermediateJoinKey;
+                    }
+                    
+                    // JOIN a la tabla final (ej. users)
+                    $finalJoinKey = $finalTable . '_' . $intermediateJoinKey;
+                    if (!in_array($finalJoinKey, $joinedTables)) {
+                        $query->leftJoin(
+                            $finalTable . ' as ' . $finalJoinKey,
+                            $intermediateJoinKey . '.user_id',
+                            '=',
+                            $finalJoinKey . '.id'
+                        );
+                        $joinedTables[] = $finalJoinKey;
+                    }
+                    
+                    // Seleccionar el campo de la tabla final
+                    if (str_contains($finalExpression, 'CONCAT')) {
+                        $expression = preg_replace_callback(
+                            '/([a-z_]+)([,\s\)])/',
+                            function($matches) use ($finalJoinKey) {
+                                if (!in_array($matches[1], ['CONCAT', 'NULL'])) {
+                                    return $finalJoinKey . '.' . $matches[1] . $matches[2];
+                                }
+                                return $matches[0];
+                            },
+                            $finalExpression
+                        );
+                        $selectFields[] = DB::raw($expression . ' as ' . $field . '_name');
+                    } else {
+                        $selectFields[] = $finalJoinKey . '.' . $finalExpression . ' as ' . $field . '_name';
+                    }
+                } else {
+                    // Relación simple
+                    $joinKey = $relatedTable . '_' . $field;
+                    if (!in_array($joinKey, $joinedTables)) {
+                        $query->leftJoin(
+                            $relatedTable . ' as ' . $joinKey,
+                            $table . '.' . $field,
+                            '=',
+                            $joinKey . '.' . $primaryKey
+                        );
+                        $joinedTables[] = $joinKey;
+                    }
+                    
+                    // Seleccionar el campo relacionado con alias
+                    if (str_contains($relatedFieldOrExpression, 'CONCAT')) {
+                        $expression = preg_replace_callback(
+                            '/([a-z_]+)([,\s\)])/',
+                            function($matches) use ($joinKey) {
+                                if (!in_array($matches[1], ['CONCAT', 'NULL'])) {
+                                    return $joinKey . '.' . $matches[1] . $matches[2];
+                                }
+                                return $matches[0];
+                            },
+                            $relatedFieldOrExpression
+                        );
+                        $selectFields[] = DB::raw($expression . ' as ' . $field . '_name');
+                    } else {
+                        $selectFields[] = $joinKey . '.' . $relatedFieldOrExpression . ' as ' . $field . '_name';
+                    }
+                }
+                
+                $selectFields[] = $table . '.' . $field; // También incluir el ID original
+            } else {
+                // Campo normal
+                $selectFields[] = $table . '.' . $field;
+            }
+        }
+        
+        // Aplicar filtros
+        foreach ($filters as $filter) {
+            if (empty($filter['field']) || empty($filter['operator'])) {
+                continue;
+            }
+
+            $rawField = $filter['field'];
+            $operator = $filter['operator'];
+            $value = $filter['value'] ?? null;
+            $value2 = $filter['value2'] ?? null;
+
+            // Validar que el campo existe en la tabla (seguridad básica)
+            if (!in_array($rawField, $tableColumns)) {
+                continue;
+            }
+
+            $targetColumn = $table . '.' . $rawField;
+
+            // Si es una foreign key, usar la columna relacionada
+            if (str_ends_with($rawField, '_id') && isset($relationshipMappings[$rawField])) {
+                $mapping = $relationshipMappings[$rawField];
+                $relatedTable = $mapping[0];
+                $relatedFieldOrExpression = $mapping[1];
+                $primaryKey = $mapping[2] ?? 'id';
+                
+                $isNestedRelation = is_array($relatedFieldOrExpression);
+                
+                if ($isNestedRelation) {
+                    // Relación anidada
+                    $intermediateTable = $relatedTable;
+                    $finalTable = $relatedFieldOrExpression[0];
+                    $finalExpression = $relatedFieldOrExpression[1];
+                    
+                    $intermediateJoinKey = $intermediateTable . '_' . $rawField;
+                    if (!in_array($intermediateJoinKey, $joinedTables)) {
+                        $query->leftJoin(
+                            $intermediateTable . ' as ' . $intermediateJoinKey,
+                            $table . '.' . $rawField,
+                            '=',
+                            $intermediateJoinKey . '.' . $primaryKey
+                        );
+                        $joinedTables[] = $intermediateJoinKey;
+                    }
+                    
+                    $finalJoinKey = $finalTable . '_' . $intermediateJoinKey;
+                    if (!in_array($finalJoinKey, $joinedTables)) {
+                        $query->leftJoin(
+                            $finalTable . ' as ' . $finalJoinKey,
+                            $intermediateJoinKey . '.user_id',
+                            '=',
+                            $finalJoinKey . '.id'
+                        );
+                        $joinedTables[] = $finalJoinKey;
+                    }
+                    
+                    if (str_contains($finalExpression, 'CONCAT')) {
+                        $targetColumn = DB::raw(preg_replace_callback(
+                            '/([a-z_]+)([,\s\)])/',
+                            function($matches) use ($finalJoinKey) {
+                                if (!in_array($matches[1], ['CONCAT', 'NULL'])) {
+                                    return $finalJoinKey . '.' . $matches[1] . $matches[2];
+                                }
+                                return $matches[0];
+                            },
+                            $finalExpression
+                        ));
+                    } else {
+                        $targetColumn = $finalJoinKey . '.' . $finalExpression;
+                    }
+                } else {
+                    // Relación simple
+                    $joinKey = $relatedTable . '_' . $rawField;
+                    if (!in_array($joinKey, $joinedTables)) {
+                        $query->leftJoin(
+                            $relatedTable . ' as ' . $joinKey,
+                            $table . '.' . $rawField,
+                            '=',
+                            $joinKey . '.' . $primaryKey
+                        );
+                        $joinedTables[] = $joinKey;
+                    }
+                    
+                    if (str_contains($relatedFieldOrExpression, 'CONCAT')) {
+                        $targetColumn = DB::raw(preg_replace_callback(
+                            '/([a-z_]+)([,\s\)])/',
+                            function($matches) use ($joinKey) {
+                                if (!in_array($matches[1], ['CONCAT', 'NULL'])) {
+                                    return $joinKey . '.' . $matches[1] . $matches[2];
+                                }
+                                return $matches[0];
+                            },
+                            $relatedFieldOrExpression
+                        ));
+                    } else {
+                        $targetColumn = $joinKey . '.' . $relatedFieldOrExpression;
+                    }
+                }
+            }
+
+            switch ($operator) {
+                case 'like':
+                    if ($targetColumn instanceof \Illuminate\Database\Query\Expression) {
+                         $query->whereRaw("$targetColumn like ?", ['%' . $value . '%']);
+                    } else {
+                        $query->where($targetColumn, 'like', '%' . $value . '%');
+                    }
+                    break;
+                case 'between':
+                    if ($value !== null && $value2 !== null) {
+                        // whereBetween doesn't support raw expressions easily in all versions, use whereRaw
+                        if ($targetColumn instanceof \Illuminate\Database\Query\Expression) {
+                            $query->whereRaw("$targetColumn between ? and ?", [$value, $value2]);
+                        } else {
+                            $query->whereBetween($targetColumn, [$value, $value2]);
+                        }
+                    }
+                    break;
+                case '=':
+                case '!=':
+                case '>':
+                case '<':
+                case '>=':
+                case '<=':
+                    if ($value !== null) {
+                        if ($targetColumn instanceof \Illuminate\Database\Query\Expression) {
+                            $query->whereRaw("$targetColumn $operator ?", [$value]);
+                        } else {
+                            $query->where($targetColumn, $operator, $value);
+                        }
+                    }
+                    break;
+            }
+        }
+        
+        // Crear headers con las etiquetas
+        $headers = [];
+        $displayFields = []; // Campos que se mostrarán en la vista
+        
+        foreach ($selectedFields as $field) {
+            $headers[$field] = $fieldLabels[$field] ?? ucfirst(str_replace('_', ' ', $field));
+            $displayFields[] = $field;
+        }
+
+        $query->select($selectFields);
+
+        return [
+            'query' => $query,
+            'headers' => $headers,
+            'displayFields' => $displayFields,
+            'tableName' => $availableTables[$table],
+        ];
+    }
+
+    /**
+     * Muestra la interfaz de selección de tabla y campos
+     */
+    public function index(): View
+    {
+        $availableTables = $this->getAvailableTables();
+        
+        return view('reports.dynamic-report-selector', compact('availableTables'));
+    }
+
+    /**
+     * Endpoint AJAX: Obtiene los campos de una tabla específica
+     */
+    public function getTableFields(Request $request)
+    {
+        $request->validate([
+            'table' => 'required|string',
+        ]);
+
+        $table = $request->input('table');
+        $availableTables = $this->getAvailableTables();
+
+        if (!array_key_exists($table, $availableTables)) {
+            return response()->json(['error' => 'Tabla no válida'], 400);
+        }
+
+        try {
+            // Obtener columnas de la tabla
+            $columns = Schema::getColumnListing($table);
+            $fieldLabels = $this->getFieldLabels($table);
+            
+            // Crear array de campos con etiquetas y tipos
+            $fields = [];
+            foreach ($columns as $column) {
+                // Excluir campos sensibles o no útiles
+                if (in_array($column, ['password', 'remember_token'])) {
+                    continue;
+                }
+                
+                $type = Schema::getColumnType($table, $column);
+                
+                $fields[$column] = [
+                    'label' => $fieldLabels[$column] ?? ucfirst(str_replace('_', ' ', $column)),
+                    'type' => $type
+                ];
+            }
+
+            return response()->json([
+                'success' => true,
+                'fields' => $fields,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Error al obtener campos: ' . $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Genera el reporte basado en la tabla y campos seleccionados
+     */
+    public function generate(Request $request)
+    {
+        $request->validate([
+            'table' => 'required|string',
+            'fields' => 'required|array|min:1',
+            'fields.*' => 'string',
+            'filters' => 'nullable|array',
+        ], [
+            'table.required' => 'Debe seleccionar una tabla.',
+            'fields.required' => 'Debe seleccionar al menos un campo para el reporte.',
+            'fields.min' => 'Debe seleccionar al menos un campo para el reporte.',
+        ]);
+
+        $table = $request->input('table');
+        $selectedFields = $request->input('fields');
+        $filters = $request->input('filters', []);
+
+        try {
+            $reportData = $this->prepareReportQuery($table, $selectedFields, $filters);
+            
+            $query = $reportData['query'];
+            $headers = $reportData['headers'];
+            $displayFields = $reportData['displayFields'];
+            $tableName = $reportData['tableName'];
+
+            // Ejecutar consulta con paginación
+            $data = $query->paginate(20);
+
+            return view('reports.dynamic-report-result', compact('data', 'headers', 'displayFields', 'selectedFields', 'table', 'tableName', 'filters'));
+        } catch (\Illuminate\Database\QueryException $e) {
+            $errorCode = $e->getCode();
+            $errorMessage = 'Error al generar reporte.';
+
+            if ($errorCode == '22007') {
+                $errorMessage = 'Formato de fecha inválido. Por favor verifique los filtros de fecha.';
+            } elseif ($errorCode == '22P02') {
+                $errorMessage = 'Valor inválido para el tipo de dato. Por favor verifique que los valores numéricos sean números y las fechas sean válidas.';
+            } elseif ($errorCode == '22003') {
+                $errorMessage = 'Valor numérico fuera de rango. El número ingresado es demasiado grande.';
+            } elseif ($errorCode == '22001') {
+                $errorMessage = 'Texto demasiado largo. Por favor reduzca la longitud del texto en el filtro.';
+            } else {
+                $errorMessage .= ' (Código: ' . $errorCode . ') ' . $e->getMessage();
+            }
+
+            return back()->withErrors(['error' => $errorMessage]);
+        } catch (\Exception $e) {
+            return back()->withErrors(['error' => 'Error al generar reporte: ' . $e->getMessage()]);
+        }
+    }
+
+    /**
+     * Descarga el reporte como PDF
+     */
+    public function downloadPdf(Request $request)
+    {
+        $request->validate([
+            'table' => 'required|string',
+            'fields' => 'required|array|min:1',
+            'fields.*' => 'string',
+            'filters' => 'nullable|array',
+        ]);
+
+        $table = $request->input('table');
+        $selectedFields = $request->input('fields');
+        $filters = $request->input('filters', []);
+
+        try {
+            $reportData = $this->prepareReportQuery($table, $selectedFields, $filters);
+            
+            $query = $reportData['query'];
+            $headers = $reportData['headers'];
+            $displayFields = $reportData['displayFields'];
+            $tableName = $reportData['tableName'];
+
+            // Obtener todos los datos (sin paginación para PDF)
+            $data = $query->get();
+
+            // Generar PDF
+            $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('reports.pdf-template', compact('data', 'headers', 'displayFields', 'tableName'));
+            
+            $fileName = 'Reporte_' . str_replace(' ', '_', $tableName) . '_' . now()->format('Y-m-d') . '.pdf';
+            
+            return $pdf->download($fileName);
+        } catch (\Exception $e) {
+            return back()->withErrors(['error' => 'Error al generar PDF: ' . $e->getMessage()]);
+        }
+    }
+
+    /**
+     * Descarga el reporte como Excel
+     */
+    public function downloadExcel(Request $request)
+    {
+        $request->validate([
+            'table' => 'required|string',
+            'fields' => 'required|array|min:1',
+            'fields.*' => 'string',
+            'filters' => 'nullable|array',
+        ]);
+
+        $table = $request->input('table');
+        $selectedFields = $request->input('fields');
+        $filters = $request->input('filters', []);
+
+        try {
+            $reportData = $this->prepareReportQuery($table, $selectedFields, $filters);
+            
+            $query = $reportData['query'];
+            $headers = $reportData['headers'];
+            $displayFields = $reportData['displayFields'];
+            $tableName = $reportData['tableName'];
+
+            // Obtener todos los datos (sin paginación para Excel)
+            $data = $query->get();
+
+            $fileName = 'Reporte_' . str_replace(' ', '_', $tableName) . '_' . now()->format('Y-m-d') . '.xlsx';
+
+            // Generar Excel usando la clase export
+            return \Maatwebsite\Excel\Facades\Excel::download(
+                new \App\Exports\DynamicReportExport($data, $headers, $displayFields, $tableName), 
+                $fileName
+            );
+        } catch (\Exception $e) {
+            return back()->withErrors(['error' => 'Error al generar Excel: ' . $e->getMessage()]);
+        }
+    }
+
+    /**
+     * Descarga el reporte como HTML
+     */
+    public function downloadHtml(Request $request)
+    {
+        $request->validate([
+            'table' => 'required|string',
+            'fields' => 'required|array|min:1',
+            'fields.*' => 'string',
+            'filters' => 'nullable|array',
+        ]);
+
+        $table = $request->input('table');
+        $selectedFields = $request->input('fields');
+        $filters = $request->input('filters', []);
+
+        try {
+            $reportData = $this->prepareReportQuery($table, $selectedFields, $filters);
+            
+            $query = $reportData['query'];
+            $headers = $reportData['headers'];
+            $displayFields = $reportData['displayFields'];
+            $tableName = $reportData['tableName'];
+
+            // Obtener todos los datos (sin paginación para HTML)
+            $data = $query->get();
+
+            $fileName = 'Reporte_' . str_replace(' ', '_', $tableName) . '_' . now()->format('Y-m-d') . '.html';
+
+            // Generar HTML
+            $html = view('reports.html-export', compact('data', 'headers', 'displayFields', 'tableName'))->render();
+
+            // Retornar como descarga
+            return response($html)
+                ->header('Content-Type', 'text/html')
+                ->header('Content-Disposition', 'attachment; filename="' . $fileName . '"');
+        } catch (\Exception $e) {
+            return back()->withErrors(['error' => 'Error al generar HTML: ' . $e->getMessage()]);
+        }
+    }
+}

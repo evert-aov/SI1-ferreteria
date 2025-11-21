@@ -1,13 +1,13 @@
 <x-sales-layout>
     <x-container-div>
-        @if(session('error'))
+        @if (session('error'))
             <div class="mb-4 p-4 bg-red-800 text-white rounded-lg border border-red-600">
                 <h3 class="font-bold text-lg">¡Error!</h3>
                 <p>{{ session('error') }}</p>
             </div>
         @endif
 
-        @if(session('success'))
+        @if (session('success'))
             <div class="mb-4 p-4 bg-green-800 text-white rounded-lg border border-green-600">
                 <h3 class="font-bold text-lg">¡Éxito!</h3>
                 <p>{{ session('success') }}</p>
@@ -27,7 +27,7 @@
 
         <x-container-div>
             <x-input-label class="text-3xl mb-8">
-                <x-icons.credit-cart/>
+                <x-icons.credit-cart />
                 Finalizar Compra
             </x-input-label>
 
@@ -43,93 +43,64 @@
 
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
-                                    <x-input-label value="{{ __('Full name') }}"/>
-                                    <x-text-input
-                                        name="customer_name"
-                                        required
+                                    <x-input-label value="{{ __('Full name') }}" />
+                                    <x-text-input name="customer_name" required
                                         value="{{ auth()->user()->name ?? old('customer_name') }}  {{ auth()->user()->last_name ?? '' }}"
-                                        placeholder="Juan Pérez"
-                                    />
+                                        placeholder="Juan Pérez" />
                                 </div>
                                 <div>
-                                    <x-input-label value="{{ __('E-Mail Address') }}"/>
-                                    <x-text-input
-                                        type="email"
-                                        name="customer_email"
-                                        required
+                                    <x-input-label value="{{ __('E-Mail Address') }}" />
+                                    <x-text-input type="email" name="customer_email" required
                                         value="{{ auth()->user()->email ?? old('customer_email') }}"
-                                        placeholder="correo@ejemplo.com"
-                                    />
+                                        placeholder="correo@ejemplo.com" />
                                 </div>
                                 <div>
-                                    <x-input-label value="{{ __('Phone') }}"/>
-                                    <x-text-input
-                                        type="tel"
-                                        name="customer_phone"
-                                        required
+                                    <x-input-label value="{{ __('Phone') }}" />
+                                    <x-text-input type="tel" name="customer_phone" required
                                         value="{{ auth()->user()->phone ?? old('customer_phone') }}"
-                                        placeholder="+591 123 456 789"
-                                    />
+                                        placeholder="+591 123 456 789" />
                                 </div>
                                 <div>
-                                    <x-input-label value="{{ __('NIT/CI') }}"/>
-                                    <x-text-input
-                                        name="customer_nit"
-                                        required
+                                    <x-input-label value="{{ __('NIT/CI') }}" />
+                                    <x-text-input name="customer_nit" required
                                         value="{{ auth()->user()->document_number ?? old('customer_nit') }}"
-                                        placeholder="12345678"
-                                    />
+                                        placeholder="12345678" />
                                 </div>
                             </div>
 
                             <!-- Dirección de envío -->
                             <div class="space-y-4 mt-4">
                                 <div>
-                                    <x-input-label value="{{ __('Address') }}"/>
-                                    <x-text-input
-                                        name="shipping_address"
-                                        required
+                                    <x-input-label value="{{ __('Address') }}" />
+                                    <x-text-input name="shipping_address" required
                                         value="{{ auth()->user()->address ?? old('shipping_address') }}"
-                                        placeholder="Av. Principal #123"
-                                    />
+                                        placeholder="Av. Principal #123" />
                                 </div>
 
                                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                                     <div>
-                                        <x-input-label value="{{ __('City') }}"/>
-                                        <x-text-input
-                                            name="shipping_city"
-                                            required
+                                        <x-input-label value="{{ __('City') }}" />
+                                        <x-text-input name="shipping_city" required
                                             value="{{ old('shipping_city', 'Santa Cruz') }}"
-                                            placeholder="Santa Cruz"
-                                        />
+                                            placeholder="Santa Cruz" />
                                     </div>
                                     <div>
-                                        <x-input-label value="{{ __('Departamento') }}"/>
-                                        <x-select-input
-                                            name="shipping_state"
-                                            required
-                                            class="w-full bg-gray-700 text-white rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                        >
+                                        <x-input-label value="{{ __('Departamento') }}" />
+                                        <x-select-input name="shipping_state" required
+                                            class="w-full bg-gray-700 text-white rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
                                             <option value="Santa Cruz">Santa Cruz</option>
                                         </x-select-input>
                                     </div>
                                     <div>
-                                        <x-input-label value="{{ __('Postal code') }}"/>
-                                        <x-text-input
-                                            name="shipping_zip"
-                                            value="{{ old('shipping_zip') }}"
-                                            placeholder="0000"
-                                        />
+                                        <x-input-label value="{{ __('Postal code') }}" />
+                                        <x-text-input name="shipping_zip" value="{{ old('shipping_zip') }}"
+                                            placeholder="0000" />
                                     </div>
                                 </div>
                                 <div>
-                                    <x-input-label value="{{ __('Referencias adicionales') }}"/>
-                                    <x-textarea-input
-                                        name="shipping_notes"
-                                        rows="3"
-                                        placeholder="Casa de dos pisos, puerta azul..."
-                                    >{{ old('shipping_notes') }}</x-textarea-input>
+                                    <x-input-label value="{{ __('Referencias adicionales') }}" />
+                                    <x-textarea-input name="shipping_notes" rows="3"
+                                        placeholder="Casa de dos pisos, puerta azul...">{{ old('shipping_notes') }}</x-textarea-input>
                                 </div>
                             </div>
                         </x-container-second-div>
@@ -139,12 +110,13 @@
                             <h2 class="text-xl font-bold text-white mb-4">2. Método de Pago</h2>
 
                             <div class="space-y-3">
-                                @foreach($paymentMethods as $method)
-                                    @if($method->is_active && $method->requires_gateway)
-                                        <x-input-label class="flex items-start p-4 border rounded-lg cursor-pointer hover:border-blue-500 transition payment-method-option">
-                                            <input type="radio" name="payment_method_slug" value="{{ $method->slug }}"
-                                                   data-requires-gateway="{{'true'}}"
-                                                   class="mt-1 mr-3" required>
+                                @foreach ($paymentMethods as $method)
+                                    @if ($method->is_active && $method->requires_gateway)
+                                        <x-input-label
+                                            class="flex items-start p-4 border rounded-lg cursor-pointer hover:border-blue-500 transition payment-method-option">
+                                            <input type="radio" name="payment_method_slug"
+                                                value="{{ $method->slug }}"
+                                                data-requires-gateway="{{ 'true' }}" class="mt-1 mr-3" required>
                                             <div class="flex-1">
                                                 <div class="font-semibold">{{ $method->name }}</div>
                                                 <div class="text-sm text-gray-500">{{ $method->description }}</div>
@@ -158,11 +130,8 @@
                         <!-- Notas adicionales -->
                         <x-container-second-div>
                             <h2 class="text-xl font-bold text-white mb-4">3. Notas del Pedido (Opcional)</h2>
-                            <x-textarea-input
-                                name="order_notes"
-                                rows="3"
-                                placeholder="¿Alguna instrucción especial para tu pedido?"
-                            >{{ old('order_notes') }}</x-textarea-input>
+                            <x-textarea-input name="order_notes" rows="3"
+                                placeholder="¿Alguna instrucción especial para tu pedido?">{{ old('order_notes') }}</x-textarea-input>
                         </x-container-second-div>
                     </x-container-div>
                 </form>
@@ -174,33 +143,88 @@
 
                         <!-- Productos -->
                         <div class="space-y-3 mb-6 max-h-64 overflow-y-auto">
-                            @foreach($cart as $id => $details)
+                            @foreach ($cart as $id => $details)
                                 <div class="flex gap-3 pb-3 border-b border-gray-700">
-                                    <img
-                                        src="{{ asset($details['image']) }}"
-                                        alt="{{ $details['name'] }}"
-                                        class="w-16 h-16 object-contain rounded bg-gray-700"
-                                    >
+                                    <img src="{{ asset($details['image']) }}" alt="{{ $details['name'] }}"
+                                        class="w-16 h-16 object-contain rounded bg-gray-700">
                                     <div class="flex-1">
-                                        <h4 class="text-white text-sm font-semibold line-clamp-2">{{ $details['name'] }}</h4>
+                                        <h4 class="text-white text-sm font-semibold line-clamp-2">
+                                            {{ $details['name'] }}</h4>
                                         <p class="text-gray-400 text-xs">Cantidad: {{ $details['quantity'] }}</p>
                                         <p class="text-yellow-500 text-sm font-bold">
-                                            {{ $details['currency'] }} {{ number_format($details['price'] * $details['quantity'], 2) }}
+                                            {{ $details['currency'] }}
+                                            {{ number_format($details['price'] * $details['quantity'], 2) }}
                                         </p>
                                     </div>
                                 </div>
                             @endforeach
                         </div>
 
+                        <!-- Cupón de Descuento -->
+                        <div class="mb-6 pb-6 border-b border-gray-700">
+                            <h3 class="text-lg font-bold text-white mb-3">
+                                <x-icons.tag />
+                                Cupón de Descuento
+                            </h3>
+
+                            @if (isset($total['discount_code']))
+                                <!-- Cupón aplicado -->
+                                <div class="bg-green-900/30 border border-green-600 rounded-lg p-4">
+                                    <div class="flex items-center justify-between mb-2">
+                                        <div>
+                                            <p class="text-green-400 font-semibold">✓ Cupón aplicado</p>
+                                            <p class="text-white text-sm">Código: {{ $total['discount_code'] }}</p>
+                                        </div>
+                                        <form action="{{ route('cart.remove-discount') }}" method="POST">
+                                            @csrf
+                                            <button type="submit"
+                                                class="text-red-400 hover:text-red-300 text-sm underline">
+                                                Remover
+                                            </button>
+                                        </form>
+                                    </div>
+                                    <p class="text-green-500 font-bold">
+                                        Descuento: -USD {{ number_format($total['discount'], 2) }}
+                                    </p>
+                                </div>
+                            @else
+                                <!-- Formulario para aplicar cupón -->
+                                <form action="{{ route('cart.apply-discount') }}" method="POST" class="space-y-3">
+                                    @csrf
+                                    <div class="flex gap-2">
+                                        <x-text-input type="text" name="discount_code"
+                                            placeholder="Ingresa tu código de descuento" class="flex-1" required />
+                                        <button type="submit"
+                                            class="px-6 py-3 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-500 hover:to-green-600 text-white font-semibold rounded-lg transition-all">
+                                            Aplicar
+                                        </button>
+                                    </div>
+                                    <p class="text-gray-400 text-xs">
+                                        ¿Tienes un cupón de descuento? Ingrésalo aquí para obtener tu descuento.
+                                    </p>
+                                </form>
+                            @endif
+                        </div>
+
                         <!-- Totales -->
                         <div class="space-y-3 mb-6">
                             <div class="flex justify-between text-gray-400">
                                 <span>Subtotal:</span>
-                                <span class="text-white font-semibold">USD {{ number_format($total['subtotal'], 2) }}</span>
+                                <span class="text-white font-semibold">USD
+                                    {{ number_format($total['subtotal'], 2) }}</span>
                             </div>
+
+                            @if (isset($total['discount']) && $total['discount'] > 0)
+                                <div class="flex justify-between text-green-400">
+                                    <span>Descuento:</span>
+                                    <span class="font-semibold">-USD {{ number_format($total['discount'], 2) }}</span>
+                                </div>
+                            @endif
+
                             <div class="flex justify-between text-gray-400">
                                 <span>Impuestos (13%):</span>
-                                <span class="text-white font-semibold">USD {{ number_format($total['tax'], 2) }}</span>
+                                <span class="text-white font-semibold">USD
+                                    {{ number_format($total['tax'], 2) }}</span>
                             </div>
                             <div class="flex justify-between text-gray-400">
                                 <span>Envío:</span>
@@ -208,7 +232,8 @@
                             </div>
                             <div class="border-t border-gray-700 pt-3 flex justify-between">
                                 <span class="text-xl font-bold text-white">Total:</span>
-                                <span class="text-2xl font-bold text-yellow-500">USD {{ number_format($total['total'], 2) }}</span>
+                                <span class="text-2xl font-bold text-yellow-500">USD
+                                    {{ number_format($total['total'], 2) }}</span>
                             </div>
                         </div>
 
@@ -217,7 +242,7 @@
                         </x-primary-button>
 
                         <a href="{{ route('cart.index') }}"
-                           class="block text-center text-gray-400 hover:text-white transition mt-4">
+                            class="block text-center text-gray-400 hover:text-white transition mt-4">
                             ← Volver al carrito
                         </a>
                     </x-container-second-div>
@@ -227,12 +252,12 @@
     </x-container-div>
 
     <script>
-        document.getElementById('checkoutForm').addEventListener('submit', function (e) {
+        document.getElementById('checkoutForm').addEventListener('submit', function(e) {
             const selectedPayment = document.querySelector('input[name="payment_method"]:checked').value;
 
             if (selectedPayment === 'paypal') {
                 e.preventDefault();
-                this.action = '{{ route("paypal.create") }}';
+                this.action = '{{ route('paypal.create') }}';
                 this.submit();
             }
         });

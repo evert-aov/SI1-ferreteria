@@ -60,7 +60,7 @@ class ProductManager extends Component
             ->orderedById()
             ->paginate(10);
 
-        return view('livewire.product-inventory.product-manager',
+        return view('livewire.inventory.product-inventory.product-manager',
             compact(['products']))
             ->layout('layouts.app');
     }
