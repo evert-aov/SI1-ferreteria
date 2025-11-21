@@ -36,8 +36,7 @@ class CategoryManager extends Component
             ->orderedById()
             ->paginate(20);
 
-        return view('livewire.category.category-manager', compact('categories'))
-            ->layout('layouts.app');
+        return view('livewire.inventory.category.category-manager', compact('categories'));
     }
 
     #[Computed]
