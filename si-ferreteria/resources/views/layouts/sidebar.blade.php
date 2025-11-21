@@ -196,6 +196,16 @@
                                 <x-input-label value="Tienda" class="ms-3"/>
                             </a>
                         </li>
+
+                        @if(auth()->user()->roles->contains('name', 'Administrador'))
+                            <li>
+                                <a href="{{ route('admin.reviews.moderate') }}"
+                                   class="flex items-center p-3 text-gray-300 rounded-lg hover:bg-gradient-to-r hover:from-purple-600/20 hover:to-indigo-600/20 group transition-all duration-300 transform hover:scale-105 hover:shadow-lg border-l-4 border-transparent hover:border-purple-500">
+                                    <x-icons.audit_log/>
+                                    <x-input-label value="Moderación Reseñas" class="ms-3"/>
+                                </a>
+                            </li>
+                        @endif
                     </ul>
                 </li>
             @endif
@@ -222,6 +232,13 @@
                                class="flex items-center p-2 text-gray-400 rounded-lg hover:bg-blue-600/10 hover:text-blue-300 transition-all duration-200 text-sm">
                                 <x-icons.audit_log/>
                                 Bitácora
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ route('reports.users.index') }}"
+                               class="flex items-center p-2 text-gray-400 rounded-lg hover:bg-purple-600/10 hover:text-purple-300 transition-all duration-200 text-sm">
+                                <x-icons.table class="w-6 h-6 mr-2"/>
+                                Reportes Dinámicos
                             </a>
                         </li>
                     </ul>

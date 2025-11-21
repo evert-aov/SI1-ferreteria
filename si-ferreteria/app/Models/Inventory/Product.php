@@ -123,4 +123,58 @@ class Product extends Model
     {
         return $query->orderBy('id');
     }
+
+    /**
+     * Relación con reviews
+     */
+    public function reviews(): HasMany
+    {
+        return $this->hasMany(\App\Models\Review::class);
+    }
+
+    /**
+     * Obtener reviews aprobadas
+     */
+    public function approvedReviews()
+    {
+        return $this->reviews()->approved();
+    }
+
+    /**
+     * Obtener promedio de calificación
+     */
+    public function getAverageRatingAttribute(): float
+    {
+        return round($this->approvedReviews()->avg('rating') ?? 0, 1);
+    }
+
+    /**
+     * Obtener total de reviews aprobadas
+     */
+    public function getReviewsCountAttribute(): int
+    {
+        return $this->approvedReviews()->count();
+    }
+
+    /**
+     * Obtener distribución de ratings (% de cada estrella)
+     */
+    public function getRatingDistributionAttribute(): array
+    {
+        $total = $this->reviews_count;
+        
+        if ($total === 0) {
+            return [
+                5 => 0, 4 => 0, 3 => 0, 2 => 0, 1 => 0
+            ];
+        }
+
+        $distribution = [];
+        for ($i = 5; $i >= 1; $i--) {
+            $count = $this->approvedReviews()->where('rating', $i)->count();
+            $distribution[$i] = round(($count / $total) * 100, 1);
+        }
+
+        return $distribution;
+    }
 }
