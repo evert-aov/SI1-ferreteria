@@ -15,17 +15,17 @@
         <div>
             <x-table.data-table
                 :items="$alerts"
-                header="livewire.product-alert.components.header-alert"
-                table-header="livewire.product-alert.components.table-header"
-                table-rows="livewire.product-alert.components.table-rows"
-                modal="livewire.product-alert.modal-edit-store"
+                header="livewire.inventory.product-alert.components.header-alert"
+                table-header="livewire.inventory.product-alert.components.table-header"
+                table-rows="livewire.inventory.product-alert.components.table-rows"
+                modal="livewire.inventory.product-alert.modal-edit-store"
                 :editing="$editing"
                 :relations="$products"
                 :search="$search"
                 :show="$show"/>
         </div>
 
-        @include('livewire.product-alert.alert-automatic-buttons')
+        @include('livewire.inventory.product-alert.alert-automatic-buttons')
 
     @endif
 </div>
