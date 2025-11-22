@@ -1,10 +1,10 @@
 <div>
     <x-table.data-table
         :items="$roles"
-        header="livewire.role.components.header-rol"
-        table-header="livewire.role.components.table-header"
-        table-rows="livewire.role.components.table-rows"
-        modal="livewire.role.modal-edit-store"
+        header="livewire.admin.security.role.components.header-rol"
+        table-header="livewire.admin.security.role.components.table-header"
+        table-rows="livewire.admin.security.role.components.table-rows"
+        modal="livewire.admin.security.role.modal-edit-store"
         :editing="$editing"
         :relations="$all_permissions"
         :search="$search"
