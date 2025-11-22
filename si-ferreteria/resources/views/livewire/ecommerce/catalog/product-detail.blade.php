@@ -295,7 +295,7 @@
                 @foreach($relatedProducts as $related)
                     <div class="col-lg-3 col-md-6">
                         @php $product = $related; @endphp
-                        @include('livewire.catalog.partials.product-card')
+                        @include('livewire.ecommerce.catalog.partials.product-card')
                     </div>
                 @endforeach
             </div>
