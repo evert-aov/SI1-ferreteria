@@ -149,7 +149,7 @@
                             <a href="{{ route('sales.index') }}"
                                class="flex items-center p-2 text-gray-400 rounded-lg hover:bg-amber-600/10 hover:text-amber-300 transition-all duration-200 text-sm">
                                 <x-icons.shop/>
-                                {{ __('Presencial Sales') }}
+                                {{ __('Ventas Presenciales') }}
                             </a>
                         </li>
 
