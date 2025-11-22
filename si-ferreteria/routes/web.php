@@ -1,8 +1,11 @@
 <?php
 
+use App\Http\Controllers\Admin\ClaimManagementController;
 use App\Http\Controllers\Ecommerce\CartController;
+use App\Http\Controllers\Ecommerce\ClaimController;
 use App\Http\Controllers\Ecommerce\PayPalController;
 use App\Http\Controllers\Ecommerce\ProductController;
+use App\Http\Controllers\Ecommerce\PurchaseHistoryController;
 use App\Http\Controllers\Ecommerce\ReviewController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Reports\ReportController;
@@ -87,6 +90,15 @@ Route::middleware(['auth'])->group(function () {
     // Checkout del carrito
     Route::get('/carrito/checkout', [CartController::class, 'checkout'])->name('cart.checkout');
     
+    // Purchase history
+    Route::get('/mis-compras', [PurchaseHistoryController::class, 'index'])->name('purchase-history.index');
+    
+    // Claims routes
+    Route::get('/mis-reclamos', [ClaimController::class, 'index'])->name('claims.index');
+    Route::get('/reclamos/crear/{saleDetailId}', [ClaimController::class, 'create'])->name('claims.create');
+    Route::post('/reclamos', [ClaimController::class, 'store'])->name('claims.store');
+    Route::get('/reclamos/{id}', [ClaimController::class, 'show'])->name('claims.show');
+    
     // Rutas de PayPal
     Route::prefix('paypal')->name('paypal.')->group(function () {
         Route::post('/create', [PayPalController::class, 'createPayment'])->name('create');
@@ -102,6 +114,9 @@ Route::middleware(['auth'])->group(function () {
     
     // Admin routes
     Route::get('/admin/reviews', [ReviewController::class, 'moderate'])->name('admin.reviews.moderate');
+    Route::get('/admin/reclamos', [ClaimManagementController::class, 'index'])->name('admin.claims.index');
+    Route::get('/admin/reclamos/{id}', [ClaimManagementController::class, 'show'])->name('admin.claims.show');
+    Route::patch('/admin/reclamos/{id}/estado', [ClaimManagementController::class, 'updateStatus'])->name('admin.claims.update-status');
     
     // ========== REPORTES Y ANÁLISIS ==========
     Route::get('/audit-logs', AuditLog::class)->name('audit-logs.index');

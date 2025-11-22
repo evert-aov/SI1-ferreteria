@@ -34,6 +34,14 @@ class SaleDetail extends Model
     }
 
     /**
+     * Relación con la venta presencial
+     */
+    public function saleUnperson(): BelongsTo
+    {
+        return $this->belongsTo(SaleUnperson::class);
+    }
+
+    /**
      * Relación con el producto
      */
     public function product(): BelongsTo

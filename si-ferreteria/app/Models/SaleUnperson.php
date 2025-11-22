@@ -31,7 +31,7 @@ class SaleUnperson extends Model
     public function updateTotal(): void
     {
         $this->subtotal = $this->saleDetails()->sum('subtotal');
-        $this->total = $this->subtotal - $this->discount + $this->tax;
+        $this->total = (float)($this->subtotal - $this->discount + $this->tax);
         $this->saveQuietly();
     }
 
@@ -47,6 +47,6 @@ class SaleUnperson extends Model
 
     public function saleDetails(): HasMany
     {
-        return $this->hasMany(SaleDetail::class, 'sale_id');
+        return $this->hasMany(SaleDetail::class, 'sale_unperson_id');
     }
 }
