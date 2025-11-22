@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Livewire;
+namespace App\Livewire\Ecommerce;
 
 use App\Models\Inventory\Product;
 use App\Models\Review;
