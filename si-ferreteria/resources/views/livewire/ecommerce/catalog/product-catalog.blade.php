@@ -214,14 +214,14 @@
                     <div class="row g-3">
                         @foreach($products as $product)
                             <div class="col-lg-4 col-md-6">
-                                @include('livewire.catalog.partials.product-card')
+                                @include('livewire.ecommerce.catalog.partials.product-card')
                             </div>
                         @endforeach
                     </div>
                 @else
                     <div class="list-group">
                         @foreach($products as $product)
-                            @include('livewire.catalog.partials.product-list-item')
+                            @include('livewire.ecommerce.catalog.partials.product-list-item')
                         @endforeach
                     </div>
                 @endif
