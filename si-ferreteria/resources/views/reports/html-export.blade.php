@@ -31,7 +31,7 @@
 
         .header {
             background: linear-gradient(135deg, #f97316 0%, #fb923c 100%);
-            padding: 30px;
+            padding: 20px;
             text-align: center;
             border-bottom: 4px solid #ea580c;
         }
@@ -259,7 +259,7 @@
                                     @elseif(str_ends_with($field, '_id') && !is_null($displayValue) && !is_numeric($displayValue))
                                         <span class="foreign-key">{{ $displayValue }}</span>
                                     @elseif(is_numeric($displayValue) && in_array($field, ['price', 'total', 'subtotal', 'discount']))
-                                        <span class="price">Bs. {{ number_format($displayValue, 2) }}</span>
+                                        <span class="price">UDS. {{ number_format($displayValue, 2) }}</span>
                                     @else
                                         {{ $displayValue ?? 'N/A' }}
                                     @endif
