@@ -484,7 +484,7 @@ class ReportController extends Controller
             $tableName = $reportData['tableName'];
 
             // Ejecutar consulta con paginación
-            $data = $query->paginate(20);
+            $data = $query->paginate(20)->appends($request->all());
 
             return view('reports.dynamic-report-result', compact('data', 'headers', 'displayFields', 'selectedFields', 'table', 'tableName', 'filters'));
         } catch (\Illuminate\Database\QueryException $e) {
