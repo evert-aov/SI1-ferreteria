@@ -109,7 +109,7 @@ Route::middleware(['auth'])->group(function () {
     // Reportes dinámicos
     Route::get('/reports/dynamic', [ReportController::class, 'index'])->name('reports.users.index');
     Route::post('/reports/get-table-fields', [ReportController::class, 'getTableFields'])->name('reports.get-table-fields');
-    Route::post('/reports/dynamic/generate', [ReportController::class, 'generate'])->name('reports.users.generate');
+    Route::get('/reports/dynamic/generate', [ReportController::class, 'generate'])->name('reports.users.generate');
     Route::post('/reports/download-pdf', [ReportController::class, 'downloadPdf'])->name('reports.download-pdf');
     Route::post('/reports/download-excel', [ReportController::class, 'downloadExcel'])->name('reports.download-excel');
     Route::post('/reports/download-html', [ReportController::class, 'downloadHtml'])->name('reports.download-html');
