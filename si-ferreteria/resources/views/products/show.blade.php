@@ -6,7 +6,7 @@
                     <li><a href="{{ route('products.index') }}" class="hover:text-white">Productos</a></li>
                     <li>/</li>
                     <a href="{{ route('products.index', ['category_id' => $product->category->id]) }}"
-                    class="hover:text-white">
+                        class="hover:text-white">
                         {{ $product->category->name }}
                     </a>
                     <li>/</li>
@@ -16,19 +16,19 @@
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
                 <x-container-second-div>
                     <img src="{{ asset($product->image) }}" alt="Product Image"
-                         class="w-full h-auto max-h-[500px] object-cover">
+                        class="w-full h-auto max-h-[500px] object-cover">
                 </x-container-second-div>
                 <div class="flex flex-col gap-2 p-8 space-y-4">
                     <x-input-label>{{ $product->name }}</x-input-label>
-                    @if($product->brand)
+                    @if ($product->brand)
                         <x-input-label>{{ $product->brand->name }}</x-input-label>
                     @endif
-                    @if($product->description)
+                    @if ($product->description)
                         <x-input-label>{{ $product->description }}</x-input-label>
                     @endif
 
                     <div class="mb-6">
-                        @if($product->stock > 10)
+                        @if ($product->stock > 10)
                             <p class="text-green-500 font-semibold">✓ En stock ({{ $product->stock }}
                                 disponibles)</p>
                         @elseif($product->stock > 0)
@@ -41,28 +41,20 @@
 
                     <div class="mt-auto">
                         <div class="mb-4">
-                        <span class="text-2xl font-bold text-yellow-500">
-                            {{ $product->sale_price_unit }} {{ number_format($product->sale_price, 2) }}
-                        </span>
+                            <span class="text-2xl font-bold text-yellow-500">
+                                {{ $product->sale_price_unit }} {{ number_format($product->sale_price, 2) }}
+                            </span>
                         </div>
                     </div>
 
-                    @if($product->stock > 0)
+                    @if ($product->stock > 0)
                         <form action="{{ route('cart.add', $product->id) }}" method="post"
-                              class="flex flex-col gap-2">
+                            class="flex flex-col gap-2">
                             @csrf
-                            <x-text-input
-                                type="number"
-                                name="quantity"
-                                label="Cantidad"
-                                placeholder="Cantidad"
-                                required
-                                min="1"
-                                max="{{ $product->stock }}"
-                                value="1"
-                            />
+                            <x-text-input type="number" name="quantity" label="Cantidad" placeholder="Cantidad"
+                                required min="1" max="{{ $product->stock }}" value="1" />
                             <x-primary-button type="submit" class="items-center justify-center">
-                                <x-icons.shop/>
+                                <x-icons.shop />
                                 {{ __('Add to Cart') }}
                             </x-primary-button>
                         </form>
@@ -72,25 +64,25 @@
                         </x-primary-button>
                     @endif
                     <div class="mt-8 space-y-3 text-sm">
-                        @if($product->color)
+                        @if ($product->color)
                             <div class="flex items-center gap-2 text-gray-400">
                                 <x-input-label>
-                                    <x-icons.color/> {{ $product->color->name }}</x-input-label>
+                                    <x-icons.color /> {{ $product->color->name }}</x-input-label>
                             </div>
                         @endif
 
-                        @if($product->expiration_date)
+                        @if ($product->expiration_date)
                             <div class="flex items-center gap-2 text-gray-400">
                                 <x-input-label>
-                                    <x-icons.timedate/> {{ $product->expiration_date }}</x-input-label>
+                                    <x-icons.timedate /> {{ $product->expiration_date }}</x-input-label>
                             </div>
                         @endif
 
-                        @if($product->technicalSpecifications->isNotEmpty())
+                        @if ($product->technicalSpecifications->isNotEmpty())
                             <div class="bg-gray-800 rounded-lg p-8 mb-12">
                                 <h2 class="text-2xl font-bold text-white mb-6">Especificaciones Técnicas</h2>
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    @foreach($product->technicalSpecifications as $spec)
+                                    @foreach ($product->technicalSpecifications as $spec)
                                         <div class="flex justify-between border-b border-gray-700 pb-2">
                                             <span class="text-gray-400">{{ $spec->name }}:</span>
                                             <span class="text-white font-semibold">{{ $spec->pivot->value }}</span>
@@ -108,21 +100,24 @@
         <x-container-second-div>
             <div class="p-8">
                 <h2 class="text-3xl font-bold text-white mb-8">Reseñas de Clientes</h2>
-                
+
                 {{-- Submit Review Form (Auth required) --}}
                 @auth
                     <div class="mb-12">
-                        @livewire('submit-review', ['product' => $product])
+                        @livewire('ecommerce.submit-review', ['product' => $product])
                     </div>
                 @else
                     <div class="mb-12 p-6 bg-gray-800/50 rounded-xl border border-gray-700 text-center">
                         <p class="text-gray-400 mb-4">
-                            <svg class="w-12 h-12 mx-auto mb-2 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                            <svg class="w-12 h-12 mx-auto mb-2 text-gray-600" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                             </svg>
                             Inicia sesión para dejar una reseña
                         </p>
-                        <a href="{{ route('login') }}" class="inline-block px-6 py-3 bg-gradient-to-r from-orange-600 to-yellow-500 text-white rounded-lg hover:from-yellow-500 hover:to-orange-600 transition-all duration-300 font-medium">
+                        <a href="{{ route('login') }}"
+                            class="inline-block px-6 py-3 bg-gradient-to-r from-orange-600 to-yellow-500 text-white rounded-lg hover:from-yellow-500 hover:to-orange-600 transition-all duration-300 font-medium">
                             Iniciar Sesión
                         </a>
                     </div>
@@ -130,7 +125,7 @@
 
                 {{-- Reviews List --}}
                 <div class="border-t border-gray-700 pt-8">
-                    @livewire('product-reviews', ['product' => $product])
+                    @livewire('ecommerce.product-reviews', ['product' => $product])
                 </div>
             </div>
         </x-container-second-div>
@@ -139,7 +134,7 @@
             @include('products.similar')
         </x-container-second-div>
     </x-container-div>
-    @if(session('success'))
+    @if (session('success'))
         <div class="fixed bottom-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50">
             {{ session('success') }}
         </div>
