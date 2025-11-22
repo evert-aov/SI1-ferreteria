@@ -1,10 +1,10 @@
 <div>
     <x-table.data-table
-        header="livewire.permission.components.header-permission"
+        header="livewire.admin.security.permission.components.header-permission"
         :items="$permissions"
-        table-header="livewire.permission.components.table-header"
-        table-rows="livewire.permission.components.table-rows"
-        modal="livewire.permission.modal-edit-store"
+        table-header="livewire.admin.security.permission.components.table-header"
+        table-rows="livewire.admin.security.permission.components.table-rows"
+        modal="livewire.admin.security.permission.modal-edit-store"
         :search="$search"
         :show="$show"
         :editing="$editing"
