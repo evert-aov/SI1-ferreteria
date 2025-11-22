@@ -5,92 +5,41 @@
             <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div class="flex items-center">
                     <x-input-label class="text-lg font-semibold">
-                        <x-icons.table class="mr-2"></x-icons.table>
+                        <x-icons.table class="mr-2"/>
                         Reporte: {{ $tableName }}
                     </x-input-label>
                 </div>
                 <div class="flex gap-3">
                     <form action="{{ route('reports.download-pdf') }}" method="POST" style="display: inline;">
-                        @csrf
-                        <input type="hidden" name="table" value="{{ $table }}">
-                        @foreach ($selectedFields as $field)
-                            <input type="hidden" name="fields[]" value="{{ $field }}">
-                        @endforeach
-                        @foreach ($filters as $index => $filter)
-                            <input type="hidden" name="filters[{{ $index }}][field]"
-                                value="{{ $filter['field'] }}">
-                            <input type="hidden" name="filters[{{ $index }}][operator]"
-                                value="{{ $filter['operator'] }}">
-                            @if (isset($filter['value']))
-                                <input type="hidden" name="filters[{{ $index }}][value]"
-                                    value="{{ $filter['value'] }}">
-                            @endif
-                            @if (isset($filter['value2']))
-                                <input type="hidden" name="filters[{{ $index }}][value2]"
-                                    value="{{ $filter['value2'] }}">
-                            @endif
-                        @endforeach
+                        @include('reports.partials.export-hidden-inputs')
+
                         <button type="submit"
                             class="px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-500 text-white rounded-lg hover:from-blue-500 hover:to-blue-600 transition-all duration-300 hover:shadow-lg hover:shadow-blue-600/25 font-medium inline-flex items-center">
-                            <x-icons.save class="w-5 h-5 mr-2"></x-icons.save>
+                            <x-icons.save class="w-5 h-5 mr-2"/>
                             PDF
                         </button>
                     </form>
                     <form action="{{ route('reports.download-excel') }}" method="POST" style="display: inline;">
-                        @csrf
-                        <input type="hidden" name="table" value="{{ $table }}">
-                        @foreach ($selectedFields as $field)
-                            <input type="hidden" name="fields[]" value="{{ $field }}">
-                        @endforeach
-                        @foreach ($filters as $index => $filter)
-                            <input type="hidden" name="filters[{{ $index }}][field]"
-                                value="{{ $filter['field'] }}">
-                            <input type="hidden" name="filters[{{ $index }}][operator]"
-                                value="{{ $filter['operator'] }}">
-                            @if (isset($filter['value']))
-                                <input type="hidden" name="filters[{{ $index }}][value]"
-                                    value="{{ $filter['value'] }}">
-                            @endif
-                            @if (isset($filter['value2']))
-                                <input type="hidden" name="filters[{{ $index }}][value2]"
-                                    value="{{ $filter['value2'] }}">
-                            @endif
-                        @endforeach
+                        @include('reports.partials.export-hidden-inputs')
+
                         <button type="submit"
                             class="px-4 py-2 bg-gradient-to-r from-green-600 to-emerald-500 text-white rounded-lg hover:from-green-500 hover:to-emerald-600 transition-all duration-300 hover:shadow-lg hover:shadow-green-600/25 font-medium inline-flex items-center">
-                            <x-icons.save class="w-5 h-5 mr-2"></x-icons.save>
+                            <x-icons.save class="w-5 h-5 mr-2"/>
                             Excel
                         </button>
                     </form>
                     <form action="{{ route('reports.download-html') }}" method="POST" style="display: inline;">
-                        @csrf
-                        <input type="hidden" name="table" value="{{ $table }}">
-                        @foreach ($selectedFields as $field)
-                            <input type="hidden" name="fields[]" value="{{ $field }}">
-                        @endforeach
-                        @foreach ($filters as $index => $filter)
-                            <input type="hidden" name="filters[{{ $index }}][field]"
-                                value="{{ $filter['field'] }}">
-                            <input type="hidden" name="filters[{{ $index }}][operator]"
-                                value="{{ $filter['operator'] }}">
-                            @if (isset($filter['value']))
-                                <input type="hidden" name="filters[{{ $index }}][value]"
-                                    value="{{ $filter['value'] }}">
-                            @endif
-                            @if (isset($filter['value2']))
-                                <input type="hidden" name="filters[{{ $index }}][value2]"
-                                    value="{{ $filter['value2'] }}">
-                            @endif
-                        @endforeach
+                        @include('reports.partials.export-hidden-inputs')
+
                         <button type="submit"
                             class="px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-500 text-white rounded-lg hover:from-purple-500 hover:to-indigo-600 transition-all duration-300 hover:shadow-lg hover:shadow-purple-600/25 font-medium inline-flex items-center">
-                            <x-icons.save class="w-5 h-5 mr-2"></x-icons.save>
+                            <x-icons.save class="w-5 h-5 mr-2"/>
                             HTML
                         </button>
                     </form>
                     <a href="{{ route('reports.users.index') }}"
                         class="px-4 py-2 bg-gradient-to-r from-orange-600 to-yellow-500 text-white rounded-lg hover:from-yellow-500 hover:to-orange-600 transition-all duration-300 hover:shadow-lg hover:shadow-orange-600/25 font-medium inline-flex items-center">
-                        <x-icons.search class="w-5 h-5 mr-2"></x-icons.search>
+                        <x-icons.search class="w-5 h-5 mr-2"/>
                         Nuevo Reporte
                     </a>
                 </div>
@@ -101,7 +50,7 @@
         <x-container-second-div class="mb-6">
             <div class="flex items-center justify-between">
                 <div class="flex items-center">
-                    <x-icons.table class="w-5 h-5 text-orange-500 mr-2"></x-icons.table>
+                    <x-icons.table class="w-5 h-5 text-orange-500 mr-2"/>
                     <span class="text-sm text-gray-300">
                         Total de registros: <strong class="text-orange-500">{{ $data->total() }}</strong>
                     </span>
@@ -187,7 +136,7 @@
                                                     {{ $displayValue ?? 'N/A' }}</span>
                                             @endif
                                         @elseif(is_numeric($displayValue) && in_array($field, ['price', 'total', 'subtotal', 'discount']))
-                                            <span class="font-semibold text-green-400">Bs.
+                                            <span class="font-semibold text-green-400">UDS.
                                                 {{ number_format($displayValue, 2) }}</span>
                                         @else
                                             {{ $displayValue ?? 'N/A' }}
@@ -216,82 +165,4 @@
         </x-container-second-div>
     </x-container-div>
 
-    <style>
-        @media print {
-
-            /* Ocultar elementos de navegación */
-            .no-print,
-            nav,
-            aside,
-            button,
-            header,
-            a[href] {
-                display: none !important;
-            }
-
-            /* Fondo blanco para impresión */
-            body {
-                background-color: white !important;
-            }
-
-            /* Optimizar tabla para impresión */
-            table {
-                border-collapse: collapse;
-                width: 100%;
-                page-break-inside: auto;
-            }
-
-            thead {
-                display: table-header-group;
-            }
-
-            tr {
-                page-break-inside: avoid;
-                page-break-after: auto;
-            }
-
-            th,
-            td {
-                border: 1px solid #000 !important;
-                padding: 8px !important;
-                text-align: left;
-                color: #000 !important;
-                background: white !important;
-            }
-
-            th {
-                background-color: #f3f4f6 !important;
-                font-weight: bold;
-            }
-
-            tr:hover {
-                background: transparent !important;
-            }
-
-            /* Ocultar iconos en impresión */
-            svg,
-            img {
-                display: none !important;
-            }
-
-            /* Mejor contraste para texto */
-            span {
-                color: #000 !important;
-                background: transparent !important;
-            }
-
-            /* Asegurar que el título sea visible */
-            .text-lg {
-                color: #000 !important;
-                font-size: 18px !important;
-                margin-bottom: 10px !important;
-            }
-
-            /* Margen de página */
-            @page {
-                margin: 2cm;
-                size: A4 landscape;
-            }
-        }
-    </style>
 </x-app-layout>
