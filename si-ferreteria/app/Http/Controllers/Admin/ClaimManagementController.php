@@ -62,7 +62,29 @@ class ClaimManagementController extends Controller
             'reviewed_at' => now(),
         ]);
 
+        // Return JSON for AJAX requests
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Estado del reclamo actualizado exitosamente.'
+            ]);
+        }
+
         return redirect()->route('admin.claims.show', $claim->id)
             ->with('success', 'Estado del reclamo actualizado exitosamente.');
+    }
+
+    /**
+     * Delete a claim (admin only).
+     */
+    public function destroy($id)
+    {
+        $claim = Claim::findOrFail($id);
+        
+        // Delete the claim (will trigger model event to delete evidence file)
+        $claim->delete();
+
+        return redirect()->route('admin.claims.index')
+            ->with('success', 'Reclamo eliminado exitosamente.');
     }
 }
