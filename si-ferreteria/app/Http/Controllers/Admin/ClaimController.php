@@ -203,17 +203,12 @@ class ClaimController extends Controller
             'status' => 'pendiente',
         ]);
 
-        // Return JSON for AJAX requests
-        if (request()->ajax() || request()->wantsJson()) {
-            return response()->json([
-                'success' => true,
-                'message' => 'Reclamo enviado exitosamente. Será revisado por nuestro equipo.',
-                'claim_id' => $claim->id
-            ]);
-        }
-
-        return redirect()->route('claims.show', $claim->id)
-            ->with('success', 'Reclamo enviado exitosamente. Será revisado por nuestro equipo.');
+        // Always return JSON response (modal form uses AJAX)
+        return response()->json([
+            'success' => true,
+            'message' => 'Reclamo enviado exitosamente. Será revisado por nuestro equipo.',
+            'claim_id' => $claim->id
+        ]);
     }
 
     /**
