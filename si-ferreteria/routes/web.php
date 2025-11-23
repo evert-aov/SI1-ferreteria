@@ -22,9 +22,7 @@ use App\Livewire\Inventory\ProductManager;
 use App\Livewire\Reports\AuditLog;
 use App\Livewire\Reports\CashRegister;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Ecommerce\PurchaseHistoryController;
-use App\Http\Controllers\Ecommerce\ClaimController; 
-use App\Http\Controllers\Admin\ClaimManagementController;   
+use App\Http\Controllers\Admin\ClaimController;
 
 // ========== RUTAS PÚBLICAS ==========
 
@@ -46,7 +44,7 @@ Route::prefix('carrito')->name('cart.')->group(function () {
     Route::patch('/actualizar/{id}', [CartController::class, 'update'])->name('update');
     Route::delete('/eliminar/{id}', [CartController::class, 'remove'])->name('remove');
     Route::delete('/vaciar', [CartController::class, 'clear'])->name('clear');
-    
+
     // Rutas de cupones de descuento
     Route::post('/aplicar-descuento', [CartController::class, 'applyDiscount'])->name('apply-discount');
     Route::post('/remover-descuento', [CartController::class, 'removeDiscount'])->name('remove-discount');
@@ -58,48 +56,47 @@ Route::prefix('carrito')->name('cart.')->group(function () {
 // ========== RUTAS PROTEGIDAS (REQUIEREN AUTENTICACIÓN) ==========
 
 Route::middleware(['auth'])->group(function () {
-    
+
     // Dashboard
     Route::get('/dashboard', function () {
         return view('dashboard');
     })->middleware(['verified'])->name('dashboard');
-    
+
     // Perfil
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-    
+
     // ========== GESTIÓN DE USUARIOS Y SEGURIDAD ==========
     Route::get('/users', UserManager::class)->name('users.index');
     Route::get('/roles', RoleManager::class)->name('roles.index');
     Route::get('/permissions', PermissionManager::class)->name('permissions.index');
-    
+
     // ========== GESTIÓN DE INVENTARIO ==========
     Route::get('/product-inventory', ProductManager::class)->name('product-inventory.index');
     Route::get('/categories', CategoryManager::class)->name('categories.index');
     Route::get('/product-alerts', ProductAlertManager::class)->name('product-alerts.index');
     Route::get('/exit-notes', ExitNoteManager::class)->name('exit-notes');
-    
+
     // ========== OPERACIONES COMERCIALES ==========
     Route::get('/purchase', PurchaseManager::class)->name('purchase.index');
     Route::get('/suppliers', SupplierManager::class)->name('suppliers.index');
     Route::get('/sales', SaleManager::class)->name('sales.index');
     Route::get('/discounts', DiscountManager::class)->name('discounts.index');
-    
+
     // ========== PLATAFORMA E-COMMERCE ==========
-    
+
     // Checkout del carrito
     Route::get('/carrito/checkout', [CartController::class, 'checkout'])->name('cart.checkout');
-    
-    // Purchase history
-    Route::get('/mis-compras', [PurchaseHistoryController::class, 'index'])->name('purchase-history.index');
 
     // Claims routes
     Route::get('/mis-reclamos', [ClaimController::class, 'index'])->name('claims.index');
     Route::get('/reclamos/crear/{saleDetailId}', [ClaimController::class, 'create'])->name('claims.create');
     Route::post('/reclamos', [ClaimController::class, 'store'])->name('claims.store');
-    Route::get('/reclamos/{id}', [ClaimController::class, 'show'])->name('claims.show');    
-    
+    Route::get('/reclamos/{id}', [ClaimController::class, 'show'])->name('claims.show');
+    Route::patch('/reclamos/{id}/estado', [ClaimController::class, 'updateStatus'])->name('claims.update-status');
+    Route::delete('/reclamos/{id}', [ClaimController::class, 'destroy'])->name('claims.destroy');
+
     // Rutas de PayPal
     Route::prefix('paypal')->name('paypal.')->group(function () {
         Route::post('/create', [PayPalController::class, 'createPayment'])->name('create');
@@ -107,20 +104,17 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/success', [PayPalController::class, 'success'])->name('success');
         Route::get('/cancel', [PayPalController::class, 'cancelPayment'])->name('cancel');
     });
-    
+
     // Review routes
     Route::post('/products/{product}/reviews', [ReviewController::class, 'store'])->name('reviews.store');
     Route::post('/reviews/{review}/helpful', [ReviewController::class, 'markHelpful'])->name('reviews.helpful');
     Route::delete('/reviews/{review}', [ReviewController::class, 'destroy'])->name('reviews.destroy');
-    
+
     // Admin routes
     Route::get('/admin/reviews', [ReviewController::class, 'moderate'])->name('admin.reviews.moderate');
 
-    Route::get('/admin/reclamos', [ClaimManagementController::class, 'index'])->name('admin.claims.index');
-    Route::get('/admin/reclamos/{id}', [ClaimManagementController::class, 'show'])->name('admin.claims.show');
-    Route::patch('/admin/reclamos/{id}/estado', [ClaimManagementController::class, 'updateStatus'])->name('admin.claims.update-status');
-    Route::delete('/admin/reclamos/{id}', [ClaimManagementController::class, 'destroy'])->name('admin.claims.destroy');    
-    
+
+
     // ========== DELIVERY MANAGEMENT ==========
     // Delivery routes (for delivery personnel)
     Route::prefix('deliveries')->name('deliveries.')->group(function () {
@@ -135,10 +129,10 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/{id}', [\App\Http\Controllers\Customer\CustomerOrderController::class, 'show'])->name('show');
         Route::post('/{id}/cancel', [\App\Http\Controllers\Customer\CustomerOrderController::class, 'cancel'])->name('cancel');
     });
-    
+
     // ========== REPORTES Y ANÁLISIS ==========
     Route::get('/audit-logs', AuditLog::class)->name('audit-logs.index');
-    
+
     // Reportes dinámicos
     Route::get('/reports/dynamic', [ReportController::class, 'index'])->name('reports.users.index');
     Route::post('/reports/get-table-fields', [ReportController::class, 'getTableFields'])->name('reports.get-table-fields');
@@ -149,7 +143,7 @@ Route::middleware(['auth'])->group(function () {
 
      // ========== REPORTES Y ANÁLISIS ==========
     Route::get('/audit-logs', AuditLog::class)->name('audit-logs.index');
-    
+
     // Reportes dinámicos
     Route::get('/reports/dynamic', [ReportController::class, 'index'])->name('reports.users.index');
     Route::post('/reports/get-table-fields', [ReportController::class, 'getTableFields'])->name('reports.get-table-fields');
@@ -161,19 +155,19 @@ Route::middleware(['auth'])->group(function () {
         Route::prefix('reports/cash-register')->name('cash-register.')->group(function () {
             // Listado principal
             Route::get('/', CashRegister\Index::class)->name('index');
-            
+
             // Abrir caja
             Route::get('/open', CashRegister\Open::class)->name('open');
-            
+
             // Dashboard de caja abierta
             Route::get('/dashboard', CashRegister\Dashboard::class)->name('dashboard');
-            
+
             // Realizar arqueo ← AGREGADO
             Route::get('/count', CashRegister\Count::class)->name('count');
-            
+
             // Cerrar caja (sin parámetro)
             Route::get('/close', CashRegister\Close::class)->name('close');
-            
+
             // Historial (Solo Admin)
             Route::get('/history', CashRegister\History::class)
                 ->middleware('role:Administrador')
