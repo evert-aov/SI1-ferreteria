@@ -1,0 +1,207 @@
+erDiagram
+    %% User Management System
+    USERS ||--o{ ROLES : "has (via role_user)"
+    ROLES ||--o{ PERMISSIONS : "has (via permission_role)"
+    USERS {
+        bigint id PK
+        string name
+        string email
+        string password
+        string document_number
+        string type "Discriminator"
+    }
+    ROLES {
+        bigint id PK
+        string name
+        int level
+    }
+    PERMISSIONS {
+        bigint id PK
+        string name
+        string module
+    }
+
+    %% User Types (Inheritance/Extension)
+    USERS ||--|| EMPLOYEES : "is a"
+    USERS ||--|| SUPPLIERS : "is a"
+    USERS ||--|| CUSTOMERS : "is a"
+
+    EMPLOYEES {
+        decimal salary
+        date hire_date
+    }
+    SUPPLIERS {
+        string company_name
+        string main_contact
+    }
+    CUSTOMERS {
+        string type
+        decimal credit_limit
+    }
+
+    %% Product Catalog
+    CATEGORIES ||--o{ PRODUCTS : "contains"
+    CATEGORIES ||--o{ CATEGORIES : "parent of"
+    BRANDS ||--o{ PRODUCTS : "manufactures"
+    COLORS ||--o{ PRODUCTS : "has"
+    MEASURES ||--o{ PRODUCTS : "has"
+    VOLUMES ||--o{ PRODUCTS : "has"
+    PRODUCTS ||--o{ PRODUCT_ALERTS : "has"
+    PRODUCTS ||--o{ REVIEWS : "has"
+    PRODUCTS }|--|{ TECHNICAL_SPECIFICATIONS : "has (via pivot)"
+
+    PRODUCTS {
+        bigint id PK
+        string name
+        decimal sale_price
+        decimal purchase_price
+        int stock
+        date expiration_date
+    }
+    CATEGORIES {
+        bigint id PK
+        string name
+        int level
+    }
+    BRANDS {
+        bigint id PK
+        string name
+    }
+    PRODUCT_ALERTS {
+        bigint id PK
+        string alert_type
+        decimal threshold_value
+    }
+    REVIEWS {
+        bigint id PK
+        int rating
+        string comment
+        string status
+    }
+
+    COLORS {
+        bigint id PK
+        string name
+    }
+    MEASURES {
+        bigint id PK
+        decimal length
+        string length_unit
+        decimal width
+        string width_unit
+        decimal height
+        string height_unit
+        decimal thickness
+        string thickness_unit
+    }
+    VOLUMES {
+        bigint id PK
+        decimal peso
+        string peso_unit
+        decimal volume
+        string volume_unit
+    }
+    TECHNICAL_SPECIFICATIONS {
+        bigint id PK
+        string name
+    }
+
+    %% Inventory & Entries
+    SUPPLIERS ||--o{ ENTRIES : "provides"
+    ENTRIES ||--|{ ENTRY_DETAILS : "contains"
+    PRODUCTS ||--o{ ENTRY_DETAILS : "included in"
+    ENTRIES ||--o{ ENTRY_PAYMENTS : "paid via"
+
+    ENTRIES {
+        bigint id PK
+        string invoice_number
+        date invoice_date
+        decimal total
+    }
+    ENTRY_DETAILS {
+        bigint id PK
+        decimal quantity
+        decimal price
+    }
+    ENTRY_PAYMENTS {
+        bigint id PK
+        decimal amount
+    }
+
+    %% Sales & Orders
+    CUSTOMERS ||--o{ SALES : "places"
+    SALES ||--|{ SALE_DETAILS : "contains"
+    PRODUCTS ||--o{ SALE_DETAILS : "included in"
+    PAYMENT_METHODS ||--o{ PAYMENTS : "processed by"
+    PAYMENTS ||--o{ SALES : "pays for"
+    USERS ||--o{ SALES : "delivers (if employee)"
+
+    SALES {
+        bigint id PK
+        string invoice_number
+        decimal total
+        string status
+        string sale_type
+    }
+    SALE_DETAILS {
+        bigint id PK
+        int quantity
+        decimal unit_price
+        decimal subtotal
+    }
+    PAYMENTS {
+        bigint id PK
+        decimal amount
+        string status
+    }
+    PAYMENT_METHODS {
+        bigint id PK
+        string name
+        string slug
+    }
+
+    %% Discounts & Exits
+    DISCOUNTS {
+        bigint id PK
+        string code
+        decimal discount_value
+        string type
+    }
+    
+    EXIT_NOTES ||--|{ EXIT_NOTE_ITEMS : "contains"
+    PRODUCTS ||--o{ EXIT_NOTE_ITEMS : "removed in"
+    USERS ||--o{ EXIT_NOTES : "authorizes"
+
+    EXIT_NOTES {
+        bigint id PK
+        string exit_type
+        string reason
+    }
+    EXIT_NOTE_ITEMS {
+        bigint id PK
+        int quantity
+        string reason
+        decimal unit_price
+        decimal subtotal
+    }
+
+    %% Missing Tables
+    SALE_UNPERSONS ||--|| SALES : "related to"
+    SALE_UNPERSONS ||--o{ PAYMENTS : "pays with"
+    USERS ||--o{ SALE_UNPERSONS : "requested by"
+    
+    SALE_UNPERSONS {
+        bigint id PK
+        string invoice_number
+        decimal total
+        string status
+    }
+
+    AUDIT_LOGS }o--|| USERS : "performed by"
+
+    AUDIT_LOGS {
+        bigint id PK
+        string action
+        string affected_model
+        json changes
+    }
