@@ -2,11 +2,16 @@
     <x-container-div>
         <!-- Header -->
         <x-container-second-div class="mb-6">
-            <div class="flex items-center">
+            <div class="flex items-center justify-between">
                 <x-input-label class="text-lg font-semibold">
                     <x-icons.table class="mr-2"></x-icons.table>
                     Generador de Reportes Dinámicos
                 </x-input-label>
+                <a href="{{ route('reports.templates.list') }}"
+                    class="px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-500 text-white rounded-lg hover:from-purple-500 hover:to-pink-600 transition-all duration-300 font-medium inline-flex items-center">
+                    <x-icons.table class="w-5 h-5 mr-2"></x-icons.table>
+                    Mis Plantillas
+                </a>
             </div>
         </x-container-second-div>
 
@@ -556,7 +561,8 @@
                 }
             } else {
                 alert(
-                    'No se pudo identificar la tabla en el comando. Intenta de nuevo con algo como "reporte de productos".');
+                    'No se pudo identificar la tabla en el comando. Intenta de nuevo con algo como "reporte de productos".'
+                );
             }
         }
 
@@ -624,5 +630,115 @@
                 successMsg.remove();
             }, 4000);
         }
+
+        // ====================================
+        // AUTO-LOAD TEMPLATE IF EXISTS
+        // ====================================
+        @if (isset($template))
+            document.addEventListener('DOMContentLoaded', function() {
+                console.log('Loading template:', @json($template));
+
+                // 1. Select the table
+                const tableSelect = document.getElementById('tableSelect');
+                tableSelect.value = '{{ $template->table_name }}';
+
+                // 2. Trigger change event to load fields
+                tableSelect.dispatchEvent(new Event('change'));
+
+                // 3. Wait for fields to load, then select them
+                setTimeout(() => {
+                    const templateFields = @json($template->selected_fields);
+                    console.log('Template fields:', templateFields);
+
+                    // Select the checkboxes
+                    templateFields.forEach(fieldKey => {
+                        const checkbox = document.getElementById(`field_${fieldKey}`);
+                        if (checkbox) {
+                            checkbox.checked = true;
+                            console.log('Checked field:', fieldKey);
+                        } else {
+                            console.warn('Field not found:', fieldKey);
+                        }
+                    });
+
+                    // 4. Add filters if any
+                    const templateFilters = @json($template->filters);
+                    console.log('Template filters:', templateFilters);
+
+                    if (templateFilters && templateFilters.length > 0) {
+                        templateFilters.forEach(filter => {
+                            addFilterRow();
+
+                            setTimeout(() => {
+                                const lastFilterIndex = filterCount - 1;
+                                const rowId = `filter-row-${lastFilterIndex}`;
+                                const row = document.getElementById(rowId);
+
+                                if (row) {
+                                    // Set field
+                                    const fieldSelect = row.querySelector(
+                                        'select[name$="[field]"]');
+                                    if (fieldSelect && filter.field) {
+                                        fieldSelect.value = filter.field;
+                                        fieldSelect.dispatchEvent(new Event('change'));
+                                    }
+
+                                    // Set operator
+                                    setTimeout(() => {
+                                        const operatorSelect = row.querySelector(
+                                            'select[name$="[operator]"]');
+                                        if (operatorSelect && filter.operator) {
+                                            operatorSelect.value = filter.operator;
+                                            operatorSelect.dispatchEvent(new Event(
+                                                'change'));
+                                        }
+
+                                        // Set value(s)
+                                        setTimeout(() => {
+                                            const valueInput = row
+                                                .querySelector(
+                                                    'input[name$="[value]"], select[name$="[value]"]'
+                                                    );
+                                            if (valueInput && filter
+                                                .value) {
+                                                valueInput.value = filter
+                                                    .value;
+                                            }
+
+                                            // If between operator, set second value
+                                            if (filter.value2) {
+                                                const value2Input = row
+                                                    .querySelector(
+                                                        'input[name$="[value2]"]'
+                                                        );
+                                                if (value2Input) {
+                                                    value2Input.value =
+                                                        filter.value2;
+                                                }
+                                            }
+                                        }, 100);
+                                    }, 100);
+                                }
+                            }, 150);
+                        });
+                    }
+
+                    // Show success message
+                    const successMsg = document.createElement('div');
+                    successMsg.className =
+                        'fixed top-4 right-4 bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg z-50';
+                    successMsg.innerHTML = `
+                    <strong>✓ Plantilla cargada</strong><br>
+                    <span class="text-sm">{{ $template->name }}</span>
+                `;
+                    document.body.appendChild(successMsg);
+
+                    setTimeout(() => {
+                        successMsg.remove();
+                    }, 4000);
+
+                }, 1500); // Wait for AJAX to load fields
+            });
+        @endif
     </script>
 </x-app-layout>

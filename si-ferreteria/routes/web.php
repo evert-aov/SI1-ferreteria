@@ -141,16 +141,14 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/reports/download-excel', [ReportController::class, 'downloadExcel'])->name('reports.download-excel');
     Route::post('/reports/download-html', [ReportController::class, 'downloadHtml'])->name('reports.download-html');
 
-     // ========== REPORTES Y ANÁLISIS ==========
-    Route::get('/audit-logs', AuditLog::class)->name('audit-logs.index');
-
-    // Reportes dinámicos
-    Route::get('/reports/dynamic', [ReportController::class, 'index'])->name('reports.users.index');
-    Route::post('/reports/get-table-fields', [ReportController::class, 'getTableFields'])->name('reports.get-table-fields');
-    Route::get('/reports/dynamic/generate', [ReportController::class, 'generate'])->name('reports.users.generate');
-    Route::post('/reports/download-pdf', [ReportController::class, 'downloadPdf'])->name('reports.download-pdf');
-    Route::post('/reports/download-excel', [ReportController::class, 'downloadExcel'])->name('reports.download-excel');
-    Route::post('/reports/download-html', [ReportController::class, 'downloadHtml'])->name('reports.download-html');
+    // Gestión de plantillas de reportes
+    Route::prefix('reports/templates')->name('reports.templates.')->group(function () {
+        Route::get('/', [ReportController::class, 'listTemplates'])->name('list');
+        Route::post('/save', [ReportController::class, 'saveTemplate'])->name('save');
+        Route::get('/load/{id}', [ReportController::class, 'loadTemplate'])->name('load');
+        Route::put('/{id}', [ReportController::class, 'updateTemplate'])->name('update');
+        Route::delete('/{id}', [ReportController::class, 'deleteTemplate'])->name('delete');
+    });
 
         Route::prefix('reports/cash-register')->name('cash-register.')->group(function () {
             // Listado principal
