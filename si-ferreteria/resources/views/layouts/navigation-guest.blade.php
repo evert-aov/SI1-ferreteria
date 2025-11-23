@@ -95,6 +95,11 @@
                                 </a>
                             @endif
 
+                            <a href="{{ route('claims.index') }}"
+                                class="block px-3 sm:px-4 py-2 text-sm sm:text-base text-gray-300 hover:bg-gray-600 hover:text-white">
+                                Mis Reclamos
+                            </a>
+
                             <a href="{{ route('profile.edit') }}"
                                 class="block px-3 sm:px-4 py-2 text-sm sm:text-base text-gray-300 hover:bg-gray-600 hover:text-white">
                                 Mi Perfil
