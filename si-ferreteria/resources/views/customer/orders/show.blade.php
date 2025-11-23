@@ -419,6 +419,47 @@
             document.getElementById('claimDetailModal').classList.add('hidden');
         }
 
+        function submitClaimForm(event) {
+            event.preventDefault();
+
+            const form = event.target;
+            const formData = new FormData(form);
+            const submitBtn = document.getElementById('submitBtn');
+
+            // Disable button
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Enviando...';
+
+            // Send AJAX request
+            fetch(form.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Close modal and reload page to show updated claim
+                    closeClaimModal();
+                    // Small delay to ensure modal closes before reload
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 100);
+                } else {
+                    alert(data.message || 'Error al enviar el reclamo');
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Enviar Reclamo';
+                }
+            })
+            .catch(error => {
+                alert('Error al enviar el reclamo');
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Enviar Reclamo';
+            });
+        }
+
         // Close modals when clicking outside
         document.getElementById('claimModal')?.addEventListener('click', function(e) {
             if (e.target === this) {
