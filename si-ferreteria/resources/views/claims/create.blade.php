@@ -1,4 +1,4 @@
-<x-sales-layout>
+
     <x-container-div>
         <x-container-second-div>
             <div class="p-6">
@@ -9,6 +9,20 @@
                     </a>
                     <h1 class="text-3xl font-bold text-white mb-2">Solicitar Reclamo</h1>
                     <p class="text-gray-400">Complete el formulario para enviar su reclamo sobre este producto</p>
+                    
+                    @php
+                        $todayClaimsCount = \App\Models\Claim::where('customer_id', Auth::id())
+                            ->whereDate('created_at', today())
+                            ->count();
+                        $remainingClaims = 5 - $todayClaimsCount;
+                    @endphp
+                    
+                    <div class="mt-3 inline-flex items-center gap-2 px-3 py-1 rounded-lg 
+                        {{ $remainingClaims <= 2 ? 'bg-yellow-500/20 text-yellow-400' : 'bg-blue-500/20 text-blue-400' }}">
+                        <span class="text-sm font-medium">
+                            📋 Reclamos disponibles hoy: {{ $remainingClaims }}/5
+                        </span>
+                    </div>
                 </div>
 
                 <!-- Product Information -->
@@ -57,7 +71,6 @@
                                 <option value="devolucion">Devolución</option>
                                 <option value="reembolso">Reembolso</option>
                                 <option value="garantia">Garantía</option>
-                                <option value="otro">Otro</option>
                             </select>
                             @error('claim_type')
                                 <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
@@ -96,12 +109,12 @@
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
                                         </svg>
                                         <p class="mb-2 text-sm text-gray-400"><span class="font-semibold">Click para subir</span> o arrastre aquí</p>
-                                        <p class="text-xs text-gray-500">JPG, PNG o PDF (Máx. 5MB)</p>
+                                        <p class="text-xs text-gray-500">JPG, PNG o PDF (Máx. 10MB)</p>
                                     </div>
                                     <input id="evidence" name="evidence" type="file" class="hidden" accept=".jpg,.jpeg,.png,.pdf" />
                                 </label>
                             </div>
-                            <p class="text-gray-400 text-xs mt-2">Puede adjuntar fotos o documentos que respalden su reclamo</p>
+                            <p class="text-gray-400 text-xs mt-2">Puede adjuntar fotos o documentos que respalden su reclamo (máx. 10MB)</p>
                             @error('evidence')
                                 <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                             @enderror
@@ -145,4 +158,4 @@
             }
         });
     </script>
-</x-sales-layout>
+

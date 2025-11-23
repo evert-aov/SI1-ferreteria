@@ -1,4 +1,4 @@
-<x-sales-layout>
+<x-app-layout>
     <x-container-div>
         <x-container-second-div>
             <x-input-label class="text-3xl mb-8">
@@ -85,4 +85,4 @@
             @endif
         </x-container-second-div>
     </x-container-div>
-</x-sales-layout>
+</x-app-layout>

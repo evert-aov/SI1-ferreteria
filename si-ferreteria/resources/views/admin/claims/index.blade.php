@@ -78,11 +78,11 @@
                             </td>
                             <x-table.td data="{{ $claim->created_at->format('d/m/Y') }}" />
                             <td class="px-6 py-2 whitespace-nowrap">
-                                <div class="flex items-center ml-4">
-                                    <a href="{{ route('admin.claims.show', $claim->id) }}"
-                                        class="w-full bg-gradient-to-r from-blue-600 via-blue-700 to-blue-800 text-white font-semibold py-2 px-4 rounded-md tracking-wider transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-blue-600/25 hover:from-blue-500 hover:to-blue-600">
-                                        {{-- <x-icons.view/> --}}
-                                    </a>
+                                <div class="flex items-center gap-2 ml-4">
+                                    <button onclick="openClaimModal({{ $claim->id }})"
+                                        class="bg-gradient-to-r from-blue-600 via-blue-700 to-blue-800 text-white font-semibold py-2 px-4 rounded-md tracking-wider transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-blue-600/25 hover:from-blue-500 hover:to-blue-600">
+                                        Ver
+                                    </button>
                                 </div>
                             </td>
                         </tr>
@@ -104,4 +104,104 @@
             </div>
         @endif
     </x-container-second-div>
+
+    {{-- Claim Detail Modal usando modal-base structure --}}
+    <div id="claimModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
+        <x-container-second-div class="max-w-6xl w-full max-h-[95vh] overflow-y-auto">
+            <x-container-div>
+                <div id="modalContent">
+                    {{-- Content will be loaded via JavaScript --}}
+                </div>
+            </x-container-div>
+        </x-container-second-div>
+    </div>
+
+    <script>
+        function openClaimModal(claimId) {
+            const modal = document.getElementById('claimModal');
+            const modalContent = document.getElementById('modalContent');
+            
+            // Show modal
+            modal.classList.remove('hidden');
+            
+            // Show loading
+            modalContent.innerHTML = '<div class="text-center py-8"><div class="text-gray-300">Cargando...</div></div>';
+            
+            // Fetch claim details
+            fetch(`/admin/reclamos/${claimId}`)
+                .then(response => response.text())
+                .then(html => {
+                    modalContent.innerHTML = html;
+                })
+                .catch(error => {
+                    modalContent.innerHTML = '<div class="text-center py-8"><div class="text-red-400">Error al cargar el reclamo</div></div>';
+                });
+        }
+
+        function updateClaimStatus(event, claimId) {
+            event.preventDefault();
+            
+            const form = event.target;
+            const formData = new FormData(form);
+            const messageDiv = document.getElementById('updateMessage');
+            const submitButton = form.querySelector('button[type="submit"]');
+            
+            // Disable button
+            submitButton.disabled = true;
+            submitButton.textContent = 'Actualizando...';
+            
+            // Send AJAX request
+            fetch(form.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Show success message
+                messageDiv.className = 'mb-4 p-3 rounded-lg bg-green-500 text-white';
+                messageDiv.textContent = 'Reclamo actualizado exitosamente';
+                messageDiv.classList.remove('hidden');
+                
+                // Re-enable button
+                submitButton.disabled = false;
+                submitButton.textContent = 'Actualizar Reclamo';
+                
+                // Reload the page after 1.5 seconds to show updated data
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1500);
+            })
+            .catch(error => {
+                // Show error message
+                messageDiv.className = 'mb-4 p-3 rounded-lg bg-red-500 text-white';
+                messageDiv.textContent = 'Error al actualizar el reclamo';
+                messageDiv.classList.remove('hidden');
+                
+                // Re-enable button
+                submitButton.disabled = false;
+                submitButton.textContent = 'Actualizar Reclamo';
+            });
+        }
+
+        function closeClaimModal() {
+            document.getElementById('claimModal').classList.add('hidden');
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('claimModal')?.addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeClaimModal();
+            }
+        });
+
+        // Close modal with Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeClaimModal();
+            }
+        });
+    </script>
 </x-app-layout>
