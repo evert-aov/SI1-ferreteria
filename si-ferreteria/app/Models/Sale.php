@@ -14,6 +14,7 @@ class Sale extends Model
     protected $fillable = [
         'invoice_number',
         'customer_id',
+        'delivered_by',
         'shipping_address',
         'shipping_city',
         'shipping_state',
@@ -70,6 +71,11 @@ class Sale extends Model
         return $this->hasMany(SaleDetail::class);
     }
 
+    public function deliveredBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'delivered_by');
+    }
+
 
     // Accessors para acceder a datos de pago
     public function getPaymentMethodNameAttribute()
@@ -124,12 +130,26 @@ class Sale extends Model
         ]);
     }
 
-    public function markAsDelivered(): void
+    public function markAsDelivered($deliveredBy = null): void
     {
         $this->update([
             'status' => 'delivered',
             'delivered_at' => now(),
+            'delivered_by' => $deliveredBy,
         ]);
+    }
+
+    public function markAsPreparing(): void
+    {
+        $this->update([
+            'status' => 'preparing',
+            'preparing_at' => now(),
+        ]);
+    }
+
+    public function canBeCancelled(): bool
+    {
+        return !in_array($this->status, ['delivered', 'cancelled', 'refunded']);
     }
 
     public function cancel(): void
