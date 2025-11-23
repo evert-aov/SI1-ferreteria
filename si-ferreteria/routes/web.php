@@ -117,6 +117,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/admin/reclamos', [ClaimManagementController::class, 'index'])->name('admin.claims.index');
     Route::get('/admin/reclamos/{id}', [ClaimManagementController::class, 'show'])->name('admin.claims.show');
     Route::patch('/admin/reclamos/{id}/estado', [ClaimManagementController::class, 'updateStatus'])->name('admin.claims.update-status');
+    Route::delete('/admin/reclamos/{id}', [ClaimManagementController::class, 'destroy'])->name('admin.claims.destroy');
     
     // ========== REPORTES Y ANÁLISIS ==========
     Route::get('/audit-logs', AuditLog::class)->name('audit-logs.index');
