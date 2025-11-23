@@ -19,7 +19,7 @@
     $remainingClaims = 5 - $todayClaimsCount;
 @endphp
 
-<div class="mb-6 inline-flex items-center gap-2 px-3 py-1 rounded-lg 
+<div class="mb-6 inline-flex items-center gap-2 px-3 py-1 rounded-lg
     {{ $remainingClaims <= 2 ? 'bg-yellow-500/20 text-yellow-400' : 'bg-blue-500/20 text-blue-400' }}">
     <span class="text-sm font-medium">
         📋 Reclamos disponibles hoy: {{ $remainingClaims }}/5
@@ -30,10 +30,16 @@
 <div class="bg-gray-900 rounded-lg p-6 mb-6">
     <h2 class="text-xl font-semibold text-white mb-4">Producto</h2>
     <div class="flex gap-4">
-        <img 
-            src="{{ asset($saleDetail->product->image) }}" 
-            alt="{{ $saleDetail->product->name }}"
-            class="w-24 h-24 object-contain rounded bg-gray-700">
+        @if($saleDetail->product->image)
+            <img src="{{ asset($saleDetail->product->image) }}"
+                    alt="{{ $saleDetail->product->name }}"
+                    class="w-16 h-16 object-contain rounded bg-gray-700"
+                    onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+            <div class="w-16 h-16 hidden items-center justify-center rounded bg-gray-700">
+                <span class="text-gray-600 text-3xl"><x-icons.image /></span>
+            </div>
+
+        @endif
         <div class="flex-1">
             <h3 class="text-lg font-semibold text-white">{{ $saleDetail->product->name }}</h3>
             @if($saleDetail->product->brand)
@@ -116,15 +122,15 @@
 <script>
 function submitClaimForm(event) {
     event.preventDefault();
-    
+
     const form = event.target;
     const formData = new FormData(form);
     const submitBtn = document.getElementById('submitBtn');
-    
+
     // Disable button
     submitBtn.disabled = true;
     submitBtn.textContent = 'Enviando...';
-    
+
     // Send AJAX request
     fetch(form.action, {
         method: 'POST',
@@ -136,9 +142,9 @@ function submitClaimForm(event) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            // Close modal and reload page to show updated claims
+            // Close modal and redirect to claims list
             closeClaimModal();
-            window.location.reload();
+            window.location.href = '/mis-reclamos';
         } else {
             alert(data.message || 'Error al enviar el reclamo');
             submitBtn.disabled = false;
