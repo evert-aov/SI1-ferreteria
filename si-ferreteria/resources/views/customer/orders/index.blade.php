@@ -17,21 +17,40 @@
                                 <div class="flex-1">
                                     <div class="flex items-center gap-3 mb-2">
                                         <h3 class="text-xl font-bold text-white">{{ $order->invoice_number }}</h3>
-                                        @if ($order->status === 'paid')
+                                        
+                                        {{-- Sale type badge --}}
+                                        <span class="px-2 py-1 rounded-full text-xs font-semibold
+                                            @if($order->sale_type_display === 'presencial') bg-purple-500/20 text-purple-400
+                                            @else bg-blue-500/20 text-blue-400
+                                            @endif">
+                                            {{ $order->sale_type_display === 'presencial' ? 'Presencial' : 'Online' }}
+                                        </span>
+                                        
+                                        {{-- Status badge --}}
+                                        @php
+                                            $status = $order->sale_type_display === 'presencial' 
+                                                ? ($order->status_mapped ?? $order->status)
+                                                : $order->status;
+                                        @endphp
+                                        
+                                        @if ($status === 'paid')
                                             <span
                                                 class="px-3 py-1 text-xs font-semibold rounded-full bg-green-600 text-white">Pagado</span>
-                                        @elseif($order->status === 'preparing')
+                                        @elseif($status === 'preparing' || $status === 'processing')
                                             <span
                                                 class="px-3 py-1 text-xs font-semibold rounded-full bg-yellow-600 text-white">Preparando</span>
-                                        @elseif($order->status === 'shipped')
+                                        @elseif($status === 'shipped')
                                             <span
                                                 class="px-3 py-1 text-xs font-semibold rounded-full bg-blue-600 text-white">Enviado</span>
-                                        @elseif($order->status === 'delivered')
+                                        @elseif($status === 'delivered')
                                             <span
                                                 class="px-3 py-1 text-xs font-semibold rounded-full bg-purple-600 text-white">Entregado</span>
-                                        @elseif($order->status === 'cancelled')
+                                        @elseif($status === 'cancelled')
                                             <span
                                                 class="px-3 py-1 text-xs font-semibold rounded-full bg-red-600 text-white">Cancelado</span>
+                                        @elseif($status === 'pending')
+                                            <span
+                                                class="px-3 py-1 text-xs font-semibold rounded-full bg-gray-600 text-white">Pendiente</span>
                                         @endif
                                     </div>
                                     <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm text-gray-400">
@@ -53,7 +72,14 @@
                                         <div>
                                             <p class="text-gray-500">Pago</p>
                                             <p class="text-white font-semibold">
-                                                {{ $order->payment?->paymentMethod?->name ?? 'N/A' }}</p>
+                                                @if($order->payment?->paymentMethod?->name)
+                                                    {{ $order->payment->paymentMethod->name }}
+                                                @elseif($order->sale_type_display === 'presencial')
+                                                    Efectivo
+                                                @else
+                                                    N/A
+                                                @endif
+                                            </p>
                                         </div>
                                     </div>
                                 </div>
@@ -69,13 +95,6 @@
                         </x-container-second-div>
                     @endforeach
                 </div>
-
-                {{-- Pagination --}}
-                @if ($orders->hasPages())
-                    <div class="mt-8">
-                        {{ $orders->links() }}
-                    </div>
-                @endif
             @else
                 {{-- Empty State --}}
                 <x-container-second-div class="text-center py-12">
