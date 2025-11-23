@@ -20,6 +20,7 @@ use App\Livewire\Inventory\ExitNoteManager;
 use App\Livewire\Inventory\ProductAlertManager;
 use App\Livewire\Inventory\ProductManager;
 use App\Livewire\Reports\AuditLog;
+use App\Livewire\Reports\CashRegister;
 use Illuminate\Support\Facades\Route;
 
 // ========== RUTAS PÚBLICAS ==========
@@ -113,6 +114,39 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/reports/download-pdf', [ReportController::class, 'downloadPdf'])->name('reports.download-pdf');
     Route::post('/reports/download-excel', [ReportController::class, 'downloadExcel'])->name('reports.download-excel');
     Route::post('/reports/download-html', [ReportController::class, 'downloadHtml'])->name('reports.download-html');
-});
+
+     // ========== REPORTES Y ANÁLISIS ==========
+    Route::get('/audit-logs', AuditLog::class)->name('audit-logs.index');
+    
+    // Reportes dinámicos
+    Route::get('/reports/dynamic', [ReportController::class, 'index'])->name('reports.users.index');
+    Route::post('/reports/get-table-fields', [ReportController::class, 'getTableFields'])->name('reports.get-table-fields');
+    Route::get('/reports/dynamic/generate', [ReportController::class, 'generate'])->name('reports.users.generate');
+    Route::post('/reports/download-pdf', [ReportController::class, 'downloadPdf'])->name('reports.download-pdf');
+    Route::post('/reports/download-excel', [ReportController::class, 'downloadExcel'])->name('reports.download-excel');
+    Route::post('/reports/download-html', [ReportController::class, 'downloadHtml'])->name('reports.download-html');
+
+        Route::prefix('reports/cash-register')->name('cash-register.')->group(function () {
+            // Listado principal
+            Route::get('/', CashRegister\Index::class)->name('index');
+            
+            // Abrir caja
+            Route::get('/open', CashRegister\Open::class)->name('open');
+            
+            // Dashboard de caja abierta
+            Route::get('/dashboard', CashRegister\Dashboard::class)->name('dashboard');
+            
+            // Realizar arqueo ← AGREGADO
+            Route::get('/count', CashRegister\Count::class)->name('count');
+            
+            // Cerrar caja (sin parámetro)
+            Route::get('/close', CashRegister\Close::class)->name('close');
+            
+            // Historial (Solo Admin)
+            Route::get('/history', CashRegister\History::class)
+                ->middleware('role:Administrador')
+                ->name('history');
+        });
+    });
 
 require __DIR__ . '/auth.php';
