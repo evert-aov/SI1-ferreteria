@@ -27,94 +27,144 @@
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {{-- Main Content --}}
                 <div class="lg:col-span-2 space-y-6">
-                    {{-- Order Status Timeline --}}
-                    <x-container-second-div>
-                        <h2 class="text-xl font-bold text-white mb-6">Estado del Pedido</h2>
-                        <div class="space-y-4">
-                            {{-- Paid --}}
-                            <div class="flex items-center gap-4">
-                                <div
-                                    class="w-10 h-10 rounded-full bg-green-600 flex items-center justify-center flex-shrink-0">
-                                    <span class="text-white font-bold">✓</span>
-                                </div>
-                                <div class="flex-1">
-                                    <p class="text-white font-semibold">Pagado</p>
-                                    <p class="text-sm text-gray-400">{{ $order->paid_at?->format('d/m/Y H:i') }}</p>
-                                </div>
-                            </div>
-
-                            {{-- Preparing --}}
-                            <div class="flex items-center gap-4">
-                                <div
-                                    class="w-10 h-10 rounded-full {{ $order->preparing_at ? 'bg-yellow-600' : 'bg-gray-700' }} flex items-center justify-center flex-shrink-0">
-                                    <span class="text-white font-bold">{{ $order->preparing_at ? '✓' : '○' }}</span>
-                                </div>
-                                <div class="flex-1">
-                                    <p class="text-white font-semibold">Preparando</p>
-                                    @if ($order->preparing_at)
-                                        <p class="text-sm text-gray-400">{{ $order->preparing_at->format('d/m/Y H:i') }}
-                                        </p>
-                                    @else
-                                        <p class="text-sm text-gray-500">Pendiente</p>
-                                    @endif
-                                </div>
-                            </div>
-
-                            {{-- Shipped --}}
-                            <div class="flex items-center gap-4">
-                                <div
-                                    class="w-10 h-10 rounded-full {{ $order->shipped_at ? 'bg-blue-600' : 'bg-gray-700' }} flex items-center justify-center flex-shrink-0">
-                                    <span class="text-white font-bold">{{ $order->shipped_at ? '✓' : '○' }}</span>
-                                </div>
-                                <div class="flex-1">
-                                    <p class="text-white font-semibold">Enviado</p>
-                                    @if ($order->shipped_at)
-                                        <p class="text-sm text-gray-400">{{ $order->shipped_at->format('d/m/Y H:i') }}
-                                        </p>
-                                    @else
-                                        <p class="text-sm text-gray-500">Pendiente</p>
-                                    @endif
-                                </div>
-                            </div>
-
-                            {{-- Delivered --}}
-                            <div class="flex items-center gap-4">
-                                <div
-                                    class="w-10 h-10 rounded-full {{ $order->delivered_at ? 'bg-purple-600' : 'bg-gray-700' }} flex items-center justify-center flex-shrink-0">
-                                    <span class="text-white font-bold">{{ $order->delivered_at ? '✓' : '○' }}</span>
-                                </div>
-                                <div class="flex-1">
-                                    <p class="text-white font-semibold">Entregado</p>
-                                    @if ($order->delivered_at)
-                                        <p class="text-sm text-gray-400">
-                                            {{ $order->delivered_at->format('d/m/Y H:i') }}</p>
-                                        @if ($order->deliveredBy)
-                                            <p class="text-xs text-gray-500">Entregado por:
-                                                {{ $order->deliveredBy->name }}</p>
-                                        @endif
-                                    @else
-                                        <p class="text-sm text-gray-500">Pendiente</p>
-                                    @endif
-                                </div>
-                            </div>
-
-                            {{-- Cancelled if applicable --}}
-                            @if ($order->status === 'cancelled')
-                                <div
-                                    class="flex items-center gap-4 mt-4 p-4 bg-red-900/20 border border-red-700 rounded-lg">
+                    {{-- Order Status Timeline (only for online sales) --}}
+                    @if($order->sale_type_display === 'online')
+                        <x-container-second-div>
+                            <h2 class="text-xl font-bold text-white mb-6">Estado del Pedido</h2>
+                            <div class="space-y-4">
+                                {{-- Paid --}}
+                                <div class="flex items-center gap-4">
                                     <div
-                                        class="w-10 h-10 rounded-full bg-red-600 flex items-center justify-center flex-shrink-0">
-                                        <span class="text-white font-bold">✕</span>
+                                        class="w-10 h-10 rounded-full bg-green-600 flex items-center justify-center flex-shrink-0">
+                                        <span class="text-white font-bold">✓</span>
                                     </div>
                                     <div class="flex-1">
-                                        <p class="text-white font-semibold">Cancelado</p>
-                                        <p class="text-sm text-gray-400">
-                                            {{ $order->cancelled_at?->format('d/m/Y H:i') }}</p>
+                                        <p class="text-white font-semibold">Pagado</p>
+                                        <p class="text-sm text-gray-400">{{ $order->paid_at?->format('d/m/Y H:i') }}</p>
                                     </div>
                                 </div>
-                            @endif
-                        </div>
-                    </x-container-second-div>
+
+                                {{-- Preparing --}}
+                                <div class="flex items-center gap-4">
+                                    <div
+                                        class="w-10 h-10 rounded-full {{ $order->preparing_at ? 'bg-yellow-600' : 'bg-gray-700' }} flex items-center justify-center flex-shrink-0">
+                                        <span class="text-white font-bold">{{ $order->preparing_at ? '✓' : '○' }}</span>
+                                    </div>
+                                    <div class="flex-1">
+                                        <p class="text-white font-semibold">Preparando</p>
+                                        @if ($order->preparing_at)
+                                            <p class="text-sm text-gray-400">{{ $order->preparing_at->format('d/m/Y H:i') }}
+                                            </p>
+                                        @else
+                                            <p class="text-sm text-gray-500">Pendiente</p>
+                                        @endif
+                                    </div>
+                                </div>
+
+                                {{-- Shipped --}}
+                                <div class="flex items-center gap-4">
+                                    <div
+                                        class="w-10 h-10 rounded-full {{ $order->shipped_at ? 'bg-blue-600' : 'bg-gray-700' }} flex items-center justify-center flex-shrink-0">
+                                        <span class="text-white font-bold">{{ $order->shipped_at ? '✓' : '○' }}</span>
+                                    </div>
+                                    <div class="flex-1">
+                                        <p class="text-white font-semibold">Enviado</p>
+                                        @if ($order->shipped_at)
+                                            <p class="text-sm text-gray-400">{{ $order->shipped_at->format('d/m/Y H:i') }}
+                                            </p>
+                                        @else
+                                            <p class="text-sm text-gray-500">Pendiente</p>
+                                        @endif
+                                    </div>
+                                </div>
+
+                                {{-- Delivered --}}
+                                <div class="flex items-center gap-4">
+                                    <div
+                                        class="w-10 h-10 rounded-full {{ $order->delivered_at ? 'bg-purple-600' : 'bg-gray-700' }} flex items-center justify-center flex-shrink-0">
+                                        <span class="text-white font-bold">{{ $order->delivered_at ? '✓' : '○' }}</span>
+                                    </div>
+                                    <div class="flex-1">
+                                        <p class="text-white font-semibold">Entregado</p>
+                                        @if ($order->delivered_at)
+                                            <p class="text-sm text-gray-400">
+                                                {{ $order->delivered_at->format('d/m/Y H:i') }}</p>
+                                            @if ($order->deliveredBy)
+                                                <p class="text-xs text-gray-500">Entregado por:
+                                                    {{ $order->deliveredBy->name }}</p>
+                                            @endif
+                                        @else
+                                            <p class="text-sm text-gray-500">Pendiente</p>
+                                        @endif
+                                    </div>
+                                </div>
+
+                                {{-- Cancelled if applicable --}}
+                                @if ($order->status === 'cancelled')
+                                    <div
+                                        class="flex items-center gap-4 mt-4 p-4 bg-red-900/20 border border-red-700 rounded-lg">
+                                        <div
+                                            class="w-10 h-10 rounded-full bg-red-600 flex items-center justify-center flex-shrink-0">
+                                            <span class="text-white font-bold">✕</span>
+                                        </div>
+                                        <div class="flex-1">
+                                            <p class="text-white font-semibold">Cancelado</p>
+                                            <p class="text-sm text-gray-400">
+                                                {{ $order->cancelled_at?->format('d/m/Y H:i') }}</p>
+                                        </div>
+                                    </div>
+                                @endif
+                            </div>
+                        </x-container-second-div>
+                    @else
+                        {{-- In-person sale info --}}
+                        <x-container-second-div>
+                            <h2 class="text-xl font-bold text-white mb-6">Información de Compra</h2>
+                            <div class="space-y-4">
+                                <div class="flex items-center gap-4">
+                                    <div class="w-10 h-10 rounded-full bg-purple-600 flex items-center justify-center flex-shrink-0">
+                                        <span class="text-white font-bold">🏪</span>
+                                    </div>
+                                    <div class="flex-1">
+                                        <p class="text-white font-semibold">Venta Presencial</p>
+                                        <p class="text-sm text-gray-400">Compra realizada en tienda física</p>
+                                        <p class="text-sm text-gray-400">{{ $order->created_at->format('d/m/Y H:i') }}</p>
+                                    </div>
+                                </div>
+
+                                @php
+                                    $status = $order->status_mapped ?? $order->status;
+                                @endphp
+
+                                <div class="flex items-center gap-4">
+                                    <div class="w-10 h-10 rounded-full
+                                        @if($status === 'paid') bg-green-600
+                                        @elseif($status === 'pending') bg-yellow-600
+                                        @elseif($status === 'cancelled') bg-red-600
+                                        @else bg-gray-600
+                                        @endif flex items-center justify-center flex-shrink-0">
+                                        <span class="text-white font-bold">
+                                            @if($status === 'paid') ✓
+                                            @elseif($status === 'cancelled') ✕
+                                            @else ○
+                                            @endif
+                                        </span>
+                                    </div>
+                                    <div class="flex-1">
+                                        <p class="text-white font-semibold">Estado del Pago</p>
+                                        <p class="text-sm text-gray-400">
+                                            @if($status === 'paid') Pagado
+                                            @elseif($status === 'pending') Pendiente
+                                            @elseif($status === 'cancelled') Cancelado
+                                            @elseif($status === 'processing') En Proceso
+                                            @else {{ ucfirst($status) }}
+                                            @endif
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </x-container-second-div>
+                    @endif
 
                     {{-- Products --}}
                     <x-container-second-div>
@@ -130,6 +180,47 @@
                                         <p class="font-semibold text-white">{{ $detail->product->name }}</p>
                                         <p class="text-sm text-gray-400">Cantidad: {{ $detail->quantity }} ×
                                             ${{ number_format($detail->unit_price, 2) }}</p>
+
+                                        {{-- Claim button logic --}}
+                                        @php
+                                            $purchaseDate = $order->created_at;
+                                            // For in-person sales, they are delivered immediately
+                                            // For online sales, check if delivered_at is set
+                                            $isDelivered = $order->sale_type_display === 'presencial'
+                                                ? true
+                                                : ($order->delivered_at !== null);
+                                            $canClaim = $isDelivered && $purchaseDate->diffInDays(now()) <= 15;
+                                            $existingClaim = \App\Models\Claim::where('sale_detail_id', $detail->id)->first();
+                                        @endphp
+
+                                        @if($existingClaim)
+                                            {{-- Show existing claim status --}}
+                                            <a href="/mis-reclamos"
+                                               class="inline-flex items-center gap-2 px-3 py-1 rounded-lg text-xs font-medium mt-2 transition-all duration-200 hover:-translate-y-0.5
+                                                   @if($existingClaim->status === 'pendiente') bg-yellow-500/20 text-yellow-400 hover:bg-yellow-500/30
+                                                   @elseif($existingClaim->status === 'en_revision') bg-blue-500/20 text-blue-400 hover:bg-blue-500/30
+                                                   @elseif($existingClaim->status === 'aprobada') bg-green-500/20 text-green-400 hover:bg-green-500/30
+                                                   @elseif($existingClaim->status === 'rechazada') bg-red-500/20 text-red-400 hover:bg-red-500/30
+                                                   @endif">
+                                                📋 Reclamo: {{ $existingClaim->status_label }}
+                                            </a>
+                                        @elseif($canClaim)
+                                            {{-- Show claim button --}}
+                                            <button onclick="openClaimModal({{ $detail->id }})"
+                                               class="inline-flex items-center gap-2 px-4 py-2 mt-2 bg-gradient-to-r from-orange-600 via-orange-700 to-orange-800 text-white font-semibold rounded-lg text-xs tracking-wider transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-orange-600/25 hover:from-orange-500 hover:to-orange-600">
+                                                ⚠️ Solicitar Reclamo
+                                            </button>
+                                        @elseif($isDelivered)
+                                            {{-- Period expired --}}
+                                            <span class="text-gray-500 text-xs mt-2 block">
+                                                Período de reclamo expirado (15 días)
+                                            </span>
+                                        @elseif($order->sale_type_display === 'online')
+                                            {{-- Not yet delivered (only for online sales) --}}
+                                            <span class="text-gray-400 text-xs mt-2 block">
+                                                Reclamo disponible después de la entrega
+                                            </span>
+                                        @endif
                                     </div>
                                     <div class="text-right">
                                         <p class="font-bold text-yellow-500">${{ number_format($detail->subtotal, 2) }}
@@ -192,19 +283,32 @@
                             <div>
                                 <p class="text-sm text-gray-400">Método:</p>
                                 <p class="text-white font-semibold">
-                                    {{ $order->payment?->paymentMethod?->name ?? 'N/A' }}</p>
+                                    @if($order->payment?->paymentMethod?->name)
+                                        {{ $order->payment->paymentMethod->name }}
+                                    @elseif($order->sale_type_display === 'presencial')
+                                        Efectivo
+                                    @else
+                                        N/A
+                                    @endif
+                                </p>
                             </div>
                             <div>
                                 <p class="text-sm text-gray-400">Estado:</p>
                                 <span class="px-2 py-1 text-xs font-semibold rounded-full bg-green-600 text-white">
-                                    {{ ucfirst($order->payment?->status ?? 'N/A') }}
+                                    @if($order->payment?->status)
+                                        {{ ucfirst($order->payment->status) }}
+                                    @elseif($order->sale_type_display === 'presencial')
+                                        Pagado
+                                    @else
+                                        N/A
+                                    @endif
                                 </span>
                             </div>
                         </div>
                     </x-container-second-div>
 
-                    {{-- Cancel Order Button --}}
-                    @if ($order->canBeCancelled())
+                    {{-- Cancel Order Button (only for online sales) --}}
+                    @if ($order->sale_type_display === 'online' && $order->canBeCancelled())
                         <x-container-second-div class="bg-red-900/20 border-red-700">
                             <h3 class="text-lg font-bold text-white mb-3">¿Cancelar pedido?</h3>
                             <p class="text-sm text-gray-400 mb-4">Si cancelas este pedido, no podrás recuperarlo.</p>
@@ -233,4 +337,107 @@
             </div>
         </x-container-div>
     </x-container-div>
+
+    {{-- Claim Creation Modal --}}
+    <div id="claimModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
+        <x-container-second-div class="max-w-4xl w-full max-h-[95vh] overflow-y-auto">
+            <x-container-div>
+                <div id="modalContent">
+                    {{-- Content will be loaded via JavaScript --}}
+                </div>
+            </x-container-div>
+        </x-container-second-div>
+    </div>
+
+    {{-- Claim Detail Modal --}}
+    <div id="claimDetailModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
+        <x-container-second-div class="max-w-4xl w-full max-h-[95vh] overflow-y-auto">
+            <x-container-div>
+                <div id="claimDetailContent">
+                    {{-- Content will be loaded via JavaScript --}}
+                </div>
+            </x-container-div>
+        </x-container-second-div>
+    </div>
+
+    <script>
+        function openClaimModal(saleDetailId) {
+            const modal = document.getElementById('claimModal');
+            const modalContent = document.getElementById('modalContent');
+
+            // Show modal
+            modal.classList.remove('hidden');
+
+            // Show loading
+            modalContent.innerHTML = '<div class="text-center py-8"><div class="text-gray-300">Cargando...</div></div>';
+
+            // Fetch claim form
+            fetch(`/reclamos/crear/${saleDetailId}`, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+                .then(response => response.text())
+                .then(html => {
+                    modalContent.innerHTML = html;
+                })
+                .catch(error => {
+                    modalContent.innerHTML = '<div class="text-center py-8"><div class="text-red-400">Error al cargar el formulario</div></div>';
+                });
+        }
+
+        function openClaimDetailModal(claimId) {
+            const modal = document.getElementById('claimDetailModal');
+            const modalContent = document.getElementById('claimDetailContent');
+
+            // Show modal
+            modal.classList.remove('hidden');
+
+            // Show loading
+            modalContent.innerHTML = '<div class="text-center py-8"><div class="text-gray-300">Cargando...</div></div>';
+
+            // Fetch claim details
+            fetch(`/reclamos/${claimId}`, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+                .then(response => response.text())
+                .then(html => {
+                    modalContent.innerHTML = html;
+                })
+                .catch(error => {
+                    modalContent.innerHTML = '<div class="text-center py-8"><div class="text-red-400">Error al cargar el reclamo</div></div>';
+                });
+        }
+
+        function closeClaimModal() {
+            document.getElementById('claimModal').classList.add('hidden');
+        }
+
+        function closeClaimDetailModal() {
+            document.getElementById('claimDetailModal').classList.add('hidden');
+        }
+
+        // Close modals when clicking outside
+        document.getElementById('claimModal')?.addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeClaimModal();
+            }
+        });
+
+        document.getElementById('claimDetailModal')?.addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeClaimDetailModal();
+            }
+        });
+
+        // Close modals with Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeClaimModal();
+                closeClaimDetailModal();
+            }
+        });
+    </script>
 </x-sales-layout>
