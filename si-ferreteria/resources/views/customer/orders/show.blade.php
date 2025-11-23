@@ -327,7 +327,7 @@
                     <x-container-second-div>
                         <h3 class="text-lg font-bold text-white mb-3">¿Necesitas ayuda?</h3>
                         <p class="text-sm text-gray-400 mb-3">Contáctanos si tienes alguna pregunta sobre tu pedido.</p>
-                        <a href="tel:+59160962433"
+                        <a href="https://api.whatsapp.com/send?phone=59160962433&text=Hola%2C%20tengo%20una%20consulta%20y%20me%20gustar%C3%ADa%20recibir%20asistencia.%20Gracias."
                             class="flex items-center gap-2 text-yellow-500 hover:text-yellow-400 transition-colors">
                             <span>📞</span>
                             <span class="font-semibold">+591 609 624 33</span>
