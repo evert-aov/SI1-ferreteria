@@ -1,4 +1,4 @@
-<x-sales-layout>
+<x-app-layout>
     <x-container-div>
         <x-container-second-div>
             <div class="p-6">
@@ -126,4 +126,4 @@
             </div>
         </x-container-second-div>
     </x-container-div>
-</x-sales-layout>
+</x-app-layout>
