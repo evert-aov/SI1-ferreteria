@@ -103,6 +103,21 @@ Route::middleware(['auth'])->group(function () {
     // Admin routes
     Route::get('/admin/reviews', [ReviewController::class, 'moderate'])->name('admin.reviews.moderate');
     
+    // ========== DELIVERY MANAGEMENT ==========
+    // Delivery routes (for delivery personnel)
+    Route::prefix('deliveries')->name('deliveries.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Deliveries\DeliveryController::class, 'index'])->name('index');
+        Route::get('/{id}', [\App\Http\Controllers\Deliveries\DeliveryController::class, 'show'])->name('show');
+        Route::post('/{id}/mark-delivered', [\App\Http\Controllers\Deliveries\DeliveryController::class, 'markAsDelivered'])->name('mark-delivered');
+    });
+
+    // Customer order routes
+    Route::prefix('my-orders')->name('customer.orders.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Customer\CustomerOrderController::class, 'index'])->name('index');
+        Route::get('/{id}', [\App\Http\Controllers\Customer\CustomerOrderController::class, 'show'])->name('show');
+        Route::post('/{id}/cancel', [\App\Http\Controllers\Customer\CustomerOrderController::class, 'cancel'])->name('cancel');
+    });
+    
     // ========== REPORTES Y ANÁLISIS ==========
     Route::get('/audit-logs', AuditLog::class)->name('audit-logs.index');
     
