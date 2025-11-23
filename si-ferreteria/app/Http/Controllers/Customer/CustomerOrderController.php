@@ -14,11 +14,37 @@ class CustomerOrderController extends Controller
      */
     public function index()
     {
-        $orders = Sale::with(['payment.paymentMethod', 'saleDetails.product'])
+        // Get online sales
+        $onlineSales = Sale::with(['payment.paymentMethod', 'saleDetails.product'])
             ->where('customer_id', Auth::id())
             ->where('sale_type', 'online')
-            ->orderBy('created_at', 'desc')
-            ->paginate(10);
+            ->get()
+            ->map(function ($sale) {
+                $sale->sale_type_display = 'online';
+                return $sale;
+            });
+
+        // Get in-person sales
+        $inPersonSales = \App\Models\SaleUnperson::with(['payment.paymentMethod', 'saleDetails.product'])
+            ->where('customer_id', Auth::id())
+            ->get()
+            ->map(function ($sale) {
+                $sale->sale_type_display = 'presencial';
+                // Map status to match online sales format for consistency
+                $sale->status_mapped = match($sale->status) {
+                    'paid' => 'paid',
+                    'pending_payment' => 'pending',
+                    'cancelled' => 'cancelled',
+                    'draft' => 'processing',
+                    default => $sale->status
+                };
+                return $sale;
+            });
+
+        // Merge and sort by creation date
+        $orders = $onlineSales->concat($inPersonSales)
+            ->sortByDesc('created_at')
+            ->values();
 
         return view('customer.orders.index', compact('orders'));
     }
@@ -28,10 +54,30 @@ class CustomerOrderController extends Controller
      */
     public function show($id)
     {
+        // Try to find as online sale first
         $order = Sale::with(['payment.paymentMethod', 'saleDetails.product', 'deliveredBy'])
             ->where('customer_id', Auth::id())
             ->where('sale_type', 'online')
+            ->find($id);
+
+        if ($order) {
+            $order->sale_type_display = 'online';
+            return view('customer.orders.show', compact('order'));
+        }
+
+        // If not found, try as in-person sale
+        $order = \App\Models\SaleUnperson::with(['payment.paymentMethod', 'saleDetails.product'])
+            ->where('customer_id', Auth::id())
             ->findOrFail($id);
+
+        $order->sale_type_display = 'presencial';
+        $order->status_mapped = match($order->status) {
+            'paid' => 'paid',
+            'pending_payment' => 'pending',
+            'cancelled' => 'cancelled',
+            'draft' => 'processing',
+            default => $order->status
+        };
 
         return view('customer.orders.show', compact('order'));
     }
