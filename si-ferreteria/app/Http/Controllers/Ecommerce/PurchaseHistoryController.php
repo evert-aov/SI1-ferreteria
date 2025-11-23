@@ -7,7 +7,7 @@ use App\Models\Sale;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
-class PurchaseHistoryController extends Controller
+class  PurchaseHistoryController extends Controller
 {
     /**
      * Display the authenticated user's purchase history.
