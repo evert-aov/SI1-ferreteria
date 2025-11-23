@@ -1,0 +1,207 @@
+<x-app-layout>
+    {{-- Header and Filters --}}
+    <form action="{{ route('admin.claims.index') }}" method="GET" class="w-full">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            <x-container-second-div>
+                <div class="flex items-center ml-4">
+                    <x-input-label class="text-lg font-semibold">
+                        <x-icons.alerts class="w-6 h-6 inline-block mr-2"/>
+                        {{ __('Gestión de Reclamos') }}
+                    </x-input-label>
+                </div>
+            </x-container-second-div>
+
+            <x-container-second-div>
+                <div class="flex items-center gap-4">
+                    {{-- Status Filter --}}
+                    <div class="flex-1">
+                        <select name="status" onchange="this.form.submit()"
+                            class="w-full border-gray-700 bg-gray-900 text-gray-300 focus:border-indigo-600 focus:ring-indigo-600 rounded-md shadow-sm">
+                            <option value="">Todos los estados</option>
+                            <option value="pendiente" {{ request('status') === 'pendiente' ? 'selected' : '' }}>Pendiente</option>
+                            <option value="en_revision" {{ request('status') === 'en_revision' ? 'selected' : '' }}>En Revisión</option>
+                            <option value="aprobada" {{ request('status') === 'aprobada' ? 'selected' : '' }}>Aprobada</option>
+                            <option value="rechazada" {{ request('status') === 'rechazada' ? 'selected' : '' }}>Rechazada</option>
+                        </select>
+                    </div>
+                </div>
+            </x-container-second-div>
+        </div>
+    </form>
+
+    @if(session('success'))
+        <x-container-second-div class="mb-6">
+            <div class="bg-green-500 text-white px-6 py-3 rounded-lg">
+                {{ session('success') }}
+            </div>
+        </x-container-second-div>
+    @endif
+
+    <x-container-second-div>
+        {{-- Claims Table --}}
+        <div class="overflow-x-auto rounded-lg bg-orange-500">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead>
+                    <tr class="bg-gray-800">
+                        <x-table-header value="{{ __('ID') }}" />
+                        <x-table-header value="{{ __('Cliente') }}" />
+                        <x-table-header value="{{ __('Producto') }}" />
+                        <x-table-header value="{{ __('Tipo') }}" />
+                        <x-table-header value="{{ __('Estado') }}" />
+                        <x-table-header value="{{ __('Fecha') }}" />
+                        <x-table-header value="{{ __('Acciones') }}" />
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse ($claims as $claim)
+                        <tr class="bg-gray-800 hover:bg-gray-900">
+                            <x-table.td data="#{{ $claim->id }}" />
+                            <x-table.td data="{{ $claim->customer->name }}" />
+                            <td class="px-6 py-2 whitespace-nowrap">
+                                <div class="flex items-center gap-2">
+                                    <img src="{{ asset($claim->saleDetail->product->image) }}" 
+                                         alt="{{ $claim->saleDetail->product->name }}"
+                                         class="w-10 h-10 object-contain rounded bg-gray-700">
+                                    <span class="text-gray-300">{{ Str::limit($claim->saleDetail->product->name, 30) }}</span>
+                                </div>
+                            </td>
+                            <x-table.td data="{{ $claim->claim_type_label }}" />
+                            <td class="px-6 py-2 whitespace-nowrap">
+                                <span class="px-3 py-1 rounded-full text-xs font-semibold
+                                    @if($claim->status === 'pendiente') bg-yellow-500/20 text-yellow-400
+                                    @elseif($claim->status === 'en_revision') bg-blue-500/20 text-blue-400
+                                    @elseif($claim->status === 'aprobada') bg-green-500/20 text-green-400
+                                    @elseif($claim->status === 'rechazada') bg-red-500/20 text-red-400
+                                    @endif">
+                                    {{ $claim->status_label }}
+                                </span>
+                            </td>
+                            <x-table.td data="{{ $claim->created_at->format('d/m/Y') }}" />
+                            <td class="px-6 py-2 whitespace-nowrap">
+                                <div class="flex items-center gap-2 ml-4">
+                                    <button onclick="openClaimModal({{ $claim->id }})"
+                                        class="bg-gradient-to-r from-blue-600 via-blue-700 to-blue-800 text-white font-semibold py-2 px-4 rounded-md tracking-wider transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-blue-600/25 hover:from-blue-500 hover:to-blue-600">
+                                        Ver
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr class="bg-gray-800">
+                            <td colspan="7" class="px-6 py-4 text-center text-gray-400">
+                                No se encontraron reclamos {{ request('status') ? 'con este estado' : '' }}.
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+
+        {{-- Pagination --}}
+        @if($claims->hasPages())
+            <div class="mt-6">
+                {{ $claims->links() }}
+            </div>
+        @endif
+    </x-container-second-div>
+
+    {{-- Claim Detail Modal usando modal-base structure --}}
+    <div id="claimModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
+        <x-container-second-div class="max-w-6xl w-full max-h-[95vh] overflow-y-auto">
+            <x-container-div>
+                <div id="modalContent">
+                    {{-- Content will be loaded via JavaScript --}}
+                </div>
+            </x-container-div>
+        </x-container-second-div>
+    </div>
+
+    <script>
+        function openClaimModal(claimId) {
+            const modal = document.getElementById('claimModal');
+            const modalContent = document.getElementById('modalContent');
+            
+            // Show modal
+            modal.classList.remove('hidden');
+            
+            // Show loading
+            modalContent.innerHTML = '<div class="text-center py-8"><div class="text-gray-300">Cargando...</div></div>';
+            
+            // Fetch claim details
+            fetch(`/admin/reclamos/${claimId}`)
+                .then(response => response.text())
+                .then(html => {
+                    modalContent.innerHTML = html;
+                })
+                .catch(error => {
+                    modalContent.innerHTML = '<div class="text-center py-8"><div class="text-red-400">Error al cargar el reclamo</div></div>';
+                });
+        }
+
+        function updateClaimStatus(event, claimId) {
+            event.preventDefault();
+            
+            const form = event.target;
+            const formData = new FormData(form);
+            const messageDiv = document.getElementById('updateMessage');
+            const submitButton = form.querySelector('button[type="submit"]');
+            
+            // Disable button
+            submitButton.disabled = true;
+            submitButton.textContent = 'Actualizando...';
+            
+            // Send AJAX request
+            fetch(form.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Show success message
+                messageDiv.className = 'mb-4 p-3 rounded-lg bg-green-500 text-white';
+                messageDiv.textContent = 'Reclamo actualizado exitosamente';
+                messageDiv.classList.remove('hidden');
+                
+                // Re-enable button
+                submitButton.disabled = false;
+                submitButton.textContent = 'Actualizar Reclamo';
+                
+                // Reload the page after 1.5 seconds to show updated data
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1500);
+            })
+            .catch(error => {
+                // Show error message
+                messageDiv.className = 'mb-4 p-3 rounded-lg bg-red-500 text-white';
+                messageDiv.textContent = 'Error al actualizar el reclamo';
+                messageDiv.classList.remove('hidden');
+                
+                // Re-enable button
+                submitButton.disabled = false;
+                submitButton.textContent = 'Actualizar Reclamo';
+            });
+        }
+
+        function closeClaimModal() {
+            document.getElementById('claimModal').classList.add('hidden');
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('claimModal')?.addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeClaimModal();
+            }
+        });
+
+        // Close modal with Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeClaimModal();
+            }
+        });
+    </script>
+</x-app-layout>
