@@ -45,6 +45,26 @@ class PermissionRoleSeeder extends Seeder
             ];
         }
 
+        // Permisos para Repartidor (rol_id 3)
+        $repartidorPermissions = [
+            'ver_productos',
+            'ver_ventas',
+        ];
+
+        $repartidorIds = DB::table('permissions')
+            ->whereIn('name', $repartidorPermissions)
+            ->pluck('id')
+            ->toArray();
+
+        foreach ($repartidorIds as $repartidorId) {
+            $rolePermission[] = [
+                'role_id' => 3,
+                'permission_id' => $repartidorId,
+                'assigned_date' => $now,
+            ];
+        }
+
+        // Permisos para Cliente (rol_id 4) y Proveedor (rol_id 5)
         $basePermissions = ['ver_productos'];
         $baseIds = DB::table('permissions')
             ->whereIn('name', $basePermissions)
@@ -52,13 +72,15 @@ class PermissionRoleSeeder extends Seeder
             ->toArray();
 
         foreach ($baseIds as $baseId) {
+            // Cliente
             $rolePermission[] = [
-                'role_id' => 3,
+                'role_id' => 4,
                 'permission_id' => $baseId,
                 'assigned_date' => $now,
             ];
+            // Proveedor
             $rolePermission[] = [
-                'role_id' => 4,
+                'role_id' => 5,
                 'permission_id' => $baseId,
                 'assigned_date' => $now,
             ];
