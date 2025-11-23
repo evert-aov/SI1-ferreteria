@@ -10,4 +10,5 @@ Artisan::command('inspire', function () {
 
 return function (Schedule $schedule) {
     $schedule->command('discounts:activate-deactivate')->daily();
+    $schedule->command('claims:cleanup')->daily();
 };
