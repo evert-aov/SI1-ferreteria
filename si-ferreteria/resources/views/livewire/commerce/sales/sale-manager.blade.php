@@ -27,7 +27,8 @@
 
                 <div>
                     <x-input-label value="{{ __('Número de Factura') }}" class="text-white" />
-                    <x-text-input type="text" wire:model="form.invoice_number" readonly
+                    <x-text-input type="text" wire:model.live="form.invoice_number" readonly
+                        wire:key="invoice-{{ $form->invoice_number }}"
                         class="text-gray-300 bg-gray-700" />
                     @error('form.invoice_number')
                         <span class="mt-1 text-sm text-red-500">{{ $message }}</span>
@@ -118,31 +119,67 @@
                     <x-table.data-table-2 table-header="livewire.commerce.sales.components.table-header"
                         table-rows="livewire.commerce.sales.components.table-rows" :items="$form->items" />
 
-                    <!-- Resumen de Totales -->
+                    {{-- Resumen de Totales --}}
                     <div
                         class="p-6 mt-6 border border-gray-700 rounded-lg shadow-lg bg-gradient-to-r from-gray-800 to-gray-900">
                         <div class="space-y-3">
+                            @php
+                                // Calcular subtotal sin descuentos (precio bruto)
+                                $subtotalBruto = collect($form->items)->sum(function($item) {
+                                    return $item['quantity'] * $item['unit_price'];
+                                });
+                                
+                                // Calcular total de descuentos por producto
+                                $descuentosProductos = $subtotalBruto - $form->getSubtotal();
+                            @endphp
+                            
+                            {{-- Subtotal sin descuentos --}}
                             <div class="flex items-center justify-between">
+                                <span class="font-medium text-gray-300">Subtotal (sin descuentos):</span>
+                                <span class="text-lg font-semibold text-white">
+                                    Bs. {{ number_format($subtotalBruto, 2) }}
+                                </span>
+                            </div>
+
+                            {{-- Descuentos por producto --}}
+                            @if($descuentosProductos > 0)
+                                <div class="flex items-center justify-between">
+                                    <span class="font-medium text-gray-300">Descuentos por producto:</span>
+                                    <span class="font-semibold text-red-400">
+                                        - Bs. {{ number_format($descuentosProductos, 2) }}
+                                    </span>
+                                </div>
+                            @endif
+
+                            {{-- Subtotal con descuentos de productos --}}
+                            <div class="flex items-center justify-between pt-2 border-t border-gray-700">
                                 <span class="font-medium text-gray-300">Subtotal:</span>
                                 <span class="text-lg font-semibold text-white">
                                     Bs. {{ number_format($form->getSubtotal(), 2) }}
                                 </span>
                             </div>
 
-                            <div class="flex items-center justify-between">
-                                <span class="font-medium text-gray-300">Descuento:</span>
-                                <span class="font-semibold text-red-400">
-                                    - Bs. {{ number_format($form->discount, 2) }}
-                                </span>
-                            </div>
+                            {{-- Descuento global adicional --}}
+                            @if($form->discount > 0)
+                                <div class="flex items-center justify-between">
+                                    <span class="font-medium text-gray-300">Descuento adicional:</span>
+                                    <span class="font-semibold text-red-400">
+                                        - Bs. {{ number_format($form->discount, 2) }}
+                                    </span>
+                                </div>
+                            @endif
 
-                            <div class="flex items-center justify-between">
-                                <span class="font-medium text-gray-300">Impuesto:</span>
-                                <span class="font-semibold text-white">
-                                    + Bs. {{ number_format($form->tax, 2) }}
-                                </span>
-                            </div>
+                            {{-- Impuesto --}}
+                            @if($form->tax > 0)
+                                <div class="flex items-center justify-between">
+                                    <span class="font-medium text-gray-300">Impuesto:</span>
+                                    <span class="font-semibold text-white">
+                                        + Bs. {{ number_format($form->tax, 2) }}
+                                    </span>
+                                </div>
+                            @endif
 
+                            {{-- Total final --}}
                             <div class="pt-3 mt-3 border-t-2 border-green-500">
                                 <div class="flex items-center justify-between">
                                     <span class="text-2xl font-bold text-white">TOTAL:</span>
