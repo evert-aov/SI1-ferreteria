@@ -1,4 +1,4 @@
-<x-sales-layout>
+<x-app-layout>
     <x-container-div>
         <x-container-second-div>
             <x-input-label class="text-3xl mb-8">
@@ -40,7 +40,6 @@
                                             </span>
                                         </div>
                                         <p class="text-gray-400 text-sm">
-                                            <x-icons.calendar class="w-4 h-4 inline-block mr-1"/>
                                             {{ $purchase->created_at->format('d/m/Y H:i') }}
                                         </p>
                                     </div>
@@ -125,8 +124,8 @@
                                                     
                                                     <div class="mt-2">
                                                         @if($existingClaim)
-                                                            <!-- Show claim status -->
-                                                            <a href="{{ route('claims.show', $existingClaim->id) }}" 
+                                                            {{-- Show claim status --}}
+                                                            <button onclick="openClaimDetailModal({{ $existingClaim->id }})" 
                                                                class="inline-flex items-center gap-2 px-3 py-1 rounded-lg text-xs font-medium
                                                                    @if($existingClaim->status === 'pendiente') bg-yellow-500/20 text-yellow-400
                                                                    @elseif($existingClaim->status === 'en_revision') bg-blue-500/20 text-blue-400
@@ -134,13 +133,13 @@
                                                                    @elseif($existingClaim->status === 'rechazada') bg-red-500/20 text-red-400
                                                                    @endif">
                                                                 📋 Reclamo: {{ $existingClaim->status_label }}
-                                                            </a>
+                                                            </button>
                                                         @elseif($canClaim)
-                                                            <!-- Show claim button -->
-                                                            <a href="{{ route('claims.create', $detail->id) }}" 
+                                                            {{-- Show claim button --}}
+                                                            <button onclick="openClaimModal({{ $detail->id }})" 
                                                                class="inline-flex items-center gap-2 px-3 py-1 bg-orange-600 hover:bg-orange-700 text-white rounded-lg text-xs font-medium transition">
                                                                 ⚠️ Solicitar Reclamo
-                                                            </a>
+                                                            </button>
                                                         @else
                                                             <!-- Period expired -->
                                                             <span class="text-gray-500 text-xs">
@@ -163,13 +162,18 @@
                                     <!-- Purchase summary -->
                                     <div class="border-t border-gray-700 pt-4">
                                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                            <!-- Payment info -->
+                                            {{-- Payment info --}}
                                             <div>
                                                 <h5 class="text-white font-semibold mb-2">Información de Pago:</h5>
                                                 <p class="text-gray-400 text-sm">
                                                     Método: 
                                                     <span class="text-white">
-                                                        {{ $purchase->payment?->paymentMethod?->name ?? 'N/A' }}
+                                                        @if($purchase->sale_type_display === 'online')
+                                                            {{ $purchase->payment?->paymentMethod?->name ?? 'N/A' }}
+                                                        @else
+                                                            {{-- For in-person sales, get payment from saleUnperson --}}
+                                                            {{ $purchase->payment?->paymentMethod?->name ?? 'Efectivo' }}
+                                                        @endif
                                                     </span>
                                                 </p>
                                                 @if($purchase->payment?->transaction_id)
@@ -259,4 +263,107 @@
             @endif
         </x-container-second-div>
     </x-container-div>
-</x-sales-layout>
+
+    {{-- Claim Creation Modal --}}
+    <div id="claimModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
+        <x-container-second-div class="max-w-4xl w-full max-h-[95vh] overflow-y-auto">
+            <x-container-div>
+                <div id="modalContent">
+                    {{-- Content will be loaded via JavaScript --}}
+                </div>
+            </x-container-div>
+        </x-container-second-div>
+    </div>
+
+    {{-- Claim Detail Modal --}}
+    <div id="claimDetailModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
+        <x-container-second-div class="max-w-4xl w-full max-h-[95vh] overflow-y-auto">
+            <x-container-div>
+                <div id="claimDetailContent">
+                    {{-- Content will be loaded via JavaScript --}}
+                </div>
+            </x-container-div>
+        </x-container-second-div>
+    </div>
+
+    <script>
+        function openClaimModal(saleDetailId) {
+            const modal = document.getElementById('claimModal');
+            const modalContent = document.getElementById('modalContent');
+            
+            // Show modal
+            modal.classList.remove('hidden');
+            
+            // Show loading
+            modalContent.innerHTML = '<div class="text-center py-8"><div class="text-gray-300">Cargando...</div></div>';
+            
+            // Fetch claim form
+            fetch(`/reclamos/crear/${saleDetailId}`, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+                .then(response => response.text())
+                .then(html => {
+                    modalContent.innerHTML = html;
+                })
+                .catch(error => {
+                    modalContent.innerHTML = '<div class="text-center py-8"><div class="text-red-400">Error al cargar el formulario</div></div>';
+                });
+        }
+
+        function openClaimDetailModal(claimId) {
+            const modal = document.getElementById('claimDetailModal');
+            const modalContent = document.getElementById('claimDetailContent');
+            
+            // Show modal
+            modal.classList.remove('hidden');
+            
+            // Show loading
+            modalContent.innerHTML = '<div class="text-center py-8"><div class="text-gray-300">Cargando...</div></div>';
+            
+            // Fetch claim details
+            fetch(`/reclamos/${claimId}`, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+                .then(response => response.text())
+                .then(html => {
+                    modalContent.innerHTML = html;
+                })
+                .catch(error => {
+                    modalContent.innerHTML = '<div class="text-center py-8"><div class="text-red-400">Error al cargar el reclamo</div></div>';
+                });
+        }
+
+        function closeClaimModal() {
+            document.getElementById('claimModal').classList.add('hidden');
+        }
+
+        function closeClaimDetailModal() {
+            document.getElementById('claimDetailModal').classList.add('hidden');
+        }
+
+        // Close modals when clicking outside
+        document.getElementById('claimModal')?.addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeClaimModal();
+            }
+        });
+
+        document.getElementById('claimDetailModal')?.addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeClaimDetailModal();
+            }
+        });
+
+        // Close modals with Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeClaimModal();
+                closeClaimDetailModal();
+            }
+        });
+    </script>
+</x-app-layout>
