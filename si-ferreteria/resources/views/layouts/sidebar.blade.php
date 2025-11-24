@@ -228,6 +228,15 @@
                     <ul x-show="open"
                         class="pl-8 mt-2 space-y-2">
                         <li>
+                            <a href="{{ route('dashboard') }}"
+                               class="flex items-center p-2 text-gray-400 rounded-lg hover:bg-green-600/10 hover:text-green-300 transition-all duration-200 text-sm">
+                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                                </svg>
+                                Dashboard Analítico
+                            </a>
+                        </li>
+                        <li>
                             <a href="{{ route('audit-logs.index') }}"
                                class="flex items-center p-2 text-gray-400 rounded-lg hover:bg-blue-600/10 hover:text-blue-300 transition-all duration-200 text-sm">
                                 <x-icons.audit_log/>

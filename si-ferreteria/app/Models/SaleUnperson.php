@@ -47,6 +47,6 @@ class SaleUnperson extends Model
 
     public function saleDetails(): HasMany
     {
-        return $this->hasMany(SaleDetail::class, 'sale_id');
+        return $this->hasMany(SaleDetail::class, 'sale_unperson_id');
     }
 }
