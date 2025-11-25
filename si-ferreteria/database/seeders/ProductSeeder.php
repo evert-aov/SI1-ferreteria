@@ -188,7 +188,7 @@ class ProductSeeder extends Seeder
             [
                 'name' => 'Yeso de Construcción',
                 'description' => 'Yeso fino para acabados',
-                'image' => 'https://images.unsplash.com/photo-1590059390492-d5495eb3a8f4?auto=format&fit=crop&w=800&q=80',
+                'image' => 'https://www.martellsac.com.pe/wp-content/uploads/2023/04/PCT0022.webp',
                 'purchase_price' => 5.00,
                 'sale_price' => 8.50,
                 'stock' => 80,
@@ -199,7 +199,7 @@ class ProductSeeder extends Seeder
             [
                 'name' => 'Tornillos Galvanizados 3',
                 'description' => 'Caja de 100 tornillos',
-                'image' => 'https://images.unsplash.com/photo-1533158326339-7f3d2a332158?auto=format&fit=crop&w=800&q=80',
+                'image' => 'https://www.toolferreterias.com/cdn/shop/files/127009000-1_93bff2ab-ade7-4066-8657-0e21a001729d.jpg?v=1719597918&width=713',
                 'purchase_price' => 3.50,
                 'sale_price' => 6.00,
                 'stock' => 50,
@@ -208,7 +208,7 @@ class ProductSeeder extends Seeder
             [
                 'name' => 'Clavos de Acero 2.5',
                 'description' => 'Caja de 500g de clavos',
-                'image' => 'https://galba.com.bo/wp-content/uploads/2022/01/FE0001-a-FE0008.jpg',
+                'image' => 'https://cordanihnos.com.ar/wp-content/uploads/2021/12/CLAVO-PUNTA-PARIS-1-12-X-KG.jpg',
                 'purchase_price' => 2.75,
                 'sale_price' => 5.00,
                 'stock' => 60,

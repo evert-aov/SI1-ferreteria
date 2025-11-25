@@ -21,7 +21,6 @@ use App\Livewire\Inventory\ProductAlertManager;
 use App\Livewire\Inventory\ProductManager;
 use App\Livewire\Reports\Analytics;
 use App\Livewire\Reports\AuditLog;
-use App\Livewire\Reports\AuditLog;
 use App\Livewire\Reports\CashRegister;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\ClaimController;
@@ -172,6 +171,5 @@ Route::middleware(['auth'])->group(function () {
                 ->middleware('role:Administrador')
                 ->name('history');
         });
-    });
 
 require __DIR__ . '/auth.php';
