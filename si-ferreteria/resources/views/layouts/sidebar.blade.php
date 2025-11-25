@@ -206,6 +206,68 @@
                                 Gestión de Caja
                             </a>
                         </li>
+
+                        <li>
+                            <a href="{{ route('sales.index') }}"
+                               class="flex items-center p-2 text-gray-400 rounded-lg hover:bg-amber-600/10 hover:text-amber-300 transition-all duration-200 text-sm">
+                                <x-icons.shop/>
+                                {{ __('Ventas Presenciales') }}
+                            </a>
+                        </li>
+
+                        <li>
+                            <a href="{{ route('discounts.index') }}"
+                               class="flex items-center p-3 text-gray-400 rounded-lg hover:bg-amber-600/10 hover:text-amber-300 transition-all duration-200 text-sm">
+                                <x-icons.gift-card/>
+                                {{ __(' Descuentos') }}
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+            @endif
+
+            @if(auth()->user()->roles->whereIn('name', ['Administrador', 'Vendedor'])->count() > 0)
+                <li class="pt-4 mt-4">
+                    <x-dividers title="Plataforma E-Commerce"/>
+                </li>
+
+                <li x-data="{ open: false }">
+                    <button @click="open = !open" type="button"
+                            class="flex items-center justify-between w-full p-3 text-gray-300 rounded-lg hover:bg-gradient-to-r hover:from-amber-600/20 hover:to-yellow-600/20 group transition-all duration-300 border-l-4 border-transparent hover:border-amber-500">
+                        <div class="flex items-center">
+                            <x-icons.shop/>
+                            <span class="ms-3 font-medium">{{ __('Ventas') }}</span>
+                        </div>
+                        <x-icons.deployment/>
+                    </button>
+
+                    <ul x-show="open"
+                        class="pl-8 mt-2 space-y-2">
+                        <li>
+                            <a href="{{ route('catalog.index') }}"
+                               class="flex items-center p-3 text-gray-300 rounded-lg hover:bg-gradient-to-r hover:from-purple-600/20 hover:to-indigo-600/20 group transition-all duration-300 transform hover:scale-105 hover:shadow-lg border-l-4 border-transparent hover:border-purple-500">
+                                <x-icons.catalog/>
+                                <x-input-label value="Catalogo" class="ms-3"/>
+                            </a>
+                        </li>
+
+                        <li>
+                            <a href="{{ route('products.index') }}"
+                               class="flex items-center p-3 text-gray-300 rounded-lg hover:bg-gradient-to-r hover:from-purple-600/20 hover:to-indigo-600/20 group transition-all duration-300 transform hover:scale-105 hover:shadow-lg border-l-4 border-transparent hover:border-purple-500">
+                                <x-icons.products/>
+                                <x-input-label value="Tienda" class="ms-3"/>
+                            </a>
+                        </li>
+
+                        @if(auth()->user()->roles->contains('name', 'Administrador'))
+                            <li>
+                                <a href="{{ route('admin.reviews.moderate') }}"
+                                   class="flex items-center p-3 text-gray-300 rounded-lg hover:bg-gradient-to-r hover:from-purple-600/20 hover:to-indigo-600/20 group transition-all duration-300 transform hover:scale-105 hover:shadow-lg border-l-4 border-transparent hover:border-purple-500">
+                                    <x-icons.audit_log/>
+                                    <x-input-label value="Moderación Reseñas" class="ms-3"/>
+                                </a>
+                            </li>
+                        @endif
                     </ul>
                 </li>
             @endif
