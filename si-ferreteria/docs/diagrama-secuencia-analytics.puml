@@ -1,0 +1,209 @@
+@startuml
+' ============================================================================
+' Diagrama de Secuencia - CU26: Dashboard Analítico Dinámico
+' Sistema de Gestión de Ferretería
+' Fecha: 23 de Noviembre, 2025
+' ============================================================================
+
+skinparam sequenceArrowThickness 2
+skinparam roundcorner 20
+skinparam maxmessagesize 60
+skinparam sequenceParticipant underline
+
+actor Administrador
+participant "analytics.blade.php" as AnalyticsView <<Boundary>>
+participant "Analytics" as Controller <<Control, Livewire>>
+participant "Sale" as SaleModel <<Entity>>
+participant "SaleUnperson" as SaleUnpersonModel <<Entity>>
+participant "Product" as ProductModel <<Entity>>
+participant "Entry" as EntryModel <<Entity>>
+participant "Review" as ReviewModel <<Entity>>
+participant "ProductAlert" as ProductAlertModel <<Entity>>
+
+== Carga Inicial del Dashboard ==
+
+Administrador -> AnalyticsView: accederDashboard()
+activate AnalyticsView
+
+AnalyticsView -> Controller: GET route('/dashboard')
+activate Controller
+
+Controller -> Controller: render()
+note right: dateFilter = '30' (default)
+
+Controller -> Controller: getKpisProperty()
+
+Controller -> SaleModel: where('status', 'paid')->sum('total')
+activate SaleModel
+SaleModel --> Controller: totalRevenueSales
+deactivate SaleModel
+
+Controller -> SaleUnpersonModel: where('status', 'paid')->sum('total')
+activate SaleUnpersonModel
+SaleUnpersonModel --> Controller: totalRevenueUnperson
+deactivate SaleUnpersonModel
+
+Controller -> Controller: calcularTotalRevenue()
+note right: totalRevenue = \ntotalRevenueSales + totalRevenueUnperson
+
+Controller -> SaleModel: where('status', 'paid')->count()
+activate SaleModel
+SaleModel --> Controller: salesCountSales
+deactivate SaleModel
+
+Controller -> SaleUnpersonModel: where('status', 'paid')->count()
+activate SaleUnpersonModel
+SaleUnpersonModel --> Controller: salesCountUnperson
+deactivate SaleUnpersonModel
+
+Controller -> Controller: calcularTicketPromedio()
+note right: averageTicket = \ntotalRevenue / salesCount
+
+Controller -> ProductAlertModel: where('alert_type', 'low_stock')->count()
+activate ProductAlertModel
+ProductAlertModel --> Controller: criticalStock
+deactivate ProductAlertModel
+
+alt criticalStock == 0
+    Controller -> ProductModel: where('stock', '<=', 10)->count()
+    activate ProductModel
+    ProductModel --> Controller: criticalStockCalculado
+    deactivate ProductModel
+end
+
+Controller -> EntryModel: where('invoice_date', '>=', dateFrom)->sum('total')
+activate EntryModel
+EntryModel --> Controller: totalExpenses
+deactivate EntryModel
+
+Controller --> Controller: kpis = [total_revenue, average_ticket, critical_stock, total_expenses]
+
+Controller -> Controller: getSalesChartDataProperty()
+
+Controller -> SaleModel: DB::table(UNION sales + sale_unpersons)->groupBy(period)
+activate SaleModel
+note right: Agrupa por mes (365 días)\no día (7/30 días)
+SaleModel --> Controller: salesData
+deactivate SaleModel
+
+Controller -> Controller: formatearCategorias()
+note right: Formato: "Nov 2024" o "17 Nov"
+
+Controller --> Controller: chartData = {categories: [], data: []}
+
+Controller -> Controller: getTopProductsProperty()
+
+Controller -> SaleModel: DB::select(UNION sale_details)->groupBy(product_id)
+activate SaleModel
+note right: Combina sale_details de\nsales y sale_unpersons
+SaleModel --> Controller: topProductsRaw
+deactivate SaleModel
+
+Controller -> ProductModel: find(product_id)->select('name', 'image')
+activate ProductModel
+ProductModel --> Controller: productData
+deactivate ProductModel
+
+Controller --> Controller: topProducts = [{name, image, quantity}]
+
+Controller -> Controller: getTopRatedProductsProperty()
+
+Controller -> ReviewModel: where('status', 'approved')->groupBy('product_id')
+activate ReviewModel
+note right: havingRaw('COUNT(*) >= 3')\norderByDesc('avg_rating')\nlimit(5)
+ReviewModel --> Controller: topRatedProducts
+deactivate ReviewModel
+
+Controller -> Controller: getCriticalStockProductsProperty()
+
+Controller -> ProductModel: where('stock', '<=', 10)->orderBy('stock')->limit(10)
+activate ProductModel
+ProductModel --> Controller: criticalStockProducts
+deactivate ProductModel
+
+Controller -> Controller: clasificarStock()
+note right: status: 'sin_stock' o 'bajo_stock'
+
+Controller --> AnalyticsView: view('analytics', kpis, chartData, topProducts, topRated, criticalStock)
+deactivate Controller
+
+AnalyticsView -> AnalyticsView: renderizarKPIs()
+note right: 4 cards con gradientes:\n- Ingresos (verde)\n- Ticket Promedio (azul)\n- Stock Crítico (morado/rojo)\n- Egresos (naranja)
+
+AnalyticsView -> AnalyticsView: renderizarGraficoApexCharts()
+note right: ApexCharts con area chart\nwire:key="chart-{{ dateFilter }}"
+
+AnalyticsView -> AnalyticsView: renderizarTopProductos()
+
+AnalyticsView -> AnalyticsView: renderizarTopCalificados()
+
+alt criticalStockProducts > 0
+    AnalyticsView -> AnalyticsView: mostrarSeccionStockCritico()
+    note right: Clasificación por colores:\nRojo: stock = 0\nNaranja: stock <= 10
+end
+
+AnalyticsView --> Administrador: mostrarDashboardCompleto()
+deactivate AnalyticsView
+
+== Cambio de Filtro de Período ==
+
+Administrador -> AnalyticsView: cambiarFiltro(periodo)
+activate AnalyticsView
+note right: Selecciona: 7, 30 o 365 días
+
+AnalyticsView -> Controller: wire:model.live="dateFilter"
+activate Controller
+
+Controller -> Controller: updated($property)
+note right: Livewire detecta cambio\ny recalcula properties
+
+Controller -> Controller: getKpisProperty()
+note right: Recalcula con nuevo dateFrom
+
+Controller -> SaleModel: where('created_at', '>=', newDateFrom)
+activate SaleModel
+SaleModel --> Controller: newSalesData
+deactivate SaleModel
+
+Controller -> Controller: getSalesChartDataProperty()
+
+alt dateFilter == '365'
+    Controller -> SaleModel: groupBy('YYYY-MM')
+    activate SaleModel
+    note right: Agrupación mensual
+    SaleModel --> Controller: monthlySalesData
+    deactivate SaleModel
+else dateFilter == '7' or '30'
+    Controller -> SaleModel: groupBy('DATE(created_at)')
+    activate SaleModel
+    note right: Agrupación diaria
+    SaleModel --> Controller: dailySalesData
+    deactivate SaleModel
+end
+
+Controller -> Controller: recalcularTopProducts()
+
+Controller -> Controller: recalcularTopRatedProducts()
+
+Controller -> Controller: recalcularCriticalStock()
+
+Controller --> AnalyticsView: actualizarVista(nuevosKPIs, nuevoChart, nuevosTop)
+deactivate Controller
+
+AnalyticsView -> AnalyticsView: recrearGrafico()
+note right: MutationObserver detecta\ncambio de wire:key y reinicializa\nApexCharts
+
+AnalyticsView --> Administrador: mostrarDatosActualizados()
+deactivate AnalyticsView
+
+== Interacción con Gráfico ==
+
+Administrador -> AnalyticsView: hoverSobrePunto(fecha)
+activate AnalyticsView
+
+AnalyticsView -> AnalyticsView: mostrarTooltip(fecha, monto)
+
+AnalyticsView --> Administrador: displayTooltip("17 Nov: $1,234.56")
+deactivate AnalyticsView
+
+@enduml

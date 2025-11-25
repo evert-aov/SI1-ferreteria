@@ -19,6 +19,8 @@ use App\Livewire\Inventory\CategoryManager;
 use App\Livewire\Inventory\ExitNoteManager;
 use App\Livewire\Inventory\ProductAlertManager;
 use App\Livewire\Inventory\ProductManager;
+use App\Livewire\Reports\Analytics;
+use App\Livewire\Reports\AuditLog;
 use App\Livewire\Reports\AuditLog;
 use App\Livewire\Reports\CashRegister;
 use Illuminate\Support\Facades\Route;
@@ -57,10 +59,8 @@ Route::prefix('carrito')->name('cart.')->group(function () {
 
 Route::middleware(['auth'])->group(function () {
 
-    // Dashboard
-    Route::get('/dashboard', function () {
-        return view('dashboard');
-    })->middleware(['verified'])->name('dashboard');
+    // Dashboard - Panel Principal con Analytics
+    Route::get('/dashboard', Analytics::class)->middleware(['verified'])->name('dashboard');
 
     // Perfil
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -140,6 +140,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/reports/download-pdf', [ReportController::class, 'downloadPdf'])->name('reports.download-pdf');
     Route::post('/reports/download-excel', [ReportController::class, 'downloadExcel'])->name('reports.download-excel');
     Route::post('/reports/download-html', [ReportController::class, 'downloadHtml'])->name('reports.download-html');
+});
 
     // Gestión de plantillas de reportes
     Route::prefix('reports/templates')->name('reports.templates.')->group(function () {

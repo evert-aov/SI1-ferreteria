@@ -130,11 +130,15 @@ class Sale extends Model
         ]);
     }
 
+    public function markAsDelivered(): void
     public function markAsDelivered($deliveredBy = null): void
     {
         $this->update([
             'status' => 'delivered',
             'delivered_at' => now(),
+        ]);
+    }
+
             'delivered_by' => $deliveredBy,
         ]);
     }
