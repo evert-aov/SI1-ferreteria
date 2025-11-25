@@ -13,15 +13,15 @@ RUN apt-get update && apt-get install -y \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Instalar extensiones PHP (INCLUYENDO GD)
+# Instalar extensiones PHP
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install -j$(nproc) gd pdo pdo_pgsql zip
 
 # Instalar Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Instalar Node.js 22
-RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
+# Instalar Node.js 20 (La 22 es muy nueva y a veces da problemas con algunas distros, la 20 es LTS)
+RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
     && apt-get install -y nodejs
 
 WORKDIR /app
@@ -44,14 +44,13 @@ RUN npm run build
 RUN mkdir -p storage/framework/{sessions,views,cache,testing} storage/logs bootstrap/cache \
     && chmod -R 777 storage bootstrap/cache
 
-EXPOSE 8080
+# NOTA: No uses EXPOSE o úsalo solo como documentación, Railway ignora esto.
 
-# Comando de inicio - cachear AQUÍ cuando las variables de entorno están disponibles
-CMD php artisan config:clear && \
+# Comando de inicio CORREGIDO
+# Usamos "sh -c" para que pueda interpretar la variable $PORT de Railway
+CMD sh -c "php artisan config:clear && \
     php artisan cache:clear && \
     php artisan view:clear && \
-    php artisan config:cache && \
     php artisan route:cache && \
-    php artisan view:cache && \
     php artisan migrate --force && \
-    php artisan serve --host=0.0.0.0 --port=8080
+    php artisan serve --host=0.0.0.0 --port=${PORT:-8080}"

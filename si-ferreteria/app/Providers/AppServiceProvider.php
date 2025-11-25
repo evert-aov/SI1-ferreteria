@@ -2,6 +2,9 @@
 
 namespace App\Providers;
 
+use App\Models\Sale;
+use App\Observers\EntryObserver;
+use App\Observers\SaleObserver;
 use App\Models\Inventory\Category;
 use App\Models\Inventory\Product;
 use App\Models\Purchase\Entry;
@@ -41,6 +44,8 @@ class AppServiceProvider extends ServiceProvider
         Product::observe(ProductObserve::class);
         Category::observe(CategoryObserver::class);
         Entry::observe(PurchaseObserver::class);
+        Sale::observe(SaleObserver::class);
+        Entry::observe(EntryObserver::class);
         if (config('app.env') === 'production') {
             URL::forceScheme('https');
         }

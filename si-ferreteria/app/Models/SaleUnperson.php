@@ -32,6 +32,7 @@ class SaleUnperson extends Model
     {
         $this->subtotal = $this->saleDetails()->sum('subtotal');
         $this->total = $this->subtotal - $this->discount + $this->tax;
+        $this->total = (float)($this->subtotal - $this->discount + $this->tax);
         $this->saveQuietly();
     }
 

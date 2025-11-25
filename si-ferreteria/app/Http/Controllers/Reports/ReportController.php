@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Reports;
 
 use App\Http\Controllers\Controller;
+use App\Models\ReportTemplate;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -625,5 +626,117 @@ class ReportController extends Controller
         } catch (\Exception $e) {
             return back()->withErrors(['error' => 'Error al generar HTML: ' . $e->getMessage()]);
         }
+    }
+
+    /**
+     * =========================================
+     * GESTIÓN DE PLANTILLAS DE REPORTES
+     * =========================================
+     */
+
+    /**
+     * Listar plantillas del usuario actual y públicas
+     */
+    public function listTemplates()
+    {
+        $templates = ReportTemplate::where('user_id', auth()->id())
+            ->orWhere('is_public', true)
+            ->orderBy('created_at', 'desc')
+            ->get();
+        
+        $availableTables = $this->getAvailableTables();
+        
+        return view('reports.templates-list', compact('templates', 'availableTables'));
+    }
+
+    /**
+     * Guardar nueva plantilla
+     */
+    public function saveTemplate(Request $request)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'table' => 'required|string',
+            'fields' => 'required|array|min:1',
+            'filters' => 'nullable|array',
+            'is_public' => 'nullable|boolean',
+        ]);
+
+        $template = ReportTemplate::create([
+            'user_id' => auth()->id(),
+            'name' => $request->name,
+            'description' => $request->description,
+            'table_name' => $request->table,
+            'selected_fields' => $request->fields,
+            'filters' => $request->filters ?? [],
+            'is_public' => $request->is_public ?? false,
+        ]);
+
+        return redirect()->route('reports.templates.list')
+            ->with('success', 'Plantilla guardada exitosamente');
+    }
+
+    /**
+     * Cargar plantilla existente
+     */
+    public function loadTemplate($id)
+    {
+        $template = ReportTemplate::where('id', $id)
+            ->where(function($query) {
+                $query->where('user_id', auth()->id())
+                      ->orWhere('is_public', true);
+            })
+            ->firstOrFail();
+
+        // Retornar vista con datos precargados
+        $availableTables = $this->getAvailableTables();
+        
+        return view('reports.dynamic-report-selector', 
+            compact('availableTables', 'template'));
+    }
+
+    /**
+     * Actualizar plantilla existente
+     */
+    public function updateTemplate(Request $request, $id)
+    {
+        $template = ReportTemplate::where('id', $id)
+            ->where('user_id', auth()->id())
+            ->firstOrFail();
+
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'fields' => 'required|array|min:1',
+            'filters' => 'nullable|array',
+            'is_public' => 'nullable|boolean',
+        ]);
+
+        $template->update([
+            'name' => $request->name,
+            'description' => $request->description,
+            'selected_fields' => $request->fields,
+            'filters' => $request->filters ?? [],
+            'is_public' => $request->is_public ?? false,
+        ]);
+
+        return redirect()->route('reports.templates.list')
+            ->with('success', 'Plantilla actualizada exitosamente');
+    }
+
+    /**
+     * Eliminar plantilla
+     */
+    public function deleteTemplate($id)
+    {
+        $template = ReportTemplate::where('id', $id)
+            ->where('user_id', auth()->id())
+            ->firstOrFail();
+
+        $template->delete();
+
+        return redirect()->route('reports.templates.list')
+            ->with('success', 'Plantilla eliminada exitosamente');
     }
 }

@@ -2,11 +2,16 @@
     <x-container-div>
         <!-- Header -->
         <x-container-second-div class="mb-6">
-            <div class="flex items-center">
+            <div class="flex items-center justify-between">
                 <x-input-label class="text-lg font-semibold">
                     <x-icons.table class="mr-2"></x-icons.table>
                     Generador de Reportes Dinámicos
                 </x-input-label>
+                <a href="{{ route('reports.templates.list') }}"
+                    class="px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-500 text-white rounded-lg hover:from-purple-500 hover:to-pink-600 transition-all duration-300 font-medium inline-flex items-center">
+                    <x-icons.table class="w-5 h-5 mr-2"></x-icons.table>
+                    Mis Plantillas
+                </a>
             </div>
         </x-container-second-div>
 
@@ -48,6 +53,68 @@
                     <p class="text-sm text-gray-400 mt-2">
                         Los campos disponibles cambiarán automáticamente según la tabla seleccionada
                     </p>
+                </div>
+
+                <!-- Voice Recognition Section -->
+                <div
+                    class="mb-8 p-6 bg-gradient-to-r from-purple-900/20 to-blue-900/20 rounded-lg border border-purple-700/50">
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <x-input-label class="mb-1">
+                                <svg class="inline w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd"
+                                        d="M7 4a3 3 0 016 0v4a3 3 0 11-6 0V4zm4 10.93A7.001 7.001 0 0017 8a1 1 0 10-2 0A5 5 0 015 8a1 1 0 00-2 0 7.001 7.001 0 006 6.93V17H6a1 1 0 100 2h8a1 1 0 100-2h-3v-2.07z"
+                                        clip-rule="evenodd"></path>
+                                </svg>
+                                Comando de Voz (Experimental)
+                            </x-input-label>
+                            <p class="text-xs text-gray-400">
+                                Presiona el micrófono y di lo que necesitas. Ejemplo: "Quiero un reporte de productos
+                                con nombre y precio"
+                            </p>
+                        </div>
+                        <button type="button" id="voiceButton"
+                            class="relative px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-full hover:from-purple-500 hover:to-blue-500 transition-all duration-300 hover:shadow-lg hover:shadow-purple-600/50 font-medium disabled:opacity-50 disabled:cursor-not-allowed">
+                            <svg id="micIcon" class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd"
+                                    d="M7 4a3 3 0 016 0v4a3 3 0 11-6 0V4zm4 10.93A7.001 7.001 0 0017 8a1 1 0 10-2 0A5 5 0 015 8a1 1 0 00-2 0 7.001 7.001 0 006 6.93V17H6a1 1 0 100 2h8a1 1 0 100-2h-3v-2.07z"
+                                    clip-rule="evenodd"></path>
+                            </svg>
+                            <span class="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full hidden"
+                                id="recordingIndicator"></span>
+                        </button>
+                    </div>
+
+                    <!-- Transcript Display -->
+                    <div id="transcriptContainer" class="hidden">
+                        <div class="bg-gray-800/50 rounded-lg p-4 border border-gray-700">
+                            <div class="flex items-start justify-between mb-2">
+                                <span class="text-xs font-semibold text-purple-400 uppercase">Escuchando...</span>
+                                <button type="button" id="clearTranscript"
+                                    class="text-gray-400 hover:text-white text-xs">
+                                    Limpiar
+                                </button>
+                            </div>
+                            <p id="transcriptText" class="text-white text-sm min-h-[40px] italic"></p>
+                            <div class="mt-3 flex gap-2">
+                                <button type="button" id="applyVoiceCommand"
+                                    class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-500 transition-all text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed">
+                                    ✓ Aplicar Comando
+                                </button>
+                                <button type="button" id="cancelVoiceCommand"
+                                    class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-500 transition-all text-sm font-medium">
+                                    ✕ Cancelar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Browser Support Warning -->
+                    <div id="voiceNotSupported"
+                        class="hidden bg-yellow-900/20 border border-yellow-600 text-yellow-400 p-3 rounded-lg text-sm">
+                        <strong>⚠️ Reconocimiento de voz no disponible</strong><br>
+                        Tu navegador no soporta reconocimiento de voz. Por favor usa Chrome, Edge o Safari.
+                    </div>
                 </div>
 
                 <!-- Fields Selection (will be populated by JavaScript)-->
@@ -366,5 +433,312 @@
                 container.innerHTML = renderInputHtml(inputType, `filters[${index}][value]`, 'Valor');
             }
         }
+
+        // ====================================
+        // VOICE RECOGNITION INTEGRATION
+        // ====================================
+        let voiceRecognizer = null;
+        let parsedCommand = null;
+
+        // Initialize voice recognition
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check if VoiceReportGenerator is available
+            if (typeof VoiceReportGenerator === 'undefined') {
+                console.error('VoiceReportGenerator not loaded');
+                document.getElementById('voiceNotSupported').classList.remove('hidden');
+                document.getElementById('voiceButton').disabled = true;
+                return;
+            }
+
+            voiceRecognizer = new VoiceReportGenerator();
+
+            if (!voiceRecognizer.init()) {
+                document.getElementById('voiceNotSupported').classList.remove('hidden');
+                document.getElementById('voiceButton').disabled = true;
+                return;
+            }
+
+            // Override callbacks
+            voiceRecognizer.onStart = function() {
+                document.getElementById('recordingIndicator').classList.remove('hidden');
+                document.getElementById('micIcon').classList.add('animate-pulse');
+                document.getElementById('transcriptContainer').classList.remove('hidden');
+                document.getElementById('transcriptText').textContent = '';
+            };
+
+            voiceRecognizer.onTranscript = function(text, isInterim) {
+                const transcriptEl = document.getElementById('transcriptText');
+                transcriptEl.textContent = text;
+                if (!isInterim) {
+                    transcriptEl.classList.remove('text-gray-400');
+                    transcriptEl.classList.add('text-white');
+                } else {
+                    transcriptEl.classList.add('text-gray-400');
+                }
+            };
+
+            voiceRecognizer.onEnd = function() {
+                document.getElementById('recordingIndicator').classList.add('hidden');
+                document.getElementById('micIcon').classList.remove('animate-pulse');
+
+                if (voiceRecognizer.transcript) {
+                    parsedCommand = voiceRecognizer.parseCommand(voiceRecognizer.transcript);
+                    console.log('Parsed command:', parsedCommand);
+                    document.getElementById('applyVoiceCommand').disabled = false;
+                }
+            };
+
+            voiceRecognizer.onError = function(error) {
+                document.getElementById('recordingIndicator').classList.add('hidden');
+                document.getElementById('micIcon').classList.remove('animate-pulse');
+
+                let errorMsg = 'Error en el reconocimiento de voz';
+                if (error === 'not-allowed') {
+                    errorMsg = 'Permiso de micrófono denegado. Por favor permite el acceso al micrófono.';
+                } else if (error === 'no-speech') {
+                    errorMsg = 'No se detectó voz. Intenta de nuevo.';
+                }
+
+                alert(errorMsg);
+            };
+
+            // Voice button click handler
+            document.getElementById('voiceButton').addEventListener('click', function() {
+                if (voiceRecognizer.isListening) {
+                    voiceRecognizer.stop();
+                } else {
+                    voiceRecognizer.start();
+                }
+            });
+
+            // Apply command button
+            document.getElementById('applyVoiceCommand').addEventListener('click', function() {
+                if (!parsedCommand) return;
+
+                applyVoiceCommandToForm(parsedCommand);
+
+                // Hide transcript container
+                document.getElementById('transcriptContainer').classList.add('hidden');
+                parsedCommand = null;
+            });
+
+            // Cancel command button
+            document.getElementById('cancelVoiceCommand').addEventListener('click', function() {
+                document.getElementById('transcriptContainer').classList.add('hidden');
+                document.getElementById('transcriptText').textContent = '';
+                parsedCommand = null;
+            });
+
+            // Clear transcript button
+            document.getElementById('clearTranscript').addEventListener('click', function() {
+                document.getElementById('transcriptText').textContent = '';
+                parsedCommand = null;
+            });
+        });
+
+        /**
+         * Apply parsed voice command to form
+         */
+        function applyVoiceCommandToForm(command) {
+            console.log('Applying command:', command);
+
+            // 1. Select table
+            if (command.table) {
+                const tableSelect = document.getElementById('tableSelect');
+                const option = Array.from(tableSelect.options).find(opt => opt.value === command.table);
+
+                if (option) {
+                    tableSelect.value = command.table;
+                    // Trigger change event to load fields
+                    tableSelect.dispatchEvent(new Event('change'));
+
+                    // Wait for fields to load, then select them
+                    setTimeout(() => {
+                        applyFieldsAndFilters(command);
+                    }, 1500); // Give time for AJAX to complete
+                } else {
+                    alert(`No se encontró la tabla "${command.table}". Intenta con otro nombre.`);
+                }
+            } else {
+                alert(
+                    'No se pudo identificar la tabla en el comando. Intenta de nuevo con algo como "reporte de productos".'
+                );
+            }
+        }
+
+        function applyFieldsAndFilters(command) {
+            // 2. Select fields
+            if (command.fields && command.fields.length > 0) {
+                command.fields.forEach(fieldKey => {
+                    const checkbox = document.getElementById(`field_${fieldKey}`);
+                    if (checkbox) {
+                        checkbox.checked = true;
+                    }
+                });
+            }
+
+            // 3. Add filters
+            if (command.filters && command.filters.length > 0) {
+                command.filters.forEach(filter => {
+                    addFilterRow();
+
+                    // Wait a bit for the filter row to be added to DOM
+                    setTimeout(() => {
+                        const lastFilterIndex = filterCount - 1;
+                        const rowId = `filter-row-${lastFilterIndex}`;
+                        const row = document.getElementById(rowId);
+
+                        if (row) {
+                            // Set field
+                            const fieldSelect = row.querySelector('select[name$="[field]"]');
+                            if (fieldSelect) {
+                                fieldSelect.value = filter.field;
+                                fieldSelect.dispatchEvent(new Event('change'));
+                            }
+
+                            // Set operator
+                            const operatorSelect = row.querySelector('select[name$="[operator]"]');
+                            if (operatorSelect) {
+                                operatorSelect.value = filter.operator;
+                                operatorSelect.dispatchEvent(new Event('change'));
+                            }
+
+                            // Set value
+                            setTimeout(() => {
+                                const valueInput = row.querySelector(
+                                    'input[name$="[value]"], select[name$="[value]"]');
+                                if (valueInput) {
+                                    valueInput.value = filter.value;
+                                }
+                            }, 100);
+                        }
+                    }, 100);
+                });
+            }
+
+            // Show success message
+            const successMsg = document.createElement('div');
+            successMsg.className =
+                'fixed top-4 right-4 bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg z-50 animate-fade-in';
+            successMsg.innerHTML = `
+                <strong>✓ Comando aplicado</strong><br>
+                <span class="text-sm">Tabla: ${command.table}, Campos: ${command.fields.length}, Filtros: ${command.filters.length}</span>
+            `;
+            document.body.appendChild(successMsg);
+
+            setTimeout(() => {
+                successMsg.remove();
+            }, 4000);
+        }
+
+        // ====================================
+        // AUTO-LOAD TEMPLATE IF EXISTS
+        // ====================================
+        @if (isset($template))
+            document.addEventListener('DOMContentLoaded', function() {
+                console.log('Loading template:', @json($template));
+
+                // 1. Select the table
+                const tableSelect = document.getElementById('tableSelect');
+                tableSelect.value = '{{ $template->table_name }}';
+
+                // 2. Trigger change event to load fields
+                tableSelect.dispatchEvent(new Event('change'));
+
+                // 3. Wait for fields to load, then select them
+                setTimeout(() => {
+                    const templateFields = @json($template->selected_fields);
+                    console.log('Template fields:', templateFields);
+
+                    // Select the checkboxes
+                    templateFields.forEach(fieldKey => {
+                        const checkbox = document.getElementById(`field_${fieldKey}`);
+                        if (checkbox) {
+                            checkbox.checked = true;
+                            console.log('Checked field:', fieldKey);
+                        } else {
+                            console.warn('Field not found:', fieldKey);
+                        }
+                    });
+
+                    // 4. Add filters if any
+                    const templateFilters = @json($template->filters);
+                    console.log('Template filters:', templateFilters);
+
+                    if (templateFilters && templateFilters.length > 0) {
+                        templateFilters.forEach(filter => {
+                            addFilterRow();
+
+                            setTimeout(() => {
+                                const lastFilterIndex = filterCount - 1;
+                                const rowId = `filter-row-${lastFilterIndex}`;
+                                const row = document.getElementById(rowId);
+
+                                if (row) {
+                                    // Set field
+                                    const fieldSelect = row.querySelector(
+                                        'select[name$="[field]"]');
+                                    if (fieldSelect && filter.field) {
+                                        fieldSelect.value = filter.field;
+                                        fieldSelect.dispatchEvent(new Event('change'));
+                                    }
+
+                                    // Set operator
+                                    setTimeout(() => {
+                                        const operatorSelect = row.querySelector(
+                                            'select[name$="[operator]"]');
+                                        if (operatorSelect && filter.operator) {
+                                            operatorSelect.value = filter.operator;
+                                            operatorSelect.dispatchEvent(new Event(
+                                                'change'));
+                                        }
+
+                                        // Set value(s)
+                                        setTimeout(() => {
+                                            const valueInput = row
+                                                .querySelector(
+                                                    'input[name$="[value]"], select[name$="[value]"]'
+                                                    );
+                                            if (valueInput && filter
+                                                .value) {
+                                                valueInput.value = filter
+                                                    .value;
+                                            }
+
+                                            // If between operator, set second value
+                                            if (filter.value2) {
+                                                const value2Input = row
+                                                    .querySelector(
+                                                        'input[name$="[value2]"]'
+                                                        );
+                                                if (value2Input) {
+                                                    value2Input.value =
+                                                        filter.value2;
+                                                }
+                                            }
+                                        }, 100);
+                                    }, 100);
+                                }
+                            }, 150);
+                        });
+                    }
+
+                    // Show success message
+                    const successMsg = document.createElement('div');
+                    successMsg.className =
+                        'fixed top-4 right-4 bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg z-50';
+                    successMsg.innerHTML = `
+                    <strong>✓ Plantilla cargada</strong><br>
+                    <span class="text-sm">{{ $template->name }}</span>
+                `;
+                    document.body.appendChild(successMsg);
+
+                    setTimeout(() => {
+                        successMsg.remove();
+                    }, 4000);
+
+                }, 1500); // Wait for AJAX to load fields
+            });
+        @endif
     </script>
 </x-app-layout>

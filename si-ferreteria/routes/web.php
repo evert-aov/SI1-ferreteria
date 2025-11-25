@@ -21,7 +21,10 @@ use App\Livewire\Inventory\ProductAlertManager;
 use App\Livewire\Inventory\ProductManager;
 use App\Livewire\Reports\Analytics;
 use App\Livewire\Reports\AuditLog;
+use App\Livewire\Reports\AuditLog;
+use App\Livewire\Reports\CashRegister;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Admin\ClaimController;
 
 // ========== RUTAS PÚBLICAS ==========
 
@@ -86,6 +89,14 @@ Route::middleware(['auth'])->group(function () {
     // Checkout del carrito
     Route::get('/carrito/checkout', [CartController::class, 'checkout'])->name('cart.checkout');
 
+    // Claims routes
+    Route::get('/mis-reclamos', [ClaimController::class, 'index'])->name('claims.index');
+    Route::get('/reclamos/crear/{saleDetailId}', [ClaimController::class, 'create'])->name('claims.create');
+    Route::post('/reclamos', [ClaimController::class, 'store'])->name('claims.store');
+    Route::get('/reclamos/{id}', [ClaimController::class, 'show'])->name('claims.show');
+    Route::patch('/reclamos/{id}/estado', [ClaimController::class, 'updateStatus'])->name('claims.update-status');
+    Route::delete('/reclamos/{id}', [ClaimController::class, 'destroy'])->name('claims.destroy');
+
     // Rutas de PayPal
     Route::prefix('paypal')->name('paypal.')->group(function () {
         Route::post('/create', [PayPalController::class, 'createPayment'])->name('create');
@@ -102,6 +113,23 @@ Route::middleware(['auth'])->group(function () {
     // Admin routes
     Route::get('/admin/reviews', [ReviewController::class, 'moderate'])->name('admin.reviews.moderate');
 
+
+
+    // ========== DELIVERY MANAGEMENT ==========
+    // Delivery routes (for delivery personnel)
+    Route::prefix('deliveries')->name('deliveries.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Deliveries\DeliveryController::class, 'index'])->name('index');
+        Route::get('/{id}', [\App\Http\Controllers\Deliveries\DeliveryController::class, 'show'])->name('show');
+        Route::post('/{id}/mark-delivered', [\App\Http\Controllers\Deliveries\DeliveryController::class, 'markAsDelivered'])->name('mark-delivered');
+    });
+
+    // Customer order routes
+    Route::prefix('my-orders')->name('customer.orders.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Customer\CustomerOrderController::class, 'index'])->name('index');
+        Route::get('/{id}', [\App\Http\Controllers\Customer\CustomerOrderController::class, 'show'])->name('show');
+        Route::post('/{id}/cancel', [\App\Http\Controllers\Customer\CustomerOrderController::class, 'cancel'])->name('cancel');
+    });
+
     // ========== REPORTES Y ANÁLISIS ==========
     Route::get('/audit-logs', AuditLog::class)->name('audit-logs.index');
 
@@ -113,5 +141,37 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/reports/download-excel', [ReportController::class, 'downloadExcel'])->name('reports.download-excel');
     Route::post('/reports/download-html', [ReportController::class, 'downloadHtml'])->name('reports.download-html');
 });
+
+    // Gestión de plantillas de reportes
+    Route::prefix('reports/templates')->name('reports.templates.')->group(function () {
+        Route::get('/', [ReportController::class, 'listTemplates'])->name('list');
+        Route::post('/save', [ReportController::class, 'saveTemplate'])->name('save');
+        Route::get('/load/{id}', [ReportController::class, 'loadTemplate'])->name('load');
+        Route::put('/{id}', [ReportController::class, 'updateTemplate'])->name('update');
+        Route::delete('/{id}', [ReportController::class, 'deleteTemplate'])->name('delete');
+    });
+
+        Route::prefix('reports/cash-register')->name('cash-register.')->group(function () {
+            // Listado principal
+            Route::get('/', CashRegister\Index::class)->name('index');
+
+            // Abrir caja
+            Route::get('/open', CashRegister\Open::class)->name('open');
+
+            // Dashboard de caja abierta
+            Route::get('/dashboard', CashRegister\Dashboard::class)->name('dashboard');
+
+            // Realizar arqueo ← AGREGADO
+            Route::get('/count', CashRegister\Count::class)->name('count');
+
+            // Cerrar caja (sin parámetro)
+            Route::get('/close', CashRegister\Close::class)->name('close');
+
+            // Historial (Solo Admin)
+            Route::get('/history', CashRegister\History::class)
+                ->middleware('role:Administrador')
+                ->name('history');
+        });
+    });
 
 require __DIR__ . '/auth.php';

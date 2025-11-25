@@ -28,6 +28,13 @@ class RoleSeeder extends Seeder
                 'created_by' => 'system',
             ],
             [
+                'name' => 'Repartidor',
+                'description' => 'Gestión de entregas y pedidos',
+                'level' => 3,
+                'is_active' => true,
+                'created_by' => 'system',
+            ],
+            [
                 'name' => 'Cliente',
                 'description' => 'Acceso limitado para ver productos',
                 'level' => 1,

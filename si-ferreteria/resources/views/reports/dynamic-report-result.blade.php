@@ -5,7 +5,7 @@
             <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div class="flex items-center">
                     <x-input-label class="text-lg font-semibold">
-                        <x-icons.table class="mr-2"/>
+                        <x-icons.table class="mr-2" />
                         Reporte: {{ $tableName }}
                     </x-input-label>
                 </div>
@@ -15,7 +15,7 @@
 
                         <button type="submit"
                             class="px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-500 text-white rounded-lg hover:from-blue-500 hover:to-blue-600 transition-all duration-300 hover:shadow-lg hover:shadow-blue-600/25 font-medium inline-flex items-center">
-                            <x-icons.save class="w-5 h-5 mr-2"/>
+                            <x-icons.save class="w-5 h-5 mr-2" />
                             PDF
                         </button>
                     </form>
@@ -24,7 +24,7 @@
 
                         <button type="submit"
                             class="px-4 py-2 bg-gradient-to-r from-green-600 to-emerald-500 text-white rounded-lg hover:from-green-500 hover:to-emerald-600 transition-all duration-300 hover:shadow-lg hover:shadow-green-600/25 font-medium inline-flex items-center">
-                            <x-icons.save class="w-5 h-5 mr-2"/>
+                            <x-icons.save class="w-5 h-5 mr-2" />
                             Excel
                         </button>
                     </form>
@@ -33,14 +33,24 @@
 
                         <button type="submit"
                             class="px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-500 text-white rounded-lg hover:from-purple-500 hover:to-indigo-600 transition-all duration-300 hover:shadow-lg hover:shadow-purple-600/25 font-medium inline-flex items-center">
-                            <x-icons.save class="w-5 h-5 mr-2"/>
+                            <x-icons.save class="w-5 h-5 mr-2" />
                             HTML
                         </button>
                     </form>
                     <a href="{{ route('reports.users.index') }}"
                         class="px-4 py-2 bg-gradient-to-r from-orange-600 to-yellow-500 text-white rounded-lg hover:from-yellow-500 hover:to-orange-600 transition-all duration-300 hover:shadow-lg hover:shadow-orange-600/25 font-medium inline-flex items-center">
-                        <x-icons.search class="w-5 h-5 mr-2"/>
+                        <x-icons.search class="w-5 h-5 mr-2" />
                         Nuevo Reporte
+                    </a>
+                    <button type="button" onclick="showSaveTemplateModal()"
+                        class="px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-500 text-white rounded-lg hover:from-purple-500 hover:to-pink-600 transition-all duration-300 hover:shadow-lg hover:shadow-purple-600/25 font-medium inline-flex items-center">
+                        <x-icons.save class="w-5 h-5 mr-2" />
+                        Guardar Plantilla
+                    </button>
+                    <a href="{{ route('reports.templates.list') }}"
+                        class="px-4 py-2 bg-gradient-to-r from-gray-600 to-gray-500 text-white rounded-lg hover:from-gray-500 hover:to-gray-600 transition-all duration-300 hover:shadow-lg font-medium inline-flex items-center">
+                        <x-icons.table class="w-5 h-5 mr-2" />
+                        Mis Plantillas
                     </a>
                 </div>
             </div>
@@ -50,7 +60,7 @@
         <x-container-second-div class="mb-6">
             <div class="flex items-center justify-between">
                 <div class="flex items-center">
-                    <x-icons.table class="w-5 h-5 text-orange-500 mr-2"/>
+                    <x-icons.table class="w-5 h-5 text-orange-500 mr-2" />
                     <span class="text-sm text-gray-300">
                         Total de registros: <strong class="text-orange-500">{{ $data->total() }}</strong>
                     </span>
@@ -164,5 +174,92 @@
             </div>
         </x-container-second-div>
     </x-container-div>
+
+    <!-- Modal para guardar plantilla -->
+    <div id="saveTemplateModal" class="hidden fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
+        <div class="bg-gray-800 rounded-lg p-6 max-w-md w-full border border-gray-700 shadow-2xl">
+            <h3 class="text-xl font-bold mb-4 text-white flex items-center">
+                <x-icons.save class="w-6 h-6 mr-2 text-purple-400" />
+                Guardar como Plantilla
+            </h3>
+
+            <form action="{{ route('reports.templates.save') }}" method="POST">
+                @csrf
+                <input type="hidden" name="table" value="{{ $table }}">
+                @foreach ($selectedFields as $field)
+                    <input type="hidden" name="fields[]" value="{{ $field }}">
+                @endforeach
+                @foreach ($filters as $index => $filter)
+                    <input type="hidden" name="filters[{{ $index }}][field]"
+                        value="{{ $filter['field'] ?? '' }}">
+                    <input type="hidden" name="filters[{{ $index }}][operator]"
+                        value="{{ $filter['operator'] ?? '' }}">
+                    <input type="hidden" name="filters[{{ $index }}][value]"
+                        value="{{ $filter['value'] ?? '' }}">
+                    @if (isset($filter['value2']))
+                        <input type="hidden" name="filters[{{ $index }}][value2]"
+                            value="{{ $filter['value2'] }}">
+                    @endif
+                @endforeach
+
+                <div class="mb-4">
+                    <label class="block text-sm font-medium mb-2 text-gray-300">Nombre de la Plantilla</label>
+                    <input type="text" name="name" required placeholder="Ej: Reporte mensual de ventas"
+                        class="w-full bg-gray-700 border-gray-600 text-white rounded-lg focus:border-purple-500 focus:ring-purple-500">
+                </div>
+
+                <div class="mb-4">
+                    <label class="block text-sm font-medium mb-2 text-gray-300">Descripción (opcional)</label>
+                    <textarea name="description" rows="3" placeholder="Describe el propósito de esta plantilla..."
+                        class="w-full bg-gray-700 border-gray-600 text-white rounded-lg focus:border-purple-500 focus:ring-purple-500"></textarea>
+                </div>
+
+                <div class="mb-6">
+                    <label class="flex items-center cursor-pointer">
+                        <input type="checkbox" name="is_public" value="1"
+                            class="mr-3 w-5 h-5 text-purple-600 bg-gray-700 border-gray-600 rounded focus:ring-purple-500">
+                        <span class="text-sm text-gray-300">
+                            Hacer pública (otros usuarios podrán usar esta plantilla)
+                        </span>
+                    </label>
+                </div>
+
+                <div class="flex gap-3">
+                    <button type="submit"
+                        class="flex-1 px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-500 text-white rounded-lg hover:from-purple-500 hover:to-pink-600 transition-all font-medium">
+                        💾 Guardar
+                    </button>
+                    <button type="button" onclick="hideSaveTemplateModal()"
+                        class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-500 transition-all">
+                        Cancelar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function showSaveTemplateModal() {
+            document.getElementById('saveTemplateModal').classList.remove('hidden');
+        }
+
+        function hideSaveTemplateModal() {
+            document.getElementById('saveTemplateModal').classList.add('hidden');
+        }
+
+        // Close modal on Escape key
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                hideSaveTemplateModal();
+            }
+        });
+
+        // Close modal on backdrop click
+        document.getElementById('saveTemplateModal').addEventListener('click', function(event) {
+            if (event.target === this) {
+                hideSaveTemplateModal();
+            }
+        });
+    </script>
 
 </x-app-layout>
