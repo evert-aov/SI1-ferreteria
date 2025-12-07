@@ -39,6 +39,19 @@
                         </svg>
                         <span class="hidden lg:inline text-xs sm:text-base">Mis Pedidos</span>
                     </a>
+
+                    <!-- Badge de Puntos de Lealtad -->
+                    @php
+                        $loyaltyAccount = Auth::user()->loyaltyAccount;
+                    @endphp
+                    @if ($loyaltyAccount)
+                        <a href="{{ route('loyalty.dashboard') }}"
+                            title="Mis puntos de lealtad">
+                            <span
+                                class="text-white font-bold text-sm sm:text-base">{{ $loyaltyAccount->available_points }}</span>
+                            <span class="text-white/80 text-xs">pts</span>
+                        </a>
+                    @endif
                 @endauth
 
                 <!-- Ícono del carrito con contador -->

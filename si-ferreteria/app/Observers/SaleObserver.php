@@ -8,6 +8,7 @@ use App\Enums\PaymentMethod;
 use App\Models\CashMovement;
 use App\Models\CashRegister;
 use App\Models\Sale;
+use App\Services\LoyaltyService;
 
 class SaleObserver
 {
@@ -39,6 +40,15 @@ class SaleObserver
             'description' => 'Venta #' . $sale->invoice_number,
             'sale_id' => $sale->id,
         ]);
+    }
+
+    public function updated(Sale $sale): void
+    {
+        // Otorgar puntos de lealtad cuando una venta cambia a 'paid'
+        if ($sale->isDirty('status') && $sale->status === 'paid') {
+            // Para ventas presenciales, usar multiplicador normal (1.0)
+            app(LoyaltyService::class)->awardPointsForSale($sale, $sale);
+        }
     }
 
     private function mapPaymentMethod(Sale $sale): PaymentMethod

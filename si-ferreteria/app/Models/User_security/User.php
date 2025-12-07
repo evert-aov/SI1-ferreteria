@@ -3,6 +3,7 @@
 namespace App\Models\User_security;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Models\Loyalty\LoyaltyAccount;
 use App\Models\ReportAndAnalysis\AuditLog;
 use App\Models\Sales\Customer;
 use Database\Factories\UserFactory;
@@ -95,6 +96,11 @@ class User extends Authenticatable
     public function audit_log(): HasOne
     {
         return $this->hasOne(AuditLog::class);
+    }
+
+    public function loyaltyAccount(): HasOne
+    {
+        return $this->hasOne(LoyaltyAccount::class, 'customer_id');
     }
 
     /**

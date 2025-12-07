@@ -21,7 +21,7 @@ class Product extends Model
         'image',
         'purchase_price',
         'purchase_price_unit',
-        '',
+        'sale_price',
         'sale_price_unit',
         'input',
         'output',

@@ -216,8 +216,17 @@
 
                             @if (isset($total['discount']) && $total['discount'] > 0)
                                 <div class="flex justify-between text-green-400">
-                                    <span>Descuento:</span>
-                                    <span class="font-semibold">-USD {{ number_format($total['discount'], 2) }}</span>
+                                    <span>Descuento cupón:</span>
+                                    <span class="font-semibold">-USD
+                                        {{ number_format($total['discount'], 2) }}</span>
+                                </div>
+                            @endif
+
+                            @if (isset($total['loyalty_discount']) && $total['loyalty_discount'] > 0)
+                                <div class="flex justify-between text-orange-400">
+                                    <span>Descuento puntos:</span>
+                                    <span class="font-semibold">-USD
+                                        {{ number_format($total['loyalty_discount'], 2) }}</span>
                                 </div>
                             @endif
 

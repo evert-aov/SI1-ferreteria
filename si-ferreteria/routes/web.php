@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\ClaimController;
 use App\Http\Controllers\Ecommerce\CartController;
 use App\Http\Controllers\Ecommerce\PayPalController;
 use App\Http\Controllers\Ecommerce\ProductController;
@@ -23,7 +24,6 @@ use App\Livewire\Reports\Analytics;
 use App\Livewire\Reports\AuditLog;
 use App\Livewire\Reports\CashRegister;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Admin\ClaimController;
 
 // ========== RUTAS PÚBLICAS ==========
 
@@ -33,6 +33,13 @@ Route::redirect('/', 'products')->name('products');
 // Catálogo y tienda (públicas)
 Route::get('/catalog', ProductCatalog::class)->name('catalog.index');
 Route::get('/catalog/product/{id}', ProductDetail::class)->name('catalog.product');
+
+// Rutas de importación de productos (deben ir ANTES de las rutas dinámicas)
+Route::middleware(['auth'])->group(function () {
+    Route::get('/products/import', [\App\Http\Controllers\ProductImportController::class, 'index'])->name('products.import.index');
+    Route::post('/products/import', [\App\Http\Controllers\ProductImportController::class, 'import'])->name('products.import.process');
+    Route::get('/products/import/template', [\App\Http\Controllers\ProductImportController::class, 'downloadTemplate'])->name('products.import.template');
+});
 
 // Rutas de productos (públicas)
 Route::get('/products', [ProductController::class, 'index'])->name('products.index');
@@ -112,8 +119,6 @@ Route::middleware(['auth'])->group(function () {
     // Admin routes
     Route::get('/admin/reviews', [ReviewController::class, 'moderate'])->name('admin.reviews.moderate');
 
-
-
     // ========== DELIVERY MANAGEMENT ==========
     // Delivery routes (for delivery personnel)
     Route::prefix('deliveries')->name('deliveries.')->group(function () {
@@ -141,35 +146,59 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/reports/download-html', [ReportController::class, 'downloadHtml'])->name('reports.download-html');
 });
 
-    // Gestión de plantillas de reportes
-    Route::prefix('reports/templates')->name('reports.templates.')->group(function () {
-        Route::get('/', [ReportController::class, 'listTemplates'])->name('list');
-        Route::post('/save', [ReportController::class, 'saveTemplate'])->name('save');
-        Route::get('/load/{id}', [ReportController::class, 'loadTemplate'])->name('load');
-        Route::put('/{id}', [ReportController::class, 'updateTemplate'])->name('update');
-        Route::delete('/{id}', [ReportController::class, 'deleteTemplate'])->name('delete');
-    });
+// Gestión de plantillas de reportes
+Route::prefix('reports/templates')->name('reports.templates.')->group(function () {
+    Route::get('/', [ReportController::class, 'listTemplates'])->name('list');
+    Route::post('/save', [ReportController::class, 'saveTemplate'])->name('save');
+    Route::get('/load/{id}', [ReportController::class, 'loadTemplate'])->name('load');
+    Route::put('/{id}', [ReportController::class, 'updateTemplate'])->name('update');
+    Route::delete('/{id}', [ReportController::class, 'deleteTemplate'])->name('delete');
+});
 
-        Route::prefix('reports/cash-register')->name('cash-register.')->group(function () {
-            // Listado principal
-            Route::get('/', CashRegister\Index::class)->name('index');
+// ========== SISTEMA DE FIDELIZACIÓN ==========
+// Rutas para clientes
+Route::prefix('loyalty')->name('loyalty.')->group(function () {
+    Route::get('/dashboard', [\App\Http\Controllers\Loyalty\LoyaltyController::class, 'dashboard'])->name('dashboard');
+    Route::get('/rewards', [\App\Http\Controllers\Loyalty\LoyaltyController::class, 'rewards'])->name('rewards');
+    Route::post('/redeem/{reward}', [\App\Http\Controllers\Loyalty\LoyaltyController::class, 'redeem'])->name('redeem');
+    Route::get('/transactions', [\App\Http\Controllers\Loyalty\LoyaltyController::class, 'transactions'])->name('transactions');
+    Route::get('/redemptions', [\App\Http\Controllers\Loyalty\LoyaltyController::class, 'redemptionHistory'])->name('redemptions');
+});
 
-            // Abrir caja
-            Route::get('/open', CashRegister\Open::class)->name('open');
+// Rutas para administradores
+Route::prefix('admin/loyalty')->name('admin.loyalty.')->group(function () {
+    Route::get('/config', [\App\Http\Controllers\Admin\Loyalty\AdminLoyaltyController::class, 'config'])->name('config');
+    
+    // CRUD de Recompensas
+    Route::get('/rewards/create', [\App\Http\Controllers\Admin\Loyalty\AdminLoyaltyController::class, 'createReward'])->name('rewards.create');
+    Route::post('/rewards', [\App\Http\Controllers\Admin\Loyalty\AdminLoyaltyController::class, 'storeReward'])->name('rewards.store');
+    Route::get('/rewards/{reward}/edit', [\App\Http\Controllers\Admin\Loyalty\AdminLoyaltyController::class, 'editReward'])->name('rewards.edit');
+    Route::put('/rewards/{reward}', [\App\Http\Controllers\Admin\Loyalty\AdminLoyaltyController::class, 'updateReward'])->name('rewards.update');
+    Route::post('/rewards/{reward}/toggle', [\App\Http\Controllers\Admin\Loyalty\AdminLoyaltyController::class, 'toggleReward'])->name('rewards.toggle');
+    Route::delete('/rewards/{reward}', [\App\Http\Controllers\Admin\Loyalty\AdminLoyaltyController::class, 'destroyReward'])->name('rewards.destroy');
+    
+    Route::get('/reports', [\App\Http\Controllers\Admin\Loyalty\AdminLoyaltyController::class, 'reports'])->name('reports');
+    Route::post('/accounts/{account}/adjust', [\App\Http\Controllers\Admin\Loyalty\AdminLoyaltyController::class, 'adjustPoints'])->name('accounts.adjust');
+});
 
-            // Dashboard de caja abierta
-            Route::get('/dashboard', CashRegister\Dashboard::class)->name('dashboard');
+Route::prefix('reports/cash-register')->name('cash-register.')->group(function () {
+    // Listado principal
+    Route::get('/', CashRegister\Index::class)->name('index');
 
-            // Realizar arqueo ← AGREGADO
-            Route::get('/count', CashRegister\Count::class)->name('count');
+    // Abrir caja
+    Route::get('/open', CashRegister\Open::class)->name('open');
 
-            // Cerrar caja (sin parámetro)
-            Route::get('/close', CashRegister\Close::class)->name('close');
+    // Dashboard de caja abierta
+    Route::get('/dashboard', CashRegister\Dashboard::class)->name('dashboard');
 
-            // Historial (Solo Admin)
-            Route::get('/history', CashRegister\History::class)
-                ->middleware('role:Administrador')
-                ->name('history');
-        });
+    // Realizar arqueo ← AGREGADO
+    Route::get('/count', CashRegister\Count::class)->name('count');
 
-require __DIR__ . '/auth.php';
+    // Cerrar caja (sin parámetro)
+    Route::get('/close', CashRegister\Close::class)->name('close');
+
+    // Historial (Solo Admin)
+    Route::get('/history', CashRegister\History::class)->name('history');
+});
+
+require __DIR__.'/auth.php';

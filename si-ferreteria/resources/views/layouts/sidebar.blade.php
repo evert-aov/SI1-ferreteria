@@ -6,13 +6,7 @@
         <ul class="space-y-2 font-medium mt-4">
 
             <!-- Dashboard Principal -->
-            <li class="py-4">
-                <a href="{{ route('dashboard') }}"
-                    class="flex items-center p-3 text-orange-100 rounded-lg hover:bg-gradient-to-r hover:from-orange-600/20 hover:to-amber-600/20 group transition-all duration-300 transform hover:scale-105 hover:shadow-lg border-l-4 border-transparent hover:border-orange-500">
-                    <x-icons.dashboard />
-                    <span class="ms-3 text-orange-100 group-hover:text-white font-medium">Panel Principal</span>
-                </a>
-            </li>
+
 
             {{-- ================================================= --}}
             {{-- P1: GESTIÓN DE USUARIOS Y ACCESOS 🔐           --}}
@@ -20,6 +14,13 @@
             {{-- (CU01 y CU08 están en nav/perfil)               --}}
             {{-- ================================================= --}}
             @if (auth()->user()->roles->contains('name', 'Administrador'))
+                <li class="py-4">
+                    <a href="{{ route('dashboard') }}"
+                        class="flex items-center p-3 text-orange-100 rounded-lg hover:bg-gradient-to-r hover:from-orange-600/20 hover:to-amber-600/20 group transition-all duration-300 transform hover:scale-105 hover:shadow-lg border-l-4 border-transparent hover:border-orange-500">
+                        <x-icons.dashboard />
+                        <span class="ms-3 text-orange-100 group-hover:text-white font-medium">Panel Principal</span>
+                    </a>
+                </li>
                 <li class="pt-4 mt-4">
                     <x-dividers title="🔐 Usuarios y Accesos" />
                 </li>
@@ -121,6 +122,18 @@
                                 Notas de Salida
                             </a>
                         </li>
+
+                        <!-- Importar Productos -->
+                        <li>
+                            <a href="{{ route('products.import.index') }}"
+                                class="flex items-center p-2 text-gray-400 rounded-lg hover:bg-amber-600/10 hover:text-amber-300 transition-all duration-200 text-sm">
+                                <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                                </svg>
+                                Importar Productos
+                            </a>
+                        </li>
                     </ul>
                 </li>
             @endif
@@ -209,62 +222,54 @@
 
                         <li>
                             <a href="{{ route('sales.index') }}"
-                               class="flex items-center p-2 text-gray-400 rounded-lg hover:bg-amber-600/10 hover:text-amber-300 transition-all duration-200 text-sm">
-                                <x-icons.shop/>
+                                class="flex items-center p-2 text-gray-400 rounded-lg hover:bg-amber-600/10 hover:text-amber-300 transition-all duration-200 text-sm">
+                                <x-icons.shop />
                                 {{ __('Ventas Presenciales') }}
                             </a>
                         </li>
 
-                        <li>
-                            <a href="{{ route('discounts.index') }}"
-                               class="flex items-center p-3 text-gray-400 rounded-lg hover:bg-amber-600/10 hover:text-amber-300 transition-all duration-200 text-sm">
-                                <x-icons.gift-card/>
-                                {{ __(' Descuentos') }}
-                            </a>
-                        </li>
                     </ul>
                 </li>
             @endif
 
-            @if(auth()->user()->roles->whereIn('name', ['Administrador', 'Vendedor'])->count() > 0)
+            @if (auth()->user()->roles->whereIn('name', ['Administrador', 'Vendedor'])->count() > 0)
                 <li class="pt-4 mt-4">
-                    <x-dividers title="Plataforma E-Commerce"/>
+                    <x-dividers title="Plataforma E-Commerce" />
                 </li>
 
                 <li x-data="{ open: false }">
                     <button @click="open = !open" type="button"
-                            class="flex items-center justify-between w-full p-3 text-gray-300 rounded-lg hover:bg-gradient-to-r hover:from-amber-600/20 hover:to-yellow-600/20 group transition-all duration-300 border-l-4 border-transparent hover:border-amber-500">
+                        class="flex items-center justify-between w-full p-3 text-gray-300 rounded-lg hover:bg-gradient-to-r hover:from-amber-600/20 hover:to-yellow-600/20 group transition-all duration-300 border-l-4 border-transparent hover:border-amber-500">
                         <div class="flex items-center">
-                            <x-icons.shop/>
+                            <x-icons.shop />
                             <span class="ms-3 font-medium">{{ __('Ventas') }}</span>
                         </div>
-                        <x-icons.deployment/>
+                        <x-icons.deployment />
                     </button>
 
-                    <ul x-show="open"
-                        class="pl-8 mt-2 space-y-2">
+                    <ul x-show="open" class="pl-8 mt-2 space-y-2">
                         <li>
                             <a href="{{ route('catalog.index') }}"
-                               class="flex items-center p-3 text-gray-300 rounded-lg hover:bg-gradient-to-r hover:from-purple-600/20 hover:to-indigo-600/20 group transition-all duration-300 transform hover:scale-105 hover:shadow-lg border-l-4 border-transparent hover:border-purple-500">
-                                <x-icons.catalog/>
-                                <x-input-label value="Catalogo" class="ms-3"/>
+                                class="flex items-center p-3 text-gray-300 rounded-lg hover:bg-gradient-to-r hover:from-purple-600/20 hover:to-indigo-600/20 group transition-all duration-300 transform hover:scale-105 hover:shadow-lg border-l-4 border-transparent hover:border-purple-500">
+                                <x-icons.catalog />
+                                <x-input-label value="Catalogo" class="ms-3" />
                             </a>
                         </li>
 
                         <li>
                             <a href="{{ route('products.index') }}"
-                               class="flex items-center p-3 text-gray-300 rounded-lg hover:bg-gradient-to-r hover:from-purple-600/20 hover:to-indigo-600/20 group transition-all duration-300 transform hover:scale-105 hover:shadow-lg border-l-4 border-transparent hover:border-purple-500">
-                                <x-icons.products/>
-                                <x-input-label value="Tienda" class="ms-3"/>
+                                class="flex items-center p-3 text-gray-300 rounded-lg hover:bg-gradient-to-r hover:from-purple-600/20 hover:to-indigo-600/20 group transition-all duration-300 transform hover:scale-105 hover:shadow-lg border-l-4 border-transparent hover:border-purple-500">
+                                <x-icons.products />
+                                <x-input-label value="Tienda" class="ms-3" />
                             </a>
                         </li>
 
-                        @if(auth()->user()->roles->contains('name', 'Administrador'))
+                        @if (auth()->user()->roles->contains('name', 'Administrador'))
                             <li>
                                 <a href="{{ route('admin.reviews.moderate') }}"
-                                   class="flex items-center p-3 text-gray-300 rounded-lg hover:bg-gradient-to-r hover:from-purple-600/20 hover:to-indigo-600/20 group transition-all duration-300 transform hover:scale-105 hover:shadow-lg border-l-4 border-transparent hover:border-purple-500">
-                                    <x-icons.audit_log/>
-                                    <x-input-label value="Moderación Reseñas" class="ms-3"/>
+                                    class="flex items-center p-3 text-gray-300 rounded-lg hover:bg-gradient-to-r hover:from-purple-600/20 hover:to-indigo-600/20 group transition-all duration-300 transform hover:scale-105 hover:shadow-lg border-l-4 border-transparent hover:border-purple-500">
+                                    <x-icons.audit_log />
+                                    <x-input-label value="Moderación Reseñas" class="ms-3" />
                                 </a>
                             </li>
                         @endif
@@ -325,6 +330,81 @@
                         <!-- CU20: Gestionar Envíos (Repartidor) -->
                         <!-- Nota: Este se muestra en sección separada para repartidores -->
                     </ul>
+                </li>
+            @endif
+
+            {{-- ================================================= --}}
+            {{-- P6: SISTEMA DE LEALTAD Y RECOMPENSAS 🎁         --}}
+            {{-- ================================================= --}}
+            <li class="pt-4 mt-4">
+                <x-dividers title="🎁 Programa de Lealtad" />
+            </li>
+
+            @if (auth()->user()->roles->contains('name', 'Administrador'))
+                {{-- Vista Admin --}}
+                <li x-data="{ open: false }">
+                    <button @click="open = !open" type="button"
+                        class="flex items-center justify-between w-full p-3 text-gray-300 rounded-lg hover:bg-gradient-to-r hover:from-orange-600/20 hover:to-amber-600/20 group transition-all duration-300 border-l-4 border-transparent hover:border-orange-500">
+                        <div class="flex items-center">
+                            <svg class="w-6 h-6 text-gray-400 group-hover:text-orange-400 transition-colors"
+                                fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7">
+                                </path>
+                            </svg>
+                            <span class="ms-3 font-medium">Sistema de Lealtad</span>
+                        </div>
+                        <x-icons.deployment />
+                    </button>
+
+                    <ul x-show="open" class="pl-8 mt-2 space-y-2">
+                        <li>
+                            <a href="{{ route('admin.loyalty.config') }}"
+                                class="flex items-center p-2 text-gray-400 rounded-lg hover:bg-orange-600/10 hover:text-orange-300 transition-all duration-200 text-sm">
+                                <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z">
+                                    </path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                </svg>
+                                Configuración
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ route('admin.loyalty.reports') }}"
+                                class="flex items-center p-2 text-gray-400 rounded-lg hover:bg-orange-600/10 hover:text-orange-300 transition-all duration-200 text-sm">
+                                <x-icons.table class="w-6 h-6 mr-2" />
+                                Reportes de Lealtad
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+            @else
+                {{-- Vista Cliente --}}
+                <li>
+                    <a href="{{ route('loyalty.dashboard') }}"
+                        class="flex items-center p-3 text-orange-100 rounded-lg hover:bg-gradient-to-r hover:from-orange-600/20 hover:to-amber-600/20 group transition-all duration-300 transform hover:scale-105 hover:shadow-lg border-l-4 border-transparent hover:border-orange-500">
+                        <svg class="w-6 h-6 text-gray-400 group-hover:text-orange-400 transition-colors"
+                            fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z">
+                            </path>
+                        </svg>
+                        <span class="ms-3 text-orange-100 group-hover:text-white font-medium">Mis Puntos</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ route('loyalty.rewards') }}"
+                        class="flex items-center p-3 text-gray-300 rounded-lg hover:bg-gradient-to-r hover:from-orange-600/20 hover:to-amber-600/20 group transition-all duration-300 border-l-4 border-transparent hover:border-orange-500">
+                        <svg class="w-6 h-6 text-gray-400 group-hover:text-orange-400 transition-colors"
+                            fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7">
+                            </path>
+                        </svg>
+                        <span class="ms-3 font-medium">Recompensas</span>
+                    </a>
                 </li>
             @endif
 

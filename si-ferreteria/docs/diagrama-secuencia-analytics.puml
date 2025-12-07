@@ -195,15 +195,4 @@ note right: MutationObserver detecta\ncambio de wire:key y reinicializa\nApexCha
 
 AnalyticsView --> Administrador: mostrarDatosActualizados()
 deactivate AnalyticsView
-
-== Interacción con Gráfico ==
-
-Administrador -> AnalyticsView: hoverSobrePunto(fecha)
-activate AnalyticsView
-
-AnalyticsView -> AnalyticsView: mostrarTooltip(fecha, monto)
-
-AnalyticsView --> Administrador: displayTooltip("17 Nov: $1,234.56")
-deactivate AnalyticsView
-
 @enduml

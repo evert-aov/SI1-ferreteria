@@ -1,0 +1,175 @@
+@startuml Diagrama_Secuencia_CU_Loyalty
+' ============================================================================
+' Diagrama de Secuencia - Caso de Uso Loyalty
+' Sistema de Gestión de Ferretería
+' Fecha: 4 de Diciembre, 2025
+' ============================================================================
+
+actor Cliente as C
+participant "Vista Loyalty" as V
+participant "LoyaltyController" as LC
+participant "LoyaltyService" as LS
+box "Base de Datos"
+    participant "LoyaltyAccount" as LA
+    participant "LoyaltyTransaction" as LT
+    participant "LoyaltyReward" as LR
+    participant "LoyaltyRedemption" as LRD
+end box
+
+autonumber
+
+== Visualizar Dashboard de Puntos ==
+C -> LC: Acceder a Dashboard
+activate LC
+LC -> LA: Obtener o crear cuenta\nde lealtad (customer_id)
+activate LA
+LA --> LC: Retorna LoyaltyAccount
+deactivate LA
+
+LC -> LA: Cargar transacciones recientes
+activate LA
+LA --> LC: Lista de transacciones (últimas 10)
+deactivate LA
+
+LC -> LA: Obtener puntos próximos a vencer
+activate LA
+LA --> LC: Puntos expirando en 30 días
+deactivate LA
+
+LC -> LS: Obtener beneficios del nivel actual
+activate LS
+LS --> LC: Beneficios (membership_level)
+deactivate LS
+
+LC -> LA: Calcular progreso al siguiente nivel
+activate LA
+LA --> LC: Porcentaje de progreso
+deactivate LA
+
+LC --> C: Retorna vista Dashboard
+deactivate LC
+
+== Canjear una Recompensa ==
+C -> LC: Seleccionar recompensa para canjear
+activate LC
+LC -> LS: redeemReward(user, reward)
+activate LS
+
+LS -> LA: Obtener cuenta de lealtad
+activate LA
+LA --> LS: LoyaltyAccount
+deactivate LA
+
+LS -> LR: Verificar disponibilidad de recompensa
+activate LR
+LR --> LS: Estado: Disponible/No disponible
+deactivate LR
+
+alt Recompensa No Disponible
+    LS --> LC: Throw Exception
+    LC --> C: Error: Recompensa no disponible
+else Recompensa Disponible
+    LS -> LA: Validar nivel de membresía mínimo
+    activate LA
+    LA --> LS: Nivel: Bronze/Silver/Gold
+    deactivate LA
+    
+    alt Nivel Insuficiente
+        LS --> LC: Throw Exception
+        LC --> C: Error: Nivel insuficiente
+    else Nivel Válido
+        LS -> LA: Verificar puntos disponibles
+        activate LA
+        LA --> LS: available_points
+        deactivate LA
+        
+        alt Puntos Insuficientes
+            LS --> LC: Throw Exception
+            LC --> C: Error: Puntos insuficientes
+        else Puntos Válidos
+            LS -> LA: Restar puntos de la cuenta
+            activate LA
+            LA -> LA: available_points -= reward.points_cost
+            LA -> LT: Crear transacción de canje
+            activate LT
+            LT --> LA: Registra movimiento
+            deactivate LT
+            LA --> LS: Transacción registrada
+            deactivate LA
+            
+            LS -> LRD: Crear registro de redención
+            activate LRD
+            LRD -> LRD: Generar código de cupón único
+            LRD --> LS: LoyaltyRedemption creada
+            deactivate LRD
+            
+            LS --> LC: Retorna LoyaltyRedemption con código
+            deactivate LS
+            LC --> C: Éxito: Cupón generado
+        end
+    end
+end
+
+== Visualizar Catálogo de Recompensas ==
+C -> LC: Ver catálogo de recompensas
+activate LC
+LC -> LA: Obtener cuenta de lealtad
+activate LA
+LA --> LC: LoyaltyAccount
+deactivate LA
+
+LC -> LR: Obtener recompensas disponibles\npara nivel del usuario
+activate LR
+LR -> LR: Filtrar por membership_level
+LR -> LR: Filtrar por estado (activas)
+LR -> LR: Ordenar por points_cost
+LR --> LC: Lista de recompensas
+deactivate LR
+
+LC -> LRD: Obtener canjes pendientes del usuario
+activate LRD
+LRD -> LRD: Filtrar por status = pending
+LRD --> LC: Lista de redenciones pendientes
+deactivate LRD
+
+LC --> C: Retorna vista Rewards
+deactivate LC
+
+== Visualizar Historial de Transacciones ==
+C -> LC: Ver historial de transacciones
+activate LC
+LC -> LA: Obtener cuenta de lealtad
+activate LA
+LA --> LC: LoyaltyAccount
+deactivate LA
+
+LC -> LT: Obtener transacciones paginadas
+activate LT
+LT -> LT: Ordenar por fecha descendente
+LT -> LT: Paginar (20 por página)
+LT --> LC: Transacciones
+deactivate LT
+
+LC --> C: Retorna vista Transactions
+deactivate LC
+
+== Visualizar Historial de Canjes ==
+C -> LC: Ver historial de canjes
+activate LC
+LC -> LA: Obtener cuenta de lealtad
+activate LA
+LA --> LC: LoyaltyAccount
+deactivate LA
+
+LC -> LRD: Obtener canjes del usuario
+activate LRD
+LRD -> LRD: Ordenar por fecha descendente
+LRD -> LRD: Paginar (10 por página)
+LRD -> LRD: Cargar recompensa asociada
+LRD --> LC: Redenciones
+deactivate LRD
+
+LC --> C: Retorna vista Redemption History
+deactivate LC
+
+@enduml

@@ -13,6 +13,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 use Srmklive\PayPal\Services\PayPal as PayPalClient;
+use App\Services\LoyaltyService;
 
 class PayPalController extends Controller
 {
@@ -62,10 +63,16 @@ class PayPalController extends Controller
                 ];
             }
             
-            // Aplicar descuento si existe
+            // Aplicar descuento de cupón si existe
             $discount = session()->get('discount', null);
             $discountAmount = $discount ? $discount['amount'] : 0;
-            $subtotalAfterDiscount = $subtotal - $discountAmount;
+            
+            // Aplicar descuento de puntos de lealtad si existe
+            $loyaltyDiscount = session()->get('loyalty_discount', null);
+            $loyaltyDiscountAmount = $loyaltyDiscount ? $loyaltyDiscount['amount'] : 0;
+            
+            // Calcular total después de AMBOS descuentos
+            $subtotalAfterDiscount = $subtotal - $discountAmount - $loyaltyDiscountAmount;
 
             $tax = $subtotalAfterDiscount * 0.13; // 13% de impuesto
             $total = $subtotalAfterDiscount + $tax;
@@ -94,9 +101,10 @@ class PayPalController extends Controller
                                     'currency_code' => 'USD',
                                     'value' => number_format($subtotal, 2, '.', ''),
                                 ],
-                                'discount' => $discountAmount > 0 ? [
+                                // Total de descuentos (cupón + puntos)
+                                'discount' => ($discountAmount + $loyaltyDiscountAmount) > 0 ? [
                                     'currency_code' => 'USD',
-                                    'value' => number_format($discountAmount, 2, '.', ''),
+                                    'value' => number_format($discountAmount + $loyaltyDiscountAmount, 2, '.', ''),
                                 ] : null,
                                 'tax_total' => [
                                     'currency_code' => 'USD',
@@ -151,11 +159,18 @@ class PayPalController extends Controller
                     $subtotal += $details['price'] * $details['quantity'];
                 }
                 
-                // Aplicar descuento si existe
+                // Aplicar descuento de cupón si existe
                 $discount = session()->get('discount', null);
                 $discountAmount = $discount ? $discount['amount'] : 0;
                 $discountCode = $discount ? $discount['code'] : null;
-                $subtotalAfterDiscount = $subtotal - $discountAmount;
+                
+                // Aplicar descuento de puntos si existe
+                $loyaltyDiscount = session()->get('loyalty_discount', null);
+                $loyaltyDiscountAmount = $loyaltyDiscount ? $loyaltyDiscount['amount'] : 0;
+                
+                // Total de descuentos
+                $totalDiscount = $discountAmount + $loyaltyDiscountAmount;
+                $subtotalAfterDiscount = $subtotal - $totalDiscount;
 
                 $tax = $subtotalAfterDiscount * 0.13;
                 $total = $subtotalAfterDiscount + $tax;
@@ -226,7 +241,48 @@ class PayPalController extends Controller
                         $discountModel = \App\Models\Discount::find($discount['id']);
                         if ($discountModel) {
                             $discountModel->incrementUsage();
+                            
+                            // Si es un cupón de lealtad (código empieza con LOY-), marcar el canje como aplicado
+                            if (str_starts_with($discountModel->code, 'LOY-')) {
+                                $loyaltyRedemption = \App\Models\Loyalty\LoyaltyRedemption::where('coupon_code', $discountModel->code)
+                                    ->where('status', 'pending')
+                                    ->first();
+                                    
+                                if ($loyaltyRedemption) {
+                                    $loyaltyRedemption->markAsApplied($sale);
+                                }
+                            }
                         }
+                    }
+                    
+                    // 5.5. Descontar puntos de lealtad si se usaron
+                    if ($loyaltyDiscount && $loyaltyDiscount['points_used'] > 0) {
+                        try {
+                            $loyaltyAccount = auth()->user()->loyaltyAccount;
+                            if ($loyaltyAccount) {
+                                $loyaltyAccount->redeemPoints(
+                                    $loyaltyDiscount['points_used'],
+                                    "Descuento en compra online #{$invoiceNumber}"
+                                );
+                            }
+                        } catch (\Exception $e) {
+                            \Log::error('Error al descontar puntos de lealtad: ' . $e->getMessage());
+                        }
+                    }
+                    
+                    // 6. Otorgar puntos de lealtad (con bonus para compras online)
+                    try {
+                        $loyaltyService = app(LoyaltyService::class);
+                        $customer = auth()->user();
+                        
+                        // Bonus de 1.5x puntos para compras online
+                        $pointsMultiplier = 1.5;
+                        $description = "Compra online #{$invoiceNumber} (Bonus +50%)";
+                        
+                        $loyaltyService->awardPointsForSale($customer, $sale, $pointsMultiplier, $description);
+                    } catch (\Exception $e) {
+                        // Log el error pero no fallar la transacción
+                        \Log::error('Error al otorgar puntos de lealtad: ' . $e->getMessage());
                     }
 
                     DB::commit();
@@ -256,6 +312,8 @@ class PayPalController extends Controller
                         'subtotal' => $subtotal,
                         'discount' => $discountAmount,
                         'discount_code' => $discountCode,
+                        'loyalty_discount' => $loyaltyDiscountAmount,
+                        'loyalty_points_used' => $loyaltyDiscount['points_used'] ?? 0,
                         'tax' => $tax,
                         'total' => $total,
                         'items' => $cart,
@@ -265,21 +323,21 @@ class PayPalController extends Controller
                     // Guardar en sesión
                     session()->put('last_order', $orderData);
 
-                    // Limpiar el carrito, datos de checkout y descuento
+                    // Limpiar el carrito, datos de checkout y descuentos
                     session()->forget('cart');
                     session()->forget('checkout_data');
                     session()->forget('discount');
+                    session()->forget('loyalty_discount');
 
                     return redirect()->route('paypal.success')->with('success', '¡Pago procesado exitosamente!');
 
                 } catch (\Exception $e) {
                     DB::rollBack();
-                    return redirect()->route('cart.checkout')->with('error', 'Error al procesar la orden: ' . $e->getMessage());
+                    return redirect()->route('cart.index')->with('error', 'Error al procesar la orden: ' . $e->getMessage());
                 }
-
-            } else {
-                return redirect()->route('cart.checkout')->with('error', 'El pago no se completó correctamente.');
             }
+
+            return redirect()->route('cart.index')->with('error', 'El pago no se completó correctamente.');
 
         } catch (\Exception $e) {
             return redirect()->route('cart.checkout')->with('error', 'Error al capturar el pago: ' . $e->getMessage());

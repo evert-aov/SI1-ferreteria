@@ -34,6 +34,11 @@ class ReportController extends Controller
             'product_alerts' => 'Alertas de Productos',
             'exit_notes' => 'Notas de Salida',
             'discounts' => 'Descuentos',
+            // Tablas del Sistema de Lealtad
+            'loyalty_accounts' => 'Cuentas de Lealtad',
+            'loyalty_transactions' => 'Transacciones de Puntos',
+            'loyalty_rewards' => 'Recompensas de Lealtad',
+            'loyalty_redemptions' => 'Canjes de Recompensas',
         ];
     }
 
@@ -67,6 +72,9 @@ class ReportController extends Controller
             'entry_id' => ['entries', 'id', 'id'],
             'role_id' => ['roles', 'name', 'id'],
             'permission_id' => ['permissions', 'name', 'id'],
+            // Relaciones del Sistema de Lealtad
+            'loyalty_account_id' => ['loyalty_accounts', 'id', 'id'],
+            'loyalty_reward_id' => ['loyalty_rewards', 'name', 'id'],
         ];
     }
 
@@ -113,6 +121,25 @@ class ReportController extends Controller
             'action' => 'Acción',
             'ip_address' => 'Dirección IP',
             'user_agent' => 'Navegador',
+            // Campos del Sistema de Lealtad
+            'loyalty_account_id' => 'Cuenta de Lealtad',
+            'loyalty_reward_id' => 'Recompensa',
+            'points' => 'Puntos',
+            'points_cost' => 'Costo en Puntos',
+            'points_spent' => 'Puntos Gastados',
+            'total_points_earned' => 'Total Puntos Ganados',
+            'available_points' => 'Puntos Disponibles',
+            'membership_level' => 'Nivel de Membresía',
+            'reward_type' => 'Tipo de Recompensa',
+            'reward_value' => 'Valor de Recompensa',
+            'type' => 'Tipo',
+            'expires_at' => 'Fecha de Expiración',
+            'stock_limit' => 'Límite de Stock',
+            'available_count' => 'Cantidad Disponible',
+            'minimum_level' => 'Nivel Mínimo',
+            'is_active' => 'Activo',
+            'coupon_code' => 'Código de Cupón',
+            'code' => 'Código',
         ];
 
         return $labels;
@@ -120,38 +147,38 @@ class ReportController extends Controller
 
     /**
      * Prepara la consulta y los datos necesarios para el reporte
-     * 
+     *
      * @throws \Exception
      */
     /**
      * Prepara la consulta y los datos necesarios para el reporte
-     * 
+     *
      * @throws \Exception
      */
     private function prepareReportQuery(string $table, array $selectedFields, array $filters = []): array
     {
         $availableTables = $this->getAvailableTables();
 
-        if (!array_key_exists($table, $availableTables)) {
+        if (! array_key_exists($table, $availableTables)) {
             throw new \Exception('Tabla no válida');
         }
 
         // Validar que los campos existen en la tabla
         $tableColumns = Schema::getColumnListing($table);
         foreach ($selectedFields as $field) {
-            if (!in_array($field, $tableColumns)) {
-                throw new \Exception('Campo no válido: ' . $field);
+            if (! in_array($field, $tableColumns)) {
+                throw new \Exception('Campo no válido: '.$field);
             }
         }
 
         $fieldLabels = $this->getFieldLabels($table);
         $relationshipMappings = $this->getRelationshipMappings();
-        
+
         // Construir la consulta con JOINs automáticos
         $query = DB::table($table);
         $selectFields = [];
         $joinedTables = [];
-        
+
         foreach ($selectedFields as $field) {
             // Si es una foreign key, hacer JOIN
             if (str_ends_with($field, '_id') && isset($relationshipMappings[$field])) {
@@ -159,94 +186,96 @@ class ReportController extends Controller
                 $relatedTable = $mapping[0];
                 $relatedFieldOrExpression = $mapping[1];
                 $primaryKey = $mapping[2] ?? 'id'; // Por defecto 'id'
-                
+
                 // Verificar si es una relación anidada (array dentro de array)
                 $isNestedRelation = is_array($relatedFieldOrExpression);
-                
+
                 if ($isNestedRelation) {
                     // Relación anidada: ej. customer_id -> customers -> users
                     $intermediateTable = $relatedTable;
                     $finalTable = $relatedFieldOrExpression[0];
                     $finalExpression = $relatedFieldOrExpression[1];
-                    
+
                     // JOIN a la tabla intermedia (ej. customers)
-                    $intermediateJoinKey = $intermediateTable . '_' . $field;
-                    if (!in_array($intermediateJoinKey, $joinedTables)) {
+                    $intermediateJoinKey = $intermediateTable.'_'.$field;
+                    if (! in_array($intermediateJoinKey, $joinedTables)) {
                         $query->leftJoin(
-                            $intermediateTable . ' as ' . $intermediateJoinKey,
-                            $table . '.' . $field,
+                            $intermediateTable.' as '.$intermediateJoinKey,
+                            $table.'.'.$field,
                             '=',
-                            $intermediateJoinKey . '.' . $primaryKey
+                            $intermediateJoinKey.'.'.$primaryKey
                         );
                         $joinedTables[] = $intermediateJoinKey;
                     }
-                    
+
                     // JOIN a la tabla final (ej. users)
-                    $finalJoinKey = $finalTable . '_' . $intermediateJoinKey;
-                    if (!in_array($finalJoinKey, $joinedTables)) {
+                    $finalJoinKey = $finalTable.'_'.$intermediateJoinKey;
+                    if (! in_array($finalJoinKey, $joinedTables)) {
                         $query->leftJoin(
-                            $finalTable . ' as ' . $finalJoinKey,
-                            $intermediateJoinKey . '.user_id',
+                            $finalTable.' as '.$finalJoinKey,
+                            $intermediateJoinKey.'.user_id',
                             '=',
-                            $finalJoinKey . '.id'
+                            $finalJoinKey.'.id'
                         );
                         $joinedTables[] = $finalJoinKey;
                     }
-                    
+
                     // Seleccionar el campo de la tabla final
                     if (str_contains($finalExpression, 'CONCAT')) {
                         $expression = preg_replace_callback(
                             '/([a-z_]+)([,\s\)])/',
-                            function($matches) use ($finalJoinKey) {
-                                if (!in_array($matches[1], ['CONCAT', 'NULL'])) {
-                                    return $finalJoinKey . '.' . $matches[1] . $matches[2];
+                            function ($matches) use ($finalJoinKey) {
+                                if (! in_array($matches[1], ['CONCAT', 'NULL'])) {
+                                    return $finalJoinKey.'.'.$matches[1].$matches[2];
                                 }
+
                                 return $matches[0];
                             },
                             $finalExpression
                         );
-                        $selectFields[] = DB::raw($expression . ' as ' . $field . '_name');
+                        $selectFields[] = DB::raw($expression.' as '.$field.'_name');
                     } else {
-                        $selectFields[] = $finalJoinKey . '.' . $finalExpression . ' as ' . $field . '_name';
+                        $selectFields[] = $finalJoinKey.'.'.$finalExpression.' as '.$field.'_name';
                     }
                 } else {
                     // Relación simple
-                    $joinKey = $relatedTable . '_' . $field;
-                    if (!in_array($joinKey, $joinedTables)) {
+                    $joinKey = $relatedTable.'_'.$field;
+                    if (! in_array($joinKey, $joinedTables)) {
                         $query->leftJoin(
-                            $relatedTable . ' as ' . $joinKey,
-                            $table . '.' . $field,
+                            $relatedTable.' as '.$joinKey,
+                            $table.'.'.$field,
                             '=',
-                            $joinKey . '.' . $primaryKey
+                            $joinKey.'.'.$primaryKey
                         );
                         $joinedTables[] = $joinKey;
                     }
-                    
+
                     // Seleccionar el campo relacionado con alias
                     if (str_contains($relatedFieldOrExpression, 'CONCAT')) {
                         $expression = preg_replace_callback(
                             '/([a-z_]+)([,\s\)])/',
-                            function($matches) use ($joinKey) {
-                                if (!in_array($matches[1], ['CONCAT', 'NULL'])) {
-                                    return $joinKey . '.' . $matches[1] . $matches[2];
+                            function ($matches) use ($joinKey) {
+                                if (! in_array($matches[1], ['CONCAT', 'NULL'])) {
+                                    return $joinKey.'.'.$matches[1].$matches[2];
                                 }
+
                                 return $matches[0];
                             },
                             $relatedFieldOrExpression
                         );
-                        $selectFields[] = DB::raw($expression . ' as ' . $field . '_name');
+                        $selectFields[] = DB::raw($expression.' as '.$field.'_name');
                     } else {
-                        $selectFields[] = $joinKey . '.' . $relatedFieldOrExpression . ' as ' . $field . '_name';
+                        $selectFields[] = $joinKey.'.'.$relatedFieldOrExpression.' as '.$field.'_name';
                     }
                 }
-                
-                $selectFields[] = $table . '.' . $field; // También incluir el ID original
+
+                $selectFields[] = $table.'.'.$field; // También incluir el ID original
             } else {
                 // Campo normal
-                $selectFields[] = $table . '.' . $field;
+                $selectFields[] = $table.'.'.$field;
             }
         }
-        
+
         // Aplicar filtros
         foreach ($filters as $filter) {
             if (empty($filter['field']) || empty($filter['operator'])) {
@@ -259,11 +288,11 @@ class ReportController extends Controller
             $value2 = $filter['value2'] ?? null;
 
             // Validar que el campo existe en la tabla (seguridad básica)
-            if (!in_array($rawField, $tableColumns)) {
+            if (! in_array($rawField, $tableColumns)) {
                 continue;
             }
 
-            $targetColumn = $table . '.' . $rawField;
+            $targetColumn = $table.'.'.$rawField;
 
             // Si es una foreign key, usar la columna relacionada
             if (str_ends_with($rawField, '_id') && isset($relationshipMappings[$rawField])) {
@@ -271,77 +300,79 @@ class ReportController extends Controller
                 $relatedTable = $mapping[0];
                 $relatedFieldOrExpression = $mapping[1];
                 $primaryKey = $mapping[2] ?? 'id';
-                
+
                 $isNestedRelation = is_array($relatedFieldOrExpression);
-                
+
                 if ($isNestedRelation) {
                     // Relación anidada
                     $intermediateTable = $relatedTable;
                     $finalTable = $relatedFieldOrExpression[0];
                     $finalExpression = $relatedFieldOrExpression[1];
-                    
-                    $intermediateJoinKey = $intermediateTable . '_' . $rawField;
-                    if (!in_array($intermediateJoinKey, $joinedTables)) {
+
+                    $intermediateJoinKey = $intermediateTable.'_'.$rawField;
+                    if (! in_array($intermediateJoinKey, $joinedTables)) {
                         $query->leftJoin(
-                            $intermediateTable . ' as ' . $intermediateJoinKey,
-                            $table . '.' . $rawField,
+                            $intermediateTable.' as '.$intermediateJoinKey,
+                            $table.'.'.$rawField,
                             '=',
-                            $intermediateJoinKey . '.' . $primaryKey
+                            $intermediateJoinKey.'.'.$primaryKey
                         );
                         $joinedTables[] = $intermediateJoinKey;
                     }
-                    
-                    $finalJoinKey = $finalTable . '_' . $intermediateJoinKey;
-                    if (!in_array($finalJoinKey, $joinedTables)) {
+
+                    $finalJoinKey = $finalTable.'_'.$intermediateJoinKey;
+                    if (! in_array($finalJoinKey, $joinedTables)) {
                         $query->leftJoin(
-                            $finalTable . ' as ' . $finalJoinKey,
-                            $intermediateJoinKey . '.user_id',
+                            $finalTable.' as '.$finalJoinKey,
+                            $intermediateJoinKey.'.user_id',
                             '=',
-                            $finalJoinKey . '.id'
+                            $finalJoinKey.'.id'
                         );
                         $joinedTables[] = $finalJoinKey;
                     }
-                    
+
                     if (str_contains($finalExpression, 'CONCAT')) {
                         $targetColumn = DB::raw(preg_replace_callback(
                             '/([a-z_]+)([,\s\)])/',
-                            function($matches) use ($finalJoinKey) {
-                                if (!in_array($matches[1], ['CONCAT', 'NULL'])) {
-                                    return $finalJoinKey . '.' . $matches[1] . $matches[2];
+                            function ($matches) use ($finalJoinKey) {
+                                if (! in_array($matches[1], ['CONCAT', 'NULL'])) {
+                                    return $finalJoinKey.'.'.$matches[1].$matches[2];
                                 }
+
                                 return $matches[0];
                             },
                             $finalExpression
                         ));
                     } else {
-                        $targetColumn = $finalJoinKey . '.' . $finalExpression;
+                        $targetColumn = $finalJoinKey.'.'.$finalExpression;
                     }
                 } else {
                     // Relación simple
-                    $joinKey = $relatedTable . '_' . $rawField;
-                    if (!in_array($joinKey, $joinedTables)) {
+                    $joinKey = $relatedTable.'_'.$rawField;
+                    if (! in_array($joinKey, $joinedTables)) {
                         $query->leftJoin(
-                            $relatedTable . ' as ' . $joinKey,
-                            $table . '.' . $rawField,
+                            $relatedTable.' as '.$joinKey,
+                            $table.'.'.$rawField,
                             '=',
-                            $joinKey . '.' . $primaryKey
+                            $joinKey.'.'.$primaryKey
                         );
                         $joinedTables[] = $joinKey;
                     }
-                    
+
                     if (str_contains($relatedFieldOrExpression, 'CONCAT')) {
                         $targetColumn = DB::raw(preg_replace_callback(
                             '/([a-z_]+)([,\s\)])/',
-                            function($matches) use ($joinKey) {
-                                if (!in_array($matches[1], ['CONCAT', 'NULL'])) {
-                                    return $joinKey . '.' . $matches[1] . $matches[2];
+                            function ($matches) use ($joinKey) {
+                                if (! in_array($matches[1], ['CONCAT', 'NULL'])) {
+                                    return $joinKey.'.'.$matches[1].$matches[2];
                                 }
+
                                 return $matches[0];
                             },
                             $relatedFieldOrExpression
                         ));
                     } else {
-                        $targetColumn = $joinKey . '.' . $relatedFieldOrExpression;
+                        $targetColumn = $joinKey.'.'.$relatedFieldOrExpression;
                     }
                 }
             }
@@ -349,9 +380,9 @@ class ReportController extends Controller
             switch ($operator) {
                 case 'like':
                     if ($targetColumn instanceof \Illuminate\Database\Query\Expression) {
-                         $query->whereRaw("$targetColumn like ?", ['%' . $value . '%']);
+                        $query->whereRaw("$targetColumn like ?", ['%'.$value.'%']);
                     } else {
-                        $query->where($targetColumn, 'like', '%' . $value . '%');
+                        $query->where($targetColumn, 'like', '%'.$value.'%');
                     }
                     break;
                 case 'between':
@@ -380,11 +411,11 @@ class ReportController extends Controller
                     break;
             }
         }
-        
+
         // Crear headers con las etiquetas
         $headers = [];
         $displayFields = []; // Campos que se mostrarán en la vista
-        
+
         foreach ($selectedFields as $field) {
             $headers[$field] = $fieldLabels[$field] ?? ucfirst(str_replace('_', ' ', $field));
             $displayFields[] = $field;
@@ -406,7 +437,7 @@ class ReportController extends Controller
     public function index(): View
     {
         $availableTables = $this->getAvailableTables();
-        
+
         return view('reports.dynamic-report-selector', compact('availableTables'));
     }
 
@@ -422,7 +453,7 @@ class ReportController extends Controller
         $table = $request->input('table');
         $availableTables = $this->getAvailableTables();
 
-        if (!array_key_exists($table, $availableTables)) {
+        if (! array_key_exists($table, $availableTables)) {
             return response()->json(['error' => 'Tabla no válida'], 400);
         }
 
@@ -430,7 +461,7 @@ class ReportController extends Controller
             // Obtener columnas de la tabla
             $columns = Schema::getColumnListing($table);
             $fieldLabels = $this->getFieldLabels($table);
-            
+
             // Crear array de campos con etiquetas y tipos
             $fields = [];
             foreach ($columns as $column) {
@@ -438,12 +469,12 @@ class ReportController extends Controller
                 if (in_array($column, ['password', 'remember_token'])) {
                     continue;
                 }
-                
+
                 $type = Schema::getColumnType($table, $column);
-                
+
                 $fields[$column] = [
                     'label' => $fieldLabels[$column] ?? ucfirst(str_replace('_', ' ', $column)),
-                    'type' => $type
+                    'type' => $type,
                 ];
             }
 
@@ -452,7 +483,7 @@ class ReportController extends Controller
                 'fields' => $fields,
             ]);
         } catch (\Exception $e) {
-            return response()->json(['error' => 'Error al obtener campos: ' . $e->getMessage()], 500);
+            return response()->json(['error' => 'Error al obtener campos: '.$e->getMessage()], 500);
         }
     }
 
@@ -478,7 +509,7 @@ class ReportController extends Controller
 
         try {
             $reportData = $this->prepareReportQuery($table, $selectedFields, $filters);
-            
+
             $query = $reportData['query'];
             $headers = $reportData['headers'];
             $displayFields = $reportData['displayFields'];
@@ -501,12 +532,12 @@ class ReportController extends Controller
             } elseif ($errorCode == '22001') {
                 $errorMessage = 'Texto demasiado largo. Por favor reduzca la longitud del texto en el filtro.';
             } else {
-                $errorMessage .= ' (Código: ' . $errorCode . ') ' . $e->getMessage();
+                $errorMessage .= ' (Código: '.$errorCode.') '.$e->getMessage();
             }
 
             return back()->withErrors(['error' => $errorMessage]);
         } catch (\Exception $e) {
-            return back()->withErrors(['error' => 'Error al generar reporte: ' . $e->getMessage()]);
+            return back()->withErrors(['error' => 'Error al generar reporte: '.$e->getMessage()]);
         }
     }
 
@@ -528,7 +559,7 @@ class ReportController extends Controller
 
         try {
             $reportData = $this->prepareReportQuery($table, $selectedFields, $filters);
-            
+
             $query = $reportData['query'];
             $headers = $reportData['headers'];
             $displayFields = $reportData['displayFields'];
@@ -539,12 +570,12 @@ class ReportController extends Controller
 
             // Generar PDF
             $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('reports.pdf-template', compact('data', 'headers', 'displayFields', 'tableName'));
-            
-            $fileName = 'Reporte_' . str_replace(' ', '_', $tableName) . '_' . now()->format('Y-m-d') . '.pdf';
-            
+
+            $fileName = 'Reporte_'.str_replace(' ', '_', $tableName).'_'.now()->format('Y-m-d').'.pdf';
+
             return $pdf->download($fileName);
         } catch (\Exception $e) {
-            return back()->withErrors(['error' => 'Error al generar PDF: ' . $e->getMessage()]);
+            return back()->withErrors(['error' => 'Error al generar PDF: '.$e->getMessage()]);
         }
     }
 
@@ -566,7 +597,7 @@ class ReportController extends Controller
 
         try {
             $reportData = $this->prepareReportQuery($table, $selectedFields, $filters);
-            
+
             $query = $reportData['query'];
             $headers = $reportData['headers'];
             $displayFields = $reportData['displayFields'];
@@ -575,15 +606,15 @@ class ReportController extends Controller
             // Obtener todos los datos (sin paginación para Excel)
             $data = $query->get();
 
-            $fileName = 'Reporte_' . str_replace(' ', '_', $tableName) . '_' . now()->format('Y-m-d') . '.xlsx';
+            $fileName = 'Reporte_'.str_replace(' ', '_', $tableName).'_'.now()->format('Y-m-d').'.xlsx';
 
             // Generar Excel usando la clase export
             return \Maatwebsite\Excel\Facades\Excel::download(
-                new \App\Exports\DynamicReportExport($data, $headers, $displayFields, $tableName), 
+                new \App\Exports\DynamicReportExport($data, $headers, $displayFields, $tableName),
                 $fileName
             );
         } catch (\Exception $e) {
-            return back()->withErrors(['error' => 'Error al generar Excel: ' . $e->getMessage()]);
+            return back()->withErrors(['error' => 'Error al generar Excel: '.$e->getMessage()]);
         }
     }
 
@@ -605,7 +636,7 @@ class ReportController extends Controller
 
         try {
             $reportData = $this->prepareReportQuery($table, $selectedFields, $filters);
-            
+
             $query = $reportData['query'];
             $headers = $reportData['headers'];
             $displayFields = $reportData['displayFields'];
@@ -614,7 +645,7 @@ class ReportController extends Controller
             // Obtener todos los datos (sin paginación para HTML)
             $data = $query->get();
 
-            $fileName = 'Reporte_' . str_replace(' ', '_', $tableName) . '_' . now()->format('Y-m-d') . '.html';
+            $fileName = 'Reporte_'.str_replace(' ', '_', $tableName).'_'.now()->format('Y-m-d').'.html';
 
             // Generar HTML
             $html = view('reports.html-export', compact('data', 'headers', 'displayFields', 'tableName'))->render();
@@ -622,9 +653,9 @@ class ReportController extends Controller
             // Retornar como descarga
             return response($html)
                 ->header('Content-Type', 'text/html')
-                ->header('Content-Disposition', 'attachment; filename="' . $fileName . '"');
+                ->header('Content-Disposition', 'attachment; filename="'.$fileName.'"');
         } catch (\Exception $e) {
-            return back()->withErrors(['error' => 'Error al generar HTML: ' . $e->getMessage()]);
+            return back()->withErrors(['error' => 'Error al generar HTML: '.$e->getMessage()]);
         }
     }
 
@@ -643,9 +674,9 @@ class ReportController extends Controller
             ->orWhere('is_public', true)
             ->orderBy('created_at', 'desc')
             ->get();
-        
+
         $availableTables = $this->getAvailableTables();
-        
+
         return view('reports.templates-list', compact('templates', 'availableTables'));
     }
 
@@ -683,16 +714,16 @@ class ReportController extends Controller
     public function loadTemplate($id)
     {
         $template = ReportTemplate::where('id', $id)
-            ->where(function($query) {
+            ->where(function ($query) {
                 $query->where('user_id', auth()->id())
-                      ->orWhere('is_public', true);
+                    ->orWhere('is_public', true);
             })
             ->firstOrFail();
 
         // Retornar vista con datos precargados
         $availableTables = $this->getAvailableTables();
-        
-        return view('reports.dynamic-report-selector', 
+
+        return view('reports.dynamic-report-selector',
             compact('availableTables', 'template'));
     }
 
