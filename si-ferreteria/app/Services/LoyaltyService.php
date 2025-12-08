@@ -8,7 +8,9 @@ use App\Models\Loyalty\LoyaltyReward;
 use App\Models\Loyalty\LoyaltyLevel;
 use App\Models\Sale;
 use App\Models\User_security\User;
+use App\Models\ReportAndAnalysis\AuditLog;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 
 class LoyaltyService
 {
@@ -59,7 +61,7 @@ class LoyaltyService
         );
 
         // Calcular puntos base
-        $basePoints = $this->calculatePointsFromAmount($sale->total);
+        $basePoints = $this->calculatePointsFromAmount((float) $sale->total);
 
         // Aplicar multiplicador del nivel
         $levelMultiplier = $loyaltyAccount->getPointsMultiplier();
@@ -87,6 +89,19 @@ class LoyaltyService
             $points,
             $description,
             $sale
+        );
+
+        // Audit Log
+        $this->logAudit(
+            'award_points',
+            'LoyaltyAccount',
+            $loyaltyAccount->id,
+            [
+                'points_awarded' => $points,
+                'source' => $source,
+                'invoice_number' => $sale->invoice_number,
+                'new_balance' => $loyaltyAccount->available_points
+            ]
         );
     }
 
@@ -171,6 +186,19 @@ class LoyaltyService
 
             DB::commit();
 
+            // Audit Log
+            $this->logAudit(
+                'redeem_reward',
+                'LoyaltyRedemption',
+                $redemption->id,
+                [
+                    'reward_name' => $reward->name,
+                    'points_spent' => $reward->points_cost,
+                    'coupon_code' => $redemption->coupon_code ?? null,
+                    'new_balance' => $loyaltyAccount->fresh()->available_points
+                ]
+            );
+
             return $redemption;
 
         } catch (\Exception $e) {
@@ -230,6 +258,18 @@ class LoyaltyService
                         'reference_id' => $transaction->id,
                     ]);
 
+                    // Audit Log
+                    $this->logAudit(
+                        'expire_points',
+                        'LoyaltyAccount',
+                        $loyaltyAccount->id,
+                        [
+                            'points_expired' => $transaction->points,
+                            'original_transaction_id' => $transaction->id,
+                            'new_balance' => $loyaltyAccount->available_points
+                        ]
+                    );
+
                     $expiredCount++;
                 }
             }
@@ -241,41 +281,55 @@ class LoyaltyService
     /**
      * Obtener beneficios por nivel
      */
-    public function getMembershipBenefits(string $level): array
+    public function getMembershipBenefits(string $levelCode): array
     {
-        return match ($level) {
-            'bronze' => [
-                'name' => 'Bronce',
-                'color' => '#CD7F32',
-                'benefits' => [
-                    'Acumulación de puntos en todas las compras',
-                    'Acceso al catálogo básico de recompensas',
-                ],
-            ],
-            'silver' => [
-                'name' => 'Plata',
-                'color' => '#C0C0C0',
-                'benefits' => [
-                    'Todos los beneficios de Bronce',
-                    'Acceso a recompensas exclusivas',
-                    'Bonificación de 5% adicional en puntos',
-                ],
-            ],
-            'gold' => [
-                'name' => 'Oro',
-                'color' => '#FFD700',
-                'benefits' => [
-                    'Todos los beneficios de Plata',
-                    'Acceso prioritario a nuevas recompensas',
-                    'Bonificación de 10% adicional en puntos',
-                    'Descuentos especiales en productos seleccionados',
-                ],
-            ],
-            default => [
-                'name' => 'Desconocido',
+        $level = LoyaltyLevel::where('code', $levelCode)->first();
+
+        if (!$level) {
+            return [
+                'name' => ucfirst($levelCode),
                 'color' => '#6B7280',
                 'benefits' => [],
-            ],
-        };
+            ];
+        }
+
+        $benefits = [
+            "Acumulación de puntos por compras" . ($level->multiplier > 1 ? " (x{$level->multiplier})" : ""),
+            "Acceso a recompensas de nivel {$level->name}",
+        ];
+
+        if ($level->multiplier > 1) {
+            $percentage = ($level->multiplier - 1) * 100;
+            $benefits[] = "Bonificación extra del {$percentage}% en cada compra";
+        }
+
+        return [
+            'name' => $level->name,
+            'color' => $level->color ?? '#CD7F32',
+            'benefits' => $benefits,
+        ];
+    }
+
+    /**
+     * Registrar en bitácora
+     */
+    private function logAudit(string $action, string $model, int $modelId, array $changes = []): void
+    {
+        try {
+            $userId = Auth::id() ?? User::first()->id ?? 1; // Fallback to first user/admin or ID 1 for system actions
+            
+            AuditLog::create([
+                'user_id' => $userId,
+                'action' => $action,
+                'affected_model' => $model,
+                'affected_model_id' => $modelId,
+                'changes' => $changes,
+                'ip_address' => request()->ip(),
+                'user_agent' => request()->userAgent(),
+            ]);
+        } catch (\Exception $e) {
+            // Silently fail logging to not disrupt main business logic
+            // Log::error('Audit Log failed: ' . $e->getMessage());
+        }
     }
 }
