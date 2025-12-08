@@ -20,6 +20,7 @@ return new class extends Migration
             $table->enum('status', ['pending', 'applied', 'expired', 'cancelled'])->default('pending');
             $table->timestamp('expires_at')->nullable()->comment('Vencimiento del cupón generado');
             $table->string('code')->unique()->comment('Código de cupón generado (LOY-XXXXXX)');
+            $table->string('coupon_code')->nullable()->after('status');
             $table->timestamps();
 
             // Índices

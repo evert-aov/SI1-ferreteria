@@ -46,8 +46,11 @@ class SaleObserver
     {
         // Otorgar puntos de lealtad cuando una venta cambia a 'paid'
         if ($sale->isDirty('status') && $sale->status === 'paid') {
-            // Para ventas presenciales, usar multiplicador normal (1.0)
-            app(LoyaltyService::class)->awardPointsForSale($sale, $sale);
+            // Para ventas presenciales (POS)
+            $customer = $sale->customer_id ? \App\Models\User_security\User::find($sale->customer_id) : null;
+            if ($customer) {
+                app(LoyaltyService::class)->awardPointsForSale($customer, $sale, 'pos');
+            }
         }
     }
 

@@ -4,11 +4,13 @@ namespace App\Http\Controllers\Admin\Loyalty;
 
 use App\Http\Controllers\Controller;
 use App\Models\Loyalty\LoyaltyAccount;
+use App\Models\Loyalty\LoyaltyLevel;
 use App\Models\Loyalty\LoyaltyReward;
 use App\Models\Loyalty\LoyaltyTransaction;
 use App\Services\LoyaltyService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
 
 class AdminLoyaltyController extends Controller
 {
@@ -25,9 +27,23 @@ class AdminLoyaltyController extends Controller
     public function config()
     {
         $totalAccounts = LoyaltyAccount::count();
-        $bronzeCount = LoyaltyAccount::where('membership_level', 'bronze')->count();
-        $silverCount = LoyaltyAccount::where('membership_level', 'silver')->count();
-        $goldCount = LoyaltyAccount::where('membership_level', 'gold')->count();
+        
+        // Obtener conteo dinámico por nivel
+        $levelCounts = LoyaltyAccount::select('membership_level', DB::raw('count(*) as count'))
+            ->groupBy('membership_level')
+            ->get()
+            ->pluck('count', 'membership_level');
+        
+        // Obtener todos los niveles con sus conteos
+        $levels = LoyaltyLevel::ordered()->get()->map(function($level) use ($levelCounts) {
+            return [
+                'code' => $level->code,
+                'name' => $level->name,
+                'icon' => $level->icon,
+                'color' => $level->color,
+                'count' => $levelCounts[$level->code] ?? 0,
+            ];
+        });
 
         $totalPointsIssued = LoyaltyTransaction::where('type', 'earn')->sum('points');
         $totalPointsRedeemed = abs(LoyaltyTransaction::where('type', 'redeem')->sum('points'));
@@ -38,9 +54,7 @@ class AdminLoyaltyController extends Controller
 
         return view('admin.loyalty.config', compact(
             'totalAccounts',
-            'bronzeCount',
-            'silverCount',
-            'goldCount',
+            'levels',
             'totalPointsIssued',
             'totalPointsRedeemed',
             'rewards'
@@ -52,9 +66,12 @@ class AdminLoyaltyController extends Controller
      */
     public function createReward()
     {
+        $levels = \App\Models\Loyalty\LoyaltyLevel::active()->ordered()->get();
+        
         return view('admin.loyalty.rewards.form', [
             'reward' => null,
             'isEdit' => false,
+            'levels' => $levels,
         ]);
     }
 
@@ -63,6 +80,9 @@ class AdminLoyaltyController extends Controller
      */
     public function storeReward(Request $request)
     {
+        // Obtener códigos de niveles válidos
+        $validLevels = LoyaltyLevel::pluck('code')->toArray();
+        
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
@@ -70,7 +90,7 @@ class AdminLoyaltyController extends Controller
             'reward_type' => 'required|in:discount_percentage,discount_amount,free_product',
             'reward_value' => 'required|numeric|min:0',
             'stock_limit' => 'nullable|integer|min:0',
-            'minimum_level' => 'required|in:bronze,silver,gold',
+            'minimum_level' => 'required|in:' . implode(',', $validLevels),
             'image' => 'nullable|image|max:2048',
         ]);
 
@@ -96,9 +116,12 @@ class AdminLoyaltyController extends Controller
      */
     public function editReward(LoyaltyReward $reward)
     {
+        $levels = \App\Models\Loyalty\LoyaltyLevel::active()->ordered()->get();
+        
         return view('admin.loyalty.rewards.form', [
             'reward' => $reward,
             'isEdit' => true,
+            'levels' => $levels,
         ]);
     }
 
@@ -107,6 +130,9 @@ class AdminLoyaltyController extends Controller
      */
     public function updateReward(Request $request, LoyaltyReward $reward)
     {
+        // Obtener códigos de niveles válidos
+        $validLevels = LoyaltyLevel::pluck('code')->toArray();
+        
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
@@ -115,7 +141,7 @@ class AdminLoyaltyController extends Controller
             'reward_value' => 'required|numeric|min:0',
             'stock_limit' => 'nullable|integer|min:0',
             'available_count' => 'nullable|integer|min:0',
-            'minimum_level' => 'required|in:bronze,silver,gold',
+            'minimum_level' => 'required|in:' . implode(',', $validLevels),
             'is_active' => 'boolean',
             'image' => 'nullable|image|max:2048',
         ]);
@@ -179,12 +205,22 @@ class AdminLoyaltyController extends Controller
      */
     public function reports()
     {
-        // Distribución de clientes por nivel
-        $levelDistribution = [
-            'bronze' => LoyaltyAccount::where('membership_level', 'bronze')->count(),
-            'silver' => LoyaltyAccount::where('membership_level', 'silver')->count(),
-            'gold' => LoyaltyAccount::where('membership_level', 'gold')->count(),
-        ];
+        // Distribución de clientes por nivel (dinámico)
+        $levelCounts = LoyaltyAccount::select('membership_level', DB::raw('count(*) as count'))
+            ->groupBy('membership_level')
+            ->get()
+            ->pluck('count', 'membership_level');
+        
+        $levelDistribution = LoyaltyLevel::ordered()->get()->mapWithKeys(function($level) use ($levelCounts) {
+            return [
+                $level->code => [
+                    'name' => $level->name,
+                    'icon' => $level->icon,
+                    'color' => $level->color,
+                    'count' => $levelCounts[$level->code] ?? 0,
+                ]
+            ];
+        });
 
         // Recompensas más populares
         $topRewards = LoyaltyReward::withCount('redemptions')
@@ -210,7 +246,7 @@ class AdminLoyaltyController extends Controller
         }
 
         // Top clientes por puntos
-        $topCustomers = LoyaltyAccount::with('customer')
+        $topCustomers = LoyaltyAccount::with(['customer', 'level'])
             ->orderBy('total_points_earned', 'desc')
             ->take(10)
             ->get();

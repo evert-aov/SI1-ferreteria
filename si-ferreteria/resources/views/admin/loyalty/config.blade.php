@@ -7,23 +7,20 @@
         </x-gradient-div>
 
         <!-- Estadísticas Generales -->
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-{{ min(count($levels) + 1, 5) }} gap-6 mb-8">
             <div class="bg-gray-800 rounded-xl p-6 shadow-lg">
                 <p class="text-sm text-gray-400 mb-2">Total Cuentas</p>
                 <p class="text-3xl font-bold text-white">{{ $totalAccounts }}</p>
             </div>
-            <div class="bg-gray-800 rounded-xl p-6 shadow-lg">
-                <p class="text-sm text-gray-400 mb-2">Nivel Bronce</p>
-                <p class="text-3xl font-bold" style="color: #CD7F32">{{ $bronzeCount }}</p>
-            </div>
-            <div class="bg-gray-800 rounded-xl p-6 shadow-lg">
-                <p class="text-sm text-gray-400 mb-2">Nivel Plata</p>
-                <p class="text-3xl font-bold" style="color: #C0C0C0">{{ $silverCount }}</p>
-            </div>
-            <div class="bg-gray-800 rounded-xl p-6 shadow-lg">
-                <p class="text-sm text-gray-400 mb-2">Nivel Oro</p>
-                <p class="text-3xl font-bold" style="color: #FFD700">{{ $goldCount }}</p>
-            </div>
+            @foreach ($levels as $level)
+                <div class="bg-gray-800 rounded-xl p-6 shadow-lg">
+                    <p class="text-sm text-gray-400 mb-2 flex items-center gap-2">
+                        <span>{{ $level['icon'] }}</span>
+                        <span>Nivel {{ $level['name'] }}</span>
+                    </p>
+                    <p class="text-3xl font-bold" style="color: {{ $level['color'] }}">{{ $level['count'] }}</p>
+                </div>
+            @endforeach
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
@@ -51,16 +48,20 @@
 
         <!-- Gestión de Recompensas -->
         <div class="bg-gray-800 rounded-2xl shadow-xl p-8">
-            <div class="flex items-center justify-between mb-6">
+            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
                 <h2 class="text-2xl font-bold text-white">Recompensas</h2>
-                <div class="flex gap-3">
+                <div class="flex flex-wrap gap-2 sm:gap-3">
+                    <a href="{{ route('admin.loyalty.levels.index') }}" 
+                       class="px-3 sm:px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-lg transition-all whitespace-nowrap">
+                        🏆 Gestionar Niveles
+                    </a>
                     <a href="{{ route('admin.loyalty.rewards.create') }}"
-                        class="px-4 py-2 bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-500 hover:to-orange-600 text-white font-semibold rounded-lg transition-all">
+                        class="px-3 sm:px-4 py-2 bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-500 hover:to-orange-600 text-white text-sm font-semibold rounded-lg transition-all whitespace-nowrap">
                         + Nueva Recompensa
                     </a>
                     <a href="{{ route('admin.loyalty.reports') }}"
-                        class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-all">
-                        Ver Reportes →
+                        class="px-3 sm:px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg transition-all whitespace-nowrap">
+                        Reportes →
                     </a>
                 </div>
             </div>

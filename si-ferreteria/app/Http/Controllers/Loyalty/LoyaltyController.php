@@ -26,12 +26,14 @@ class LoyaltyController extends Controller
         $user = Auth::user();
 
         // Obtener o crear cuenta de lealtad
+        $defaultLevel = \App\Models\Loyalty\LoyaltyLevel::active()->ordered()->first();
+        
         $loyaltyAccount = LoyaltyAccount::firstOrCreate(
             ['customer_id' => $user->id],
             [
                 'total_points_earned' => 0,
                 'available_points' => 0,
-                'membership_level' => 'bronze',
+                'membership_level' => $defaultLevel ? $defaultLevel->code : 'bronze',
             ]
         );
 
@@ -68,11 +70,13 @@ class LoyaltyController extends Controller
         $loyaltyAccount = $user->loyaltyAccount;
 
         if (! $loyaltyAccount) {
+            $defaultLevel = \App\Models\Loyalty\LoyaltyLevel::active()->ordered()->first();
+            
             $loyaltyAccount = LoyaltyAccount::create([
                 'customer_id' => $user->id,
                 'total_points_earned' => 0,
                 'available_points' => 0,
-                'membership_level' => 'bronze',
+                'membership_level' => $defaultLevel ? $defaultLevel->code : 'bronze',
             ]);
         }
 

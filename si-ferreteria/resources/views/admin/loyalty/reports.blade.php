@@ -8,19 +8,14 @@
         <!-- Distribución por Niveles -->
         <div class="bg-gray-800 rounded-2xl shadow-xl p-8 mb-8">
             <h2 class="text-2xl font-bold text-white mb-6">Distribución de Clientes por Nivel</h2>
-            <div class="grid grid-cols-3 gap-6">
-                <div class="text-center p-6 rounded-xl" style="background-color: rgba(205, 127, 50, 0.1)">
-                    <p class="text-4xl font-bold" style="color: #CD7F32">{{ $levelDistribution['bronze'] }}</p>
-                    <p class="text-gray-400 mt-2">Bronce</p>
-                </div>
-                <div class="text-center p-6 rounded-xl" style="background-color: rgba(192, 192, 192, 0.1)">
-                    <p class="text-4xl font-bold" style="color: #C0C0C0">{{ $levelDistribution['silver'] }}</p>
-                    <p class="text-gray-400 mt-2">Plata</p>
-                </div>
-                <div class="text-center p-6 rounded-xl" style="background-color: rgba(255, 215, 0, 0.1)">
-                    <p class="text-4xl font-bold" style="color: #FFD700">{{ $levelDistribution['gold'] }}</p>
-                    <p class="text-gray-400 mt-2">Oro</p>
-                </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-{{ min(count($levelDistribution), 4) }} gap-6">
+                @foreach ($levelDistribution as $code => $level)
+                    <div class="text-center p-6 rounded-xl" style="background-color: {{ $level['color'] }}20">
+                        <div class="text-3xl mb-2">{{ $level['icon'] }}</div>
+                        <p class="text-4xl font-bold" style="color: {{ $level['color'] }}">{{ $level['count'] }}</p>
+                        <p class="text-gray-400 mt-2">{{ $level['name'] }}</p>
+                    </div>
+                @endforeach
             </div>
         </div>
 
@@ -76,9 +71,10 @@
                                         <p class="text-sm text-gray-400">{{ $account->customer->email }}</p>
                                     </td>
                                     <td class="px-4 py-4">
-                                        <span
-                                            class="px-3 py-1 text-xs rounded-full {{ $account->membership_level === 'gold' ? 'bg-yellow-900/30 text-yellow-400' : ($account->membership_level === 'silver' ? 'bg-gray-700 text-gray-300' : 'bg-orange-900/30 text-orange-400') }}">
-                                            {{ ucfirst($account->membership_level) }}
+                                        <span class="px-3 py-1 text-xs rounded-full inline-flex items-center gap-1" 
+                                              style="background-color: {{ $account->level->color ?? '#6B7280' }}20; color: {{ $account->level->color ?? '#6B7280' }}">
+                                            <span>{{ $account->level->icon ?? '🏅' }}</span>
+                                            <span>{{ $account->level->name ?? ucfirst($account->membership_level) }}</span>
                                         </span>
                                     </td>
                                     <td class="px-4 py-4 font-bold text-white">

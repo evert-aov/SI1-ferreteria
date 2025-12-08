@@ -275,11 +275,8 @@ class PayPalController extends Controller
                         $loyaltyService = app(LoyaltyService::class);
                         $customer = auth()->user();
                         
-                        // Bonus de 1.5x puntos para compras online
-                        $pointsMultiplier = 1.5;
-                        $description = "Compra online #{$invoiceNumber} (Bonus +50%)";
-                        
-                        $loyaltyService->awardPointsForSale($customer, $sale, $pointsMultiplier, $description);
+                        // Compras online obtienen bonus automáticamente
+                        $loyaltyService->awardPointsForSale($customer, $sale, 'online');
                     } catch (\Exception $e) {
                         // Log el error pero no fallar la transacción
                         \Log::error('Error al otorgar puntos de lealtad: ' . $e->getMessage());

@@ -24,6 +24,8 @@ class DatabaseSeeder extends Seeder
             PaymentMethodSeeder::class,
             SupplierSeeder::class,
             ProductSeeder::class,
+            LoyaltyLevelsSeeder::class,
+            LoyaltySeeder::class,
         ]);
     }
 }

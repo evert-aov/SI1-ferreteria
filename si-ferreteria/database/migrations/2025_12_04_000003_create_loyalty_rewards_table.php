@@ -21,13 +21,15 @@ return new class extends Migration
             $table->boolean('is_active')->default(true);
             $table->integer('stock_limit')->nullable()->comment('Límite de canjes disponibles');
             $table->integer('available_count')->nullable()->comment('Canjes restantes');
-            $table->enum('minimum_level', ['bronze', 'silver', 'gold'])->default('bronze');
             $table->string('image')->nullable();
+            
+            $table->string('minimum_level');
+            $table->foreign('minimum_level')->references('code')->on('loyalty_levels')->onDelete('restrict');
+
             $table->timestamps();
 
             // Índices
             $table->index('is_active');
-            $table->index('minimum_level');
             $table->index('points_cost');
         });
     }

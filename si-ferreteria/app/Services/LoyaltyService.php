@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Loyalty\LoyaltyAccount;
 use App\Models\Loyalty\LoyaltyRedemption;
 use App\Models\Loyalty\LoyaltyReward;
+use App\Models\Loyalty\LoyaltyLevel;
 use App\Models\Sale;
 use App\Models\User_security\User;
 use Illuminate\Support\Facades\DB;
@@ -13,22 +14,23 @@ class LoyaltyService
 {
     /**
      * Calcular puntos desde un monto en USD
-     * 1 punto = $1 USD
+     * Configuración: 1 punto por cada dólar gastado
      */
     public function calculatePointsFromAmount(float $amount): int
     {
-        return (int) floor($amount);
+        $pointsPerDollar = 1;
+        return (int) floor($amount * $pointsPerDollar);
     }
 
     /**
      * Otorgar puntos por una venta
      *
+     * @param  User|null  $customer  El cliente
      * @param  Sale  $sale  La venta
-     * @param  User|null  $customer  El cliente (opcional, se obtiene de la venta si no se provee)
-     * @param  float  $multiplier  Multiplicador de puntos (default 1.0, 1.5 para online)
+     * @param  string  $source  Origen de la venta ('pos' o 'online')
      * @param  string|null  $customDescription  Descripción personalizada
      */
-    public function awardPointsForSale($customer, Sale $sale, float $multiplier = 1.0, ?string $customDescription = null): void
+    public function awardPointsForSale($customer, Sale $sale, string $source = 'pos', ?string $customDescription = null): void
     {
         // Solo otorgar puntos si la venta está pagada
         if ($sale->status !== 'paid') {
@@ -44,28 +46,41 @@ class LoyaltyService
             return; // No hay cliente
         }
 
-        // Calcular puntos base (1 punto = $1 USD)
-        $basePoints = $this->calculatePointsFromAmount($sale->total);
-
-        // Aplicar multiplicador
-        $points = (int) floor($basePoints * $multiplier);
-
-        if ($points <= 0) {
-            return;
-        }
-
         // Obtener o crear cuenta de lealtad
+        $defaultLevel = LoyaltyLevel::active()->ordered()->first();
+        
         $loyaltyAccount = LoyaltyAccount::firstOrCreate(
             ['customer_id' => $customerId],
             [
                 'total_points_earned' => 0,
                 'available_points' => 0,
-                'membership_level' => 'bronze',
+                'membership_level' => $defaultLevel ? $defaultLevel->code : 'bronze',
             ]
         );
 
+        // Calcular puntos base
+        $basePoints = $this->calculatePointsFromAmount($sale->total);
+
+        // Aplicar multiplicador del nivel
+        $levelMultiplier = $loyaltyAccount->getPointsMultiplier();
+        $points = (int) floor($basePoints * $levelMultiplier);
+
+        // Aplicar bonus para compras online (50% adicional)
+        if ($source === 'online') {
+            $onlineBonusPercentage = 50;
+            $bonusPoints = (int) floor($points * ($onlineBonusPercentage / 100));
+            $points += $bonusPoints;
+        }
+
+        if ($points <= 0) {
+            return;
+        }
+
         // Descripción
         $description = $customDescription ?? "Compra #{$sale->invoice_number}";
+        if ($source === 'online') {
+            $description .= " (Online)";
+        }
 
         // Agregar puntos
         $loyaltyAccount->addPoints(
@@ -100,9 +115,15 @@ class LoyaltyService
             throw new \Exception('No tienes el nivel requerido para esta recompensa');
         }
 
-        // Verificar puntos suficientes
+        // Verificar puntos mínimos para canjear (100 puntos)
+        $minPointsToRedeem = 100;
+        if ($loyaltyAccount->available_points < $minPointsToRedeem) {
+            throw new \Exception("Necesitas al menos {$minPointsToRedeem} puntos para canjear recompensas");
+        }
+
+        // Verificar puntos suficientes para esta recompensa
         if ($loyaltyAccount->available_points < $reward->points_cost) {
-            throw new \Exception('No tienes suficientes puntos');
+            throw new \Exception('No tienes suficientes puntos para esta recompensa');
         }
 
         DB::beginTransaction();
@@ -129,6 +150,8 @@ class LoyaltyService
             if (in_array($reward->reward_type, ['discount_percentage', 'discount_amount'])) {
                 $couponCode = $this->generateUniqueCouponCode();
 
+                $couponValidityDays = 30; // Cupones válidos por 30 días
+
                 $discount = \App\Models\Discount::create([
                     'code' => $couponCode,
                     'description' => "Cupón de lealtad: {$reward->name}",
@@ -139,7 +162,7 @@ class LoyaltyService
                     'uses_count' => 0,
                     'is_active' => true,
                     'start_date' => now(),
-                    'end_date' => now()->addDays(30), // Válido por 30 días
+                    'end_date' => now()->addDays($couponValidityDays),
                 ]);
 
                 // Guardar el código del cupón en el registro de canje

@@ -169,6 +169,10 @@ Route::prefix('loyalty')->name('loyalty.')->group(function () {
 Route::prefix('admin/loyalty')->name('admin.loyalty.')->group(function () {
     Route::get('/config', [\App\Http\Controllers\Admin\Loyalty\AdminLoyaltyController::class, 'config'])->name('config');
     
+    // CRUD de Niveles
+    Route::resource('levels', \App\Http\Controllers\Admin\Loyalty\AdminLoyaltyLevelController::class)->except(['show']);
+    Route::post('/levels/reorder', [\App\Http\Controllers\Admin\Loyalty\AdminLoyaltyLevelController::class, 'reorder'])->name('levels.reorder');
+    
     // CRUD de Recompensas
     Route::get('/rewards/create', [\App\Http\Controllers\Admin\Loyalty\AdminLoyaltyController::class, 'createReward'])->name('rewards.create');
     Route::post('/rewards', [\App\Http\Controllers\Admin\Loyalty\AdminLoyaltyController::class, 'storeReward'])->name('rewards.store');

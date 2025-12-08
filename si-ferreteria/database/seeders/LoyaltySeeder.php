@@ -95,13 +95,13 @@ class LoyaltySeeder extends Seeder
 
         foreach ($customers as $customer) {
             // Crear cuenta con datos aleatorios
-            $totalPoints = rand(0, 800);
+            $totalPoints = rand(0, 6000);
             $availablePoints = rand(0, $totalPoints);
             
             $level = 'bronze';
-            if ($totalPoints >= 500) {
+            if ($totalPoints >= 5000) {
                 $level = 'gold';
-            } elseif ($totalPoints >= 100) {
+            } elseif ($totalPoints >= 1000) {
                 $level = 'silver';
             }
 

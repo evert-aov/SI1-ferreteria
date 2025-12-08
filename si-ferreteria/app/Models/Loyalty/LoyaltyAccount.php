@@ -30,6 +30,14 @@ class LoyaltyAccount extends Model
     }
 
     /**
+     * Relación con el nivel de membresía
+     */
+    public function level(): BelongsTo
+    {
+        return $this->belongsTo(LoyaltyLevel::class, 'membership_level', 'code');
+    }
+
+    /**
      * Relación con transacciones
      */
     public function transactions(): HasMany
@@ -109,13 +117,16 @@ class LoyaltyAccount extends Model
      */
     private function calculateLevel(): string
     {
-        if ($this->total_points_earned >= 500) {
-            return 'gold';
-        } elseif ($this->total_points_earned >= 100) {
-            return 'silver';
-        }
-        
-        return 'bronze';
+        $level = LoyaltyLevel::getLevelForPoints($this->total_points_earned);
+        return $level ? $level->code : 'bronze';
+    }
+
+    /**
+     * Obtener multiplicador de puntos del nivel actual
+     */
+    public function getPointsMultiplier(): float
+    {
+        return $this->level?->multiplier ?? 1.0;
     }
 
     /**
@@ -131,16 +142,11 @@ class LoyaltyAccount extends Model
     }
 
     /**
-     * Obtener nombre del nivel en español
+     * Obtener nombre del nivel
      */
     public function getLevelNameAttribute(): string
     {
-        return match($this->membership_level) {
-            'bronze' => 'Bronce',
-            'silver' => 'Plata',
-            'gold' => 'Oro',
-            default => 'Desconocido'
-        };
+        return $this->level?->name ?? 'Desconocido';
     }
 
     /**
@@ -148,12 +154,15 @@ class LoyaltyAccount extends Model
      */
     public function getLevelColorAttribute(): string
     {
-        return match($this->membership_level) {
-            'bronze' => '#CD7F32',
-            'silver' => '#C0C0C0',
-            'gold' => '#FFD700',
-            default => '#6B7280'
-        };
+        return $this->level?->color ?? '#6B7280';
+    }
+
+    /**
+     * Obtener ícono del nivel
+     */
+    public function getLevelIconAttribute(): string
+    {
+        return $this->level?->icon ?? '⭐';
     }
 
     /**
@@ -162,31 +171,38 @@ class LoyaltyAccount extends Model
     public function getProgressToNextLevelAttribute(): array
     {
         $current = $this->total_points_earned;
+        $currentLevel = $this->level;
         
-        if ($this->membership_level === 'gold') {
+        if (!$currentLevel) {
             return [
                 'current' => $current,
-                'required' => 500,
+                'required' => 0,
+                'percentage' => 0,
+                'next_level' => null,
+            ];
+        }
+
+        $nextLevel = $currentLevel->getNextLevel();
+        
+        if (!$nextLevel) {
+            // Es el nivel máximo
+            return [
+                'current' => $current,
+                'required' => $currentLevel->min_points,
                 'percentage' => 100,
                 'next_level' => null,
             ];
         }
 
-        $thresholds = [
-            'bronze' => ['min' => 0, 'max' => 100, 'next' => 'Plata'],
-            'silver' => ['min' => 100, 'max' => 500, 'next' => 'Oro'],
-        ];
-
-        $threshold = $thresholds[$this->membership_level];
-        $progress = $current - $threshold['min'];
-        $required = $threshold['max'] - $threshold['min'];
-        $percentage = min(100, ($progress / $required) * 100);
+        $progress = $current - $currentLevel->min_points;
+        $required = $nextLevel->min_points - $currentLevel->min_points;
+        $percentage = $required > 0 ? min(100, ($progress / $required) * 100) : 100;
 
         return [
             'current' => $current,
-            'required' => $threshold['max'],
+            'required' => $nextLevel->min_points,
             'percentage' => round($percentage, 1),
-            'next_level' => $threshold['next'],
+            'next_level' => $nextLevel->name,
         ];
     }
 }

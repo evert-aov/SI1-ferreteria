@@ -110,18 +110,12 @@
                         <select name="minimum_level" id="minimum_level"
                             class="w-full bg-gray-700 text-white rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-orange-500"
                             required>
-                            <option value="bronze"
-                                {{ old('minimum_level', $reward->minimum_level ?? '') == 'bronze' ? 'selected' : '' }}>
-                                Bronce
-                            </option>
-                            <option value="silver"
-                                {{ old('minimum_level', $reward->minimum_level ?? '') == 'silver' ? 'selected' : '' }}>
-                                Plata
-                            </option>
-                            <option value="gold"
-                                {{ old('minimum_level', $reward->minimum_level ?? '') == 'gold' ? 'selected' : '' }}>
-                                Oro
-                            </option>
+                            @foreach ($levels as $level)
+                                <option value="{{ $level->code }}"
+                                    {{ old('minimum_level', $reward?->minimum_level ?? '') == $level->code ? 'selected' : '' }}>
+                                    {{ $level->icon }} {{ $level->name }} ({{ number_format($level->min_points) }} pts)
+                                </option>
+                            @endforeach
                         </select>
                         @error('minimum_level')
                             <p class="text-red-400 text-sm mt-1">{{ $message }}</p>
