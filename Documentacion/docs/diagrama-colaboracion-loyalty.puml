@@ -1,0 +1,29 @@
+@startuml Diagrama_Colaboracion_CU_Loyalty
+' ============================================================================
+' Diagrama de Colaboración - Caso de Uso Loyalty
+' Sistema de Gestión de Ferretería
+' Fecha: 4 de Diciembre, 2025
+' ============================================================================
+
+left to right direction
+
+actor Cliente
+:Cliente:
+entity LoyaltyAccount
+entity LoyaltyTransaction
+entity LoyaltyReward
+entity LoyaltyRedemption
+control LoyaltyService
+boundary LoyaltyController
+
+' === Conexiones principales ===
+Cliente -- LoyaltyController : 1: acceder/solicitar
+LoyaltyController -- LoyaltyService : 2: gestionar solicitud
+LoyaltyService -- LoyaltyAccount : 3: obtener/validar cuenta
+LoyaltyAccount -- LoyaltyTransaction : 4: crear transacción
+LoyaltyAccount -- LoyaltyReward : 5: validar disponibilidad
+LoyaltyAccount -- LoyaltyRedemption : 6: generar redención
+LoyaltyService -- LoyaltyController : 7: retornar resultado
+LoyaltyController -- Cliente : 8: enviar respuesta
+
+@enduml

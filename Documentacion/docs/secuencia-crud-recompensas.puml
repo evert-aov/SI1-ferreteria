@@ -1,0 +1,101 @@
+@startuml secuencia-crud-recompensas
+!theme plain
+skinparam sequenceMessageAlign center
+
+actor "Administrador" as Admin
+participant "UI:\nform.blade.php" as Vista
+participant "AdminLoyaltyController" as Controller
+database "DB: LoyaltyReward" as DBReward
+database "DB: Storage" as DBStorage
+
+== Crear Recompensa ==
+Admin -> Vista: 1. Clic en "Nueva Recompensa"
+Vista -> Controller: 1.1. GET /admin/loyalty/rewards/create
+Controller --> Vista: 1.2. return view(formulario vacío)
+
+Admin -> Vista: 2. Completa formulario
+Admin -> Vista: 3. Clic en "Crear"
+Vista -> Controller: 3.1. POST /admin/loyalty/rewards
+
+Controller -> Controller: 3.2. validar datos
+
+alt Tiene imagen
+    Controller -> DBStorage: 3.3. store(imagen)
+    DBStorage --> Controller: 3.3.1. ruta de imagen
+end
+
+Controller -> DBReward: 3.4. create(datos)
+DBReward --> Controller: 3.4.1. recompensa creada
+
+Controller --> Vista: 3.5. redirect()->with('success')
+Vista --> Admin: 4. "Recompensa creada\nexitosamente"
+
+== Editar Recompensa ==
+Admin -> Vista: 5. Clic en botón "Editar"
+Vista -> Controller: 5.1. GET /admin/loyalty/rewards/{id}/edit
+
+Controller -> DBReward: 5.2. find(id)
+DBReward --> Controller: 5.2.1. datos de recompensa
+
+Controller --> Vista: 5.3. return view(formulario con datos)
+
+Admin -> Vista: 6. Modifica datos
+Admin -> Vista: 7. Clic en "Actualizar"
+Vista -> Controller: 7.1. PUT /admin/loyalty/rewards/{id}
+
+Controller -> Controller: 7.2. validar datos
+
+alt Tiene nueva imagen
+    Controller -> DBStorage: 7.3. delete(imagen antigua)
+    DBStorage --> Controller: 7.3.1. eliminada
+    
+    Controller -> DBStorage: 7.4. store(imagen nueva)
+    DBStorage --> Controller: 7.4.1. ruta de imagen
+end
+
+Controller -> DBReward: 7.5. update(datos)
+DBReward --> Controller: 7.5.1. actualizada
+
+Controller --> Vista: 7.6. redirect()->with('success')
+Vista --> Admin: 8. "Recompensa actualizada"
+
+== Toggle Estado ==
+Admin -> Vista: 9. Clic en botón toggle
+Vista -> Controller: 9.1. POST /admin/loyalty/rewards/{id}/toggle
+
+Controller -> DBReward: 9.2. find(id)
+DBReward --> Controller: 9.2.1. recompensa actual
+
+Controller -> DBReward: 9.3. update(['is_active' => !is_active])
+DBReward --> Controller: 9.3.1. estado actualizado
+
+Controller --> Vista: 9.4. redirect()->with('success')
+Vista --> Admin: 10. "Recompensa\nactivada/desactivada"
+
+== Eliminar Recompensa ==
+Admin -> Vista: 11. Clic en botón "Eliminar"
+Vista -> Admin: 11.1. Confirmación
+Admin -> Vista: 11.2. Confirma eliminación
+Vista -> Controller: 11.3. DELETE /admin/loyalty/rewards/{id}
+
+Controller -> DBReward: 11.4. redemptions()->count()
+DBReward --> Controller: 11.4.1. cantidad de canjes
+
+alt Tiene canjes
+    Controller --> Vista: 11.5. redirect()->with('error')
+    Vista --> Admin: 12. "No se puede eliminar"
+else Sin canjes
+    Controller -> DBReward: 11.6. find(id)
+    DBReward --> Controller: 11.6.1. datos de recompensa
+    
+    Controller -> DBStorage: 11.7. delete(imagen)
+    DBStorage --> Controller: 11.7.1. imagen eliminada
+    
+    Controller -> DBReward: 11.8. delete()
+    DBReward --> Controller: 11.8.1. eliminada
+    
+    Controller --> Vista: 11.9. redirect()->with('success')
+    Vista --> Admin: 12. "Recompensa eliminada"
+end
+
+@enduml

@@ -1,0 +1,67 @@
+@startuml secuencia-importar-productos
+!theme plain
+skinparam sequenceMessageAlign center
+
+actor "Administrador" as Admin
+participant "UI:\nimport.blade.php" as Vista
+participant "ProductController" as Controller
+database "DB: Product" as DBProduct
+database "DB: Category" as DBCategory
+database "DB: Brand" as DBBrand
+
+Admin -> Vista: 1. Selecciona archivo Excel
+Admin -> Vista: 2. Clic en "Importar"
+Vista -> Controller: 2.1. POST /products/import
+
+Controller -> Controller: 2.2. validar archivo
+note right
+  Tipo: xlsx, xls
+  Tamaño: max 10MB
+end note
+
+Controller -> Controller: 2.3. leer archivo Excel
+
+loop Por cada fila del Excel
+    Controller -> Controller: 2.4. validar datos de la fila
+    note right
+      SKU, nombre, precio,
+      stock, categoría, marca
+    end note
+    
+    alt Datos válidos
+        Controller -> DBCategory: 2.5. buscar categoría
+        DBCategory --> Controller: 2.5.1. category_id
+        
+        Controller -> DBBrand: 2.6. buscar marca
+        DBBrand --> Controller: 2.6.1. brand_id
+        
+        Controller -> DBProduct: 2.7. where('sku', sku)->first()
+        DBProduct --> Controller: 2.7.1. producto o null
+        
+        alt Producto existe
+            Controller -> DBProduct: 2.8. update(datos)
+            DBProduct --> Controller: 2.8.1. actualizado
+        else Producto nuevo
+            Controller -> DBProduct: 2.9. create(datos)
+            DBProduct --> Controller: 2.9.1. creado
+        end
+        
+        Controller -> Controller: 2.10. incrementar contador éxitos
+    else Datos inválidos
+        Controller -> Controller: 2.11. agregar a lista de errores
+        Controller -> Controller: 2.12. incrementar contador fallos
+    end
+end
+
+Controller -> Controller: 2.13. preparar resultado
+note right
+  Total procesados
+  Éxitos
+  Fallos
+  Errores detallados
+end note
+
+Controller --> Vista: 2.14. redirect()->with('resultado')
+Vista --> Admin: 3. Mostrar resumen\nde importación
+
+@enduml

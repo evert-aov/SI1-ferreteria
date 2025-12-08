@@ -1,0 +1,78 @@
+@startuml
+title Secuencia: Dashboard de Lealtad y Consulta de Historial
+
+actor "Cliente" as Cliente
+participant "Vista:\nloyalty/dashboard" as Vista
+participant "Controller:\nLoyaltyController" as Controller
+database "DB:\nloyalty_accounts\nloyalty_transactions\nloyalty_redemptions" as DB
+
+== Ver Dashboard ==
+
+Cliente -> Vista: 1. Accede a /loyalty
+activate Vista
+Vista -> Controller: 2. GET /loyalty
+activate Controller
+
+Controller -> DB: 3. SELECT * FROM loyalty_accounts\nWHERE customer_id = ?
+activate DB
+alt Cuenta existe
+    DB --> Controller: 4. Retorna cuenta
+    deactivate DB
+else Cuenta no existe
+    Controller -> DB: 5. INSERT INTO loyalty_accounts\n(customer_id, membership_level, ...)
+    activate DB
+    DB --> Controller: 6. Cuenta creada
+    deactivate DB
+end
+
+Controller -> DB: 7. SELECT * FROM loyalty_transactions\nWHERE loyalty_account_id = ?\nORDER BY created_at DESC LIMIT 5
+activate DB
+DB --> Controller: 8. Retorna transacciones recientes
+deactivate DB
+
+Controller -> DB: 9. SELECT * FROM loyalty_redemptions\nWHERE loyalty_account_id = ?\nORDER BY created_at DESC LIMIT 5
+activate DB
+DB --> Controller: 10. Retorna canjes recientes
+deactivate DB
+
+Controller --> Vista: 11. Retorna vista con datos:\n- Puntos disponibles\n- Nivel actual\n- Progreso al siguiente nivel\n- Transacciones recientes\n- Canjes recientes
+deactivate Controller
+
+Vista --> Cliente: 12. Muestra dashboard completo
+deactivate Vista
+
+== Ver Historial de Transacciones ==
+
+Cliente -> Vista: 13. Click en "Ver todas las transacciones"
+activate Vista
+Vista -> Controller: 14. GET /loyalty (mismo endpoint, sección diferente)
+activate Controller
+
+Controller -> DB: 15. SELECT * FROM loyalty_transactions\nWHERE loyalty_account_id = ?\nORDER BY created_at DESC
+activate DB
+DB --> Controller: 16. Retorna todas las transacciones
+deactivate DB
+
+Controller --> Vista: 17. Retorna vista con historial completo
+deactivate Controller
+Vista --> Cliente: 18. Muestra tabla de transacciones\n(tipo, puntos, descripción, fecha)
+deactivate Vista
+
+== Ver Historial de Canjes ==
+
+Cliente -> Vista: 19. Click en "Ver todos los canjes"
+activate Vista
+Vista -> Controller: 20. GET /loyalty (mismo endpoint, sección diferente)
+activate Controller
+
+Controller -> DB: 21. SELECT * FROM loyalty_redemptions\nWHERE loyalty_account_id = ?\nORDER BY created_at DESC
+activate DB
+DB --> Controller: 22. Retorna todos los canjes
+deactivate DB
+
+Controller --> Vista: 23. Retorna vista con historial de canjes
+deactivate Controller
+Vista --> Cliente: 24. Muestra tabla de canjes\n(recompensa, puntos, cupón, estado, fecha)
+deactivate Vista
+
+@enduml

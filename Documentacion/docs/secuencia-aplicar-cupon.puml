@@ -1,0 +1,44 @@
+@startuml secuencia-aplicar-cupon
+!theme plain
+skinparam sequenceMessageAlign center
+
+actor "Cliente" as Cliente
+participant "UI:\ncheckout.blade.php" as Vista
+participant "CartController" as Controller
+database "DB: Discount" as DBDiscount
+database "DB: Session" as DBSession
+
+Cliente -> Vista: 1. Ingresa código de cupón
+Cliente -> Vista: 2. Clic en "Aplicar Cupón"
+Vista -> Controller: 2.1. POST /carrito/aplicar-descuento
+
+Controller -> DBDiscount: 2.2. where('code', codigo)->first()
+DBDiscount --> Controller: 2.2.1. cupón encontrado
+
+Controller -> Controller: 2.3. isValid() - verificar activo y fecha
+
+Controller -> Controller: 2.4. canBeUsed() - verificar usos
+
+Controller -> Controller: 2.5. calculateTotal(cart)
+
+Controller -> Controller: 2.6. calcular descuento
+
+alt Total después de descuento < $1
+    Controller -> Controller: 2.7. ajustar descuento
+    note right
+      maxDiscount = subtotal - (1/1.13)
+      (dejar mínimo $1 para PayPal)
+    end note
+end
+
+Controller -> DBSession: 2.8. session()->put('discount', datos)
+note right
+  id, code, type,
+  value, amount
+end note
+DBSession --> Controller: 2.8.1. guardado en sesión
+
+Controller --> Vista: 2.9. redirect()->with('success')
+Vista --> Cliente: 3. "¡Cupón aplicado!\nDescuento: $X.XX"
+
+@enduml

@@ -1,0 +1,40 @@
+@startuml secuencia-ganar-puntos
+!theme plain
+skinparam sequenceMessageAlign center
+
+actor "Cliente" as Cliente
+participant "PayPalController" as Controller
+database "DB: LoyaltyAccount" as DBAccount
+database "DB: LoyaltyTransaction" as DBTransaction
+
+Cliente -> Controller: 1. Completa pago con PayPal
+Controller -> Controller: 1.1. captureOrder()
+
+Controller -> DBAccount: 1.2. obtener cuenta de lealtad del usuario
+DBAccount --> Controller: 1.2.1. cuenta encontrada
+
+Controller -> Controller: 1.3. calcular puntos
+note right
+  Base: $1 = 1 punto
+  Bonus online: +50%
+  Multiplicador nivel
+end note
+
+Controller -> DBTransaction: 1.4. create(transacción)
+note right
+  type: earn
+  points: cantidad
+  description: "Compra online #XXX"
+end note
+DBTransaction --> Controller: 1.4.1. transacción creada
+
+Controller -> DBAccount: 1.5. update(sumar puntos)
+note right
+  total_points_earned += points
+  available_points += points
+end note
+DBAccount --> Controller: 1.5.1. puntos actualizados
+
+Controller --> Cliente: 2. Orden completada +\nPuntos ganados
+
+@enduml

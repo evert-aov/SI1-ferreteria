@@ -1,0 +1,45 @@
+@startuml caso-uso-lealtad
+!theme plain
+skinparam packageStyle rectangle
+
+left to right direction
+
+actor "Cliente" as Cliente
+actor "Administrador" as Admin
+actor "Sistema PayPal" as Sistema
+
+rectangle "Sistema de Lealtad" {
+    usecase "CU-L01: Ver Dashboard\nde Lealtad" as CU1
+    usecase "CU-L02: Ganar Puntos\npor Compra" as CU2
+    usecase "CU-L03: Ver Catálogo\nde Recompensas" as CU3
+    usecase "CU-L04: Canjear Recompensa\npor Cupón" as CU4
+    usecase "CU-L05: Aplicar Cupón\nen Checkout" as CU5
+    usecase "CU-L06: Ver Historial\nde Transacciones" as CU6
+    usecase "CU-L07: Ver Historial\nde Canjes" as CU7
+    usecase "CU-L08: Configurar\nSistema de Lealtad" as CU8
+    usecase "CU-L09: Gestionar\nRecompensas CRUD" as CU9
+    usecase "CU-L10: Ver Reportes\nde Lealtad" as CU10
+}
+
+' Relaciones Cliente
+Cliente --> CU1
+Cliente --> CU3
+Cliente --> CU4
+Cliente --> CU5
+Cliente --> CU6
+Cliente --> CU7
+
+' Relaciones Sistema
+Sistema ..> CU2 : <<include>>
+CU5 ..> CU2 : <<include>>
+
+' Relaciones Administrador
+Admin --> CU8
+Admin --> CU9
+Admin --> CU10
+
+' Relaciones extends
+CU4 ..> CU3 : <<extends>>
+CU5 ..> CU4 : <<extends>>
+
+@enduml

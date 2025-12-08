@@ -1,0 +1,98 @@
+@startuml
+title Secuencia: Gestión de Recompensas (Catálogo y Canje)
+
+actor "Cliente" as Cliente
+participant "Vista:\nloyalty/rewards" as VistaRewards
+participant "Controller:\nLoyaltyController" as Controller
+participant "Service:\nLoyaltyService" as Service
+database "DB:\nloyalty_rewards\nloyalty_redemptions\ndiscounts" as DB
+
+== Ver Catálogo de Recompensas ==
+
+Cliente -> VistaRewards: 1. Accede a /loyalty/rewards
+activate VistaRewards
+VistaRewards -> Controller: 2. GET /loyalty/rewards
+activate Controller
+
+Controller -> DB: 3. SELECT * FROM loyalty_accounts\nWHERE customer_id = ?
+activate DB
+DB --> Controller: 4. Retorna cuenta del cliente
+deactivate DB
+
+Controller -> DB: 5. SELECT * FROM loyalty_rewards\nWHERE is_active = true\nAND minimum_level <= ?\nORDER BY points_cost ASC
+activate DB
+DB --> Controller: 6. Retorna recompensas disponibles\npara el nivel del cliente
+deactivate DB
+
+Controller --> VistaRewards: 7. Retorna vista con:\n- Recompensas disponibles\n- Puntos del cliente\n- Nivel del cliente
+deactivate Controller
+
+VistaRewards --> Cliente: 8. Muestra catálogo de recompensas\n(nombre, descripción, costo, imagen)
+deactivate VistaRewards
+
+== Canjear Recompensa ==
+
+Cliente -> VistaRewards: 9. Click en "Canjear" de una recompensa
+activate VistaRewards
+VistaRewards -> Cliente: 10. Muestra confirmación
+Cliente -> VistaRewards: 11. Confirma canje
+VistaRewards -> Controller: 12. POST /loyalty/rewards/{id}/redeem
+activate Controller
+
+Controller -> Service: 13. redeemReward(user, reward)
+activate Service
+
+Service -> DB: 14. BEGIN TRANSACTION
+activate DB
+
+Service -> DB: 15. Verificar disponibilidad\nSELECT * FROM loyalty_rewards WHERE id = ?
+DB --> Service: 16. Recompensa disponible
+
+Service -> DB: 17. Verificar nivel y puntos del cliente
+DB --> Service: 18. Cliente cumple requisitos
+
+alt Cliente cumple requisitos
+    Service -> DB: 19. UPDATE loyalty_accounts\nSET available_points = available_points - ?
+    DB --> Service: 20. Puntos deducidos
+    
+    Service -> DB: 21. INSERT INTO loyalty_transactions\n(type = 'redeem', points = -?, ...)
+    DB --> Service: 22. Transacción registrada
+    
+    Service -> DB: 23. UPDATE loyalty_rewards\nSET available_count = available_count - 1
+    DB --> Service: 24. Stock actualizado
+    
+    Service -> DB: 25. INSERT INTO loyalty_redemptions\n(loyalty_account_id, loyalty_reward_id, ...)
+    DB --> Service: 26. Canje registrado
+    
+    alt Es cupón de descuento
+        Service -> DB: 27. INSERT INTO discounts\n(code, discount_type, discount_value, ...)
+        DB --> Service: 28. Cupón creado
+        
+        Service -> DB: 29. UPDATE loyalty_redemptions\nSET coupon_code = ?
+        DB --> Service: 30. Código guardado
+    end
+    
+    Service -> DB: 31. COMMIT
+    deactivate DB
+    
+    Service --> Controller: 32. Retorna redemption con cupón
+    deactivate Service
+    
+    Controller --> VistaRewards: 33. Redirect con mensaje de éxito
+    deactivate Controller
+    
+    VistaRewards --> Cliente: 34. Muestra cupón generado\n(código, validez, instrucciones)
+    deactivate VistaRewards
+    
+else Cliente no cumple requisitos
+    Service -> DB: 35. ROLLBACK
+    deactivate DB
+    Service --> Controller: 36. Lanza excepción
+    deactivate Service
+    Controller --> VistaRewards: 37. Retorna error
+    deactivate Controller
+    VistaRewards --> Cliente: 38. Muestra mensaje de error
+    deactivate VistaRewards
+end
+
+@enduml

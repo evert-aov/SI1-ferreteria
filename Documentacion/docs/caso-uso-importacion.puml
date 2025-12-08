@@ -1,0 +1,28 @@
+@startuml caso-uso-importacion
+!theme plain
+skinparam packageStyle rectangle
+
+left to right direction
+
+actor "Administrador" as Admin
+actor "Empleado" as Empleado
+
+rectangle "Importación de Productos" {
+    usecase "CU-P01: Importar Productos\ndesde Excel" as CU11
+    usecase "CU-P02: Validar Formato\nde Archivo" as CU12
+    usecase "CU-P03: Procesar Datos\ndel Archivo" as CU13
+    usecase "CU-P04: Crear/Actualizar\nProductos" as CU14
+    usecase "CU-P05: Ver Resultado\nde Importación" as CU15
+}
+
+' Relaciones
+Admin --> CU11
+Empleado --> CU11
+
+' Relaciones include
+CU11 ..> CU12 : <<include>>
+CU11 ..> CU13 : <<include>>
+CU13 ..> CU14 : <<include>>
+CU11 ..> CU15 : <<include>>
+
+@enduml

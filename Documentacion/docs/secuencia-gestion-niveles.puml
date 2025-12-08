@@ -1,0 +1,139 @@
+@startuml
+title Secuencia: Gestión de Niveles de Lealtad (CRUD Completo)
+
+actor "Administrador" as Admin
+participant "Vista:\nlevels/index" as VistaIndex
+participant "Vista:\nlevels/form" as VistaForm
+participant "Controller:\nAdminLoyaltyLevelController" as Controller
+database "DB:\nloyalty_levels" as DB
+
+== Listar Niveles ==
+
+Admin -> VistaIndex: 1. Accede a gestionar niveles
+activate VistaIndex
+VistaIndex -> Controller: 2. GET /admin/loyalty/levels
+activate Controller
+
+Controller -> DB: 3. SELECT * FROM loyalty_levels\nORDER BY order ASC
+activate DB
+DB --> Controller: 4. Retorna todos los niveles
+deactivate DB
+
+Controller --> VistaIndex: 5. Retorna vista con niveles
+deactivate Controller
+VistaIndex --> Admin: 6. Muestra tabla de niveles
+deactivate VistaIndex
+
+== Crear Nivel ==
+
+Admin -> VistaIndex: 7. Click en "Nuevo Nivel"
+activate VistaIndex
+VistaIndex -> Controller: 8. GET /admin/loyalty/levels/create
+activate Controller
+Controller --> VistaIndex: 9. Retorna formulario vacío
+deactivate Controller
+VistaIndex --> Admin: 10. Muestra formulario
+deactivate VistaIndex
+
+Admin -> VistaForm: 11. Ingresa datos\n(código, nombre, puntos, multiplicador, color, ícono)
+activate VistaForm
+VistaForm -> Controller: 12. POST /admin/loyalty/levels
+activate Controller
+
+Controller -> Controller: 13. Valida datos\n(código único, puntos >= 0)
+
+alt Validación exitosa
+    Controller -> DB: 14. SELECT MAX(order)
+    activate DB
+    DB --> Controller: 15. Retorna max orden
+    deactivate DB
+    
+    Controller -> DB: 16. INSERT nuevo nivel\n(order = max + 1)
+    activate DB
+    DB --> Controller: 17. Nivel creado
+    deactivate DB
+    
+    Controller --> VistaForm: 18. Redirect con éxito
+    deactivate Controller
+    VistaForm --> Admin: 19. Muestra lista actualizada
+    deactivate VistaForm
+else Validación fallida
+    Controller --> VistaForm: 20. Retorna errores
+    deactivate Controller
+    VistaForm --> Admin: 21. Muestra errores
+    deactivate VistaForm
+end
+
+== Editar Nivel ==
+
+Admin -> VistaIndex: 22. Click en "Editar"
+activate VistaIndex
+VistaIndex -> Controller: 23. GET /admin/loyalty/levels/{id}/edit
+activate Controller
+
+Controller -> DB: 24. SELECT * WHERE id = ?
+activate DB
+DB --> Controller: 25. Retorna nivel
+deactivate DB
+
+Controller --> VistaIndex: 26. Retorna formulario con datos
+deactivate Controller
+VistaIndex --> Admin: 27. Muestra formulario prellenado
+deactivate VistaIndex
+
+Admin -> VistaForm: 28. Modifica datos
+activate VistaForm
+VistaForm -> Controller: 29. PUT /admin/loyalty/levels/{id}
+activate Controller
+
+Controller -> Controller: 30. Valida datos
+
+alt Validación exitosa
+    Controller -> DB: 31. UPDATE loyalty_levels\nSET ... WHERE id = ?
+    activate DB
+    DB --> Controller: 32. Nivel actualizado
+    deactivate DB
+    
+    Controller --> VistaForm: 33. Redirect con éxito
+    deactivate Controller
+    VistaForm --> Admin: 34. Muestra lista actualizada
+    deactivate VistaForm
+else Validación fallida
+    Controller --> VistaForm: 35. Retorna errores
+    deactivate Controller
+    VistaForm --> Admin: 36. Muestra errores
+    deactivate VistaForm
+end
+
+== Eliminar Nivel ==
+
+Admin -> VistaIndex: 37. Click en "Eliminar"
+activate VistaIndex
+VistaIndex -> Admin: 38. Confirma eliminación
+Admin -> VistaIndex: 39. Confirma
+VistaIndex -> Controller: 40. DELETE /admin/loyalty/levels/{id}
+activate Controller
+
+Controller -> DB: 41. SELECT COUNT(*) FROM loyalty_accounts\nWHERE membership_level = ?
+activate DB
+DB --> Controller: 42. Retorna cantidad de cuentas
+deactivate DB
+
+alt Sin cuentas asociadas
+    Controller -> DB: 43. DELETE FROM loyalty_levels\nWHERE id = ?
+    activate DB
+    DB --> Controller: 44. Nivel eliminado
+    deactivate DB
+    
+    Controller --> VistaIndex: 45. Redirect con éxito
+    deactivate Controller
+    VistaIndex --> Admin: 46. Muestra lista actualizada
+    deactivate VistaIndex
+else Tiene cuentas asociadas
+    Controller --> VistaIndex: 47. Error: tiene cuentas asociadas
+    deactivate Controller
+    VistaIndex --> Admin: 48. Muestra error
+    deactivate VistaIndex
+end
+
+@enduml

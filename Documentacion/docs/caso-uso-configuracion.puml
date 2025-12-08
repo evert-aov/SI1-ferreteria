@@ -1,0 +1,35 @@
+@startuml
+left to right direction
+skinparam actorStyle awesome
+
+actor "Administrador" as Admin
+
+rectangle "Sistema de Configuración de Lealtad" {
+  usecase "CU-C01: Gestionar Niveles" as UC1
+  usecase "CU-C02: Crear Nivel" as UC2
+  usecase "CU-C03: Editar Nivel" as UC3
+  usecase "CU-C04: Eliminar Nivel" as UC4
+  usecase "CU-C05: Configurar Parámetros del Sistema" as UC5
+}
+
+Admin --> UC1
+Admin --> UC2
+Admin --> UC3
+Admin --> UC4
+Admin --> UC5
+
+UC1 ..> UC2 : <<include>>
+UC1 ..> UC3 : <<include>>
+UC1 ..> UC4 : <<include>>
+
+note right of UC2
+  Permite crear niveles personalizados
+  (Platinum, Diamond, VIP, etc.)
+end note
+
+note right of UC5
+  Configura puntos por dólar,
+  bonus online, expiración, etc.
+end note
+
+@enduml
