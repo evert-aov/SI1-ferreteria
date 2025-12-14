@@ -78,6 +78,26 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/roles', RoleManager::class)->name('roles.index');
     Route::get('/permissions', PermissionManager::class)->name('permissions.index');
 
+    // Gestión de Empleados
+    Route::prefix('employees')->name('employees.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\EmployeeController::class, 'index'])->name('index');
+        Route::get('/{id}', [\App\Http\Controllers\EmployeeController::class, 'show'])->name('show');
+        Route::put('/{id}', [\App\Http\Controllers\EmployeeController::class, 'update'])->name('update');
+    });
+
+    // ========== GESTIÓN DE ASISTENCIA ==========
+    Route::prefix('attendance')->name('attendance.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Attendance\AttendanceScanController::class, 'index'])->name('index');
+        Route::get('/scan', [\App\Http\Controllers\Attendance\AttendanceScanController::class, 'scan'])->name('scan');
+        Route::post('/process-scan', [\App\Http\Controllers\Attendance\AttendanceScanController::class, 'processScan'])->name('process-scan');
+        Route::post('/regenerate-qr', [\App\Http\Controllers\Attendance\AttendanceScanController::class, 'regenerateQr'])->name('regenerate');
+    });
+
+    // API de Asistencia
+    Route::prefix('api/attendance')->name('api.attendance.')->group(function () {
+        Route::post('/mark', [\App\Http\Controllers\Api\AttendanceController::class, 'markAttendance'])->name('mark');
+    });
+
     // ========== GESTIÓN DE INVENTARIO ==========
     Route::get('/product-inventory', ProductManager::class)->name('product-inventory.index');
     Route::get('/categories', CategoryManager::class)->name('categories.index');
@@ -168,11 +188,11 @@ Route::prefix('loyalty')->name('loyalty.')->group(function () {
 // Rutas para administradores
 Route::prefix('admin/loyalty')->name('admin.loyalty.')->group(function () {
     Route::get('/config', [\App\Http\Controllers\Admin\Loyalty\AdminLoyaltyController::class, 'config'])->name('config');
-    
+
     // CRUD de Niveles
     Route::resource('levels', \App\Http\Controllers\Admin\Loyalty\AdminLoyaltyLevelController::class)->except(['show']);
     Route::post('/levels/reorder', [\App\Http\Controllers\Admin\Loyalty\AdminLoyaltyLevelController::class, 'reorder'])->name('levels.reorder');
-    
+
     // CRUD de Recompensas
     Route::get('/rewards/create', [\App\Http\Controllers\Admin\Loyalty\AdminLoyaltyController::class, 'createReward'])->name('rewards.create');
     Route::post('/rewards', [\App\Http\Controllers\Admin\Loyalty\AdminLoyaltyController::class, 'storeReward'])->name('rewards.store');
@@ -180,7 +200,7 @@ Route::prefix('admin/loyalty')->name('admin.loyalty.')->group(function () {
     Route::put('/rewards/{reward}', [\App\Http\Controllers\Admin\Loyalty\AdminLoyaltyController::class, 'updateReward'])->name('rewards.update');
     Route::post('/rewards/{reward}/toggle', [\App\Http\Controllers\Admin\Loyalty\AdminLoyaltyController::class, 'toggleReward'])->name('rewards.toggle');
     Route::delete('/rewards/{reward}', [\App\Http\Controllers\Admin\Loyalty\AdminLoyaltyController::class, 'destroyReward'])->name('rewards.destroy');
-    
+
     Route::get('/reports', [\App\Http\Controllers\Admin\Loyalty\AdminLoyaltyController::class, 'reports'])->name('reports');
     Route::post('/accounts/{account}/adjust', [\App\Http\Controllers\Admin\Loyalty\AdminLoyaltyController::class, 'adjustPoints'])->name('accounts.adjust');
 });
