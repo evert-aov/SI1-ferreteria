@@ -11,4 +11,10 @@ Artisan::command('inspire', function () {
 return function (Schedule $schedule) {
     $schedule->command('discounts:activate-deactivate')->daily();
     $schedule->command('claims:cleanup')->daily();
+
+    // Generar registros de asistencia diarios para vendedores
+    $schedule->command('attendance:generate-daily')->dailyAt('00:01');
+
+    // Marcar como ausentes los registros sin check-in
+    $schedule->command('attendance:mark-absent')->dailyAt('23:59');
 };
