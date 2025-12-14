@@ -13,8 +13,10 @@ return new class extends Migration
     {
         Schema::create('employees', function (Blueprint $table) {
             $table->foreignId('user_id')->primary()->constrained()->onDelete('cascade');
-            $table->decimal('salary', 10, 2);
-            $table->date('hire_date');
+            $table->decimal('salary', 10, 2)->nullable();
+            $table->time('start_time')->nullable();
+            $table->time('end_time')->nullable();
+            $table->date('hire_date')->nullable();
             $table->date('termination_date')->nullable();
             $table->timestamps();
         });
