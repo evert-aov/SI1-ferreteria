@@ -65,6 +65,41 @@
 
                     </ul>
                 </li>
+
+                <!-- Gestión de Empleados -->
+                <li>
+                    <a href="{{ route('employees.index') }}"
+                        class="flex items-center p-3 text-gray-300 rounded-lg hover:bg-gradient-to-r hover:from-purple-600/20 hover:to-pink-600/20 group transition-all duration-300 border-l-4 border-transparent hover:border-purple-500">
+                        <x-icons.user-sidebar class="w-6 h-6"/>
+                        <span class="ms-3 font-medium">Gestión de Empleados</span>
+                    </a>
+                </li>
+            @endif
+
+            {{-- Sección de Empleados/Vendedores --}}
+            @if (auth()->user()->roles->whereIn('name', ['Vendedor'])->count() > 0)
+                <li class="pt-4 mt-4">
+                    <x-dividers title="👤 Mi Perfil de Empleado" />
+                </li>
+
+                <li>
+                    <a href="{{ route('employees.show', auth()->id()) }}"
+                        class="flex items-center p-3 text-gray-300 rounded-lg hover:bg-gradient-to-r hover:from-purple-600/20 hover:to-pink-600/20 group transition-all duration-300 border-l-4 border-transparent hover:border-purple-500">
+                        <x-icons.user class="w-6 h-6"/>
+                        <span class="ms-3 font-medium">Mi Información</span>
+                    </a>
+                </li>
+
+                <!-- Asistencia para Vendedores -->
+                <li>
+                    <a href="{{ route('attendance.index') }}"
+                        class="flex items-center p-3 text-gray-300 rounded-lg hover:bg-gradient-to-r hover:from-blue-600/20 hover:to-cyan-600/20 group transition-all duration-300 border-l-4 border-transparent hover:border-blue-500">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        <span class="ms-3 font-medium">Mi Asistencia</span>
+                    </a>
+                </li>
             @endif
 
             {{-- ================================================= --}}
