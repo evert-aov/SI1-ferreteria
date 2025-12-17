@@ -195,43 +195,6 @@
         </div>
     </x-container-second-div>
 
-    {{-- Instrucciones --}}
-    <x-container-second-div>
-        <div class="p-6">
-            <h3 class="text-xl font-bold text-gray-100 mb-4 flex items-center border-b border-gray-700 pb-3">
-                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                </svg>
-                Instrucciones de Uso
-            </h3>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                <div class="flex items-start space-x-3 bg-gray-900/50 rounded-lg p-4 border border-gray-700/50">
-                    <div class="flex-shrink-0 w-8 h-8 bg-blue-500/20 rounded-lg flex items-center justify-center">
-                        <span class="text-blue-400 font-bold text-sm">1</span>
-                    </div>
-                    <p class="text-sm text-gray-300 leading-relaxed">Escanea el código QR desde otro dispositivo o presiona sobre él</p>
-                </div>
-                <div class="flex items-start space-x-3 bg-gray-900/50 rounded-lg p-4 border border-gray-700/50">
-                    <div class="flex-shrink-0 w-8 h-8 bg-blue-500/20 rounded-lg flex items-center justify-center">
-                        <span class="text-blue-400 font-bold text-sm">2</span>
-                    </div>
-                    <p class="text-sm text-gray-300 leading-relaxed">Marca primero tu entrada, después podrás marcar tu salida</p>
-                </div>
-                <div class="flex items-start space-x-3 bg-gray-900/50 rounded-lg p-4 border border-gray-700/50">
-                    <div class="flex-shrink-0 w-8 h-8 bg-blue-500/20 rounded-lg flex items-center justify-center">
-                        <span class="text-blue-400 font-bold text-sm">3</span>
-                    </div>
-                    <p class="text-sm text-gray-300 leading-relaxed">Los códigos QR expiran en 5 minutos y son de un solo uso</p>
-                </div>
-                <div class="flex items-start space-x-3 bg-gray-900/50 rounded-lg p-4 border border-gray-700/50">
-                    <div class="flex-shrink-0 w-8 h-8 bg-blue-500/20 rounded-lg flex items-center justify-center">
-                        <span class="text-blue-400 font-bold text-sm">4</span>
-                    </div>
-                    <p class="text-sm text-gray-300 leading-relaxed">Si el código expira, genera uno nuevo con el botón correspondiente</p>
-                </div>
-            </div>
-        </div>
-    </x-container-second-div>
 
     <script>
         function downloadQR(elementId, filename) {
