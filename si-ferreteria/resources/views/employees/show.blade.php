@@ -228,25 +228,6 @@
                 </div>
             </x-container-second-div>
 
-            {{-- Roles --}}
-            <x-container-second-div>
-                <div class="p-6">
-                    <h3 class="text-xl font-bold text-gray-100 mb-6 flex items-center">
-                        <x-icons.roles class="w-5 h-5 mr-2"/>
-                        Roles Asignados
-                    </h3>
-
-                    <div class="flex flex-wrap gap-3">
-                        @forelse($user->roles as $role)
-                            <span class="px-4 py-2 bg-gradient-to-r from-blue-500/20 to-purple-500/20 text-blue-300 rounded-lg font-semibold border border-blue-500/30">
-                                {{ $role->name }}
-                            </span>
-                        @empty
-                            <p class="text-gray-400">No tiene roles asignados</p>
-                        @endforelse
-                    </div>
-                </div>
-            </x-container-second-div>
 
             {{-- Attendance History --}}
             @if($attendanceRecords->isNotEmpty())
