@@ -99,12 +99,27 @@
 
             {{-- Código QR --}}
             <div class="lg:border-l border-gray-700 lg:pl-8">
-                <h3 class="text-xl font-bold text-gray-100 mb-6 flex items-center border-b border-gray-700 pb-3">
-                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M12 12h.01M12 12h4.01M12 12h.01M12 12h4.01M12 12h.01"/>
-                    </svg>
-                    Código QR
-                </h3>
+                <div class="flex items-center justify-between mb-6 border-b border-gray-700 pb-3">
+                    <h3 class="text-xl font-bold text-gray-100 flex items-center">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M12 12h.01M12 12h4.01M12 12h.01M12 12h4.01M12 12h.01"/>
+                        </svg>
+                        Código QR
+                    </h3>
+
+                    {{-- Botón Regenerar QR siempre visible --}}
+                    <form method="POST" action="{{ route('attendance.regenerate') }}" class="inline">
+                        @csrf
+                        <button type="submit"
+                                class="inline-flex items-center px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-medium rounded-lg transition shadow-sm hover:shadow-md"
+                                title="Regenerar código QR">
+                            <svg class="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                            </svg>
+                            Regenerar
+                        </button>
+                    </form>
+                </div>
 
                 <div class="flex flex-col items-center justify-center h-full pb-6">
                     @if ($qrToken && !$qrToken->isExpired() && !$qrToken->used)
