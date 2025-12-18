@@ -102,7 +102,7 @@
                             <a href="{{ route('employees.show', auth()->id()) }}"
                                 class="flex items-center p-2 text-gray-400 rounded-lg hover:bg-gradient-to-r hover:from-purple-600/20 hover:to-pink-600/20 group transition-all duration-300 border-l-4 border-transparent hover:border-purple-500 text-base">
                                 <x-icons.user class="w-4 h-4 mr-2"/>
-                                Mi Información
+                                Información Laboral
                             </a>
                         </li>
 
